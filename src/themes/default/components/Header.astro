@@ -1,0 +1,181 @@
+---
+import { SITE_CONFIG } from '@config/site';
+import ThemeToggle from './ThemeToggle.astro';
+import dataService from '@lib/data';
+
+// 获取动态菜单项
+const menuItems = await dataService.getMenuItems();
+
+// 获取 Notion Database 的标题
+const dbInfo = await dataService.getDatabaseInfo();
+const siteTitle = dbInfo.title || SITE_CONFIG.title;
+---
+
+<header class="notion-header">
+  <div class="header-container">
+    <div class="header-content">
+      <!-- Logo / 站点名称 -->
+      <div class="logo">
+        <a href="/" class="logo-link">{siteTitle}</a>
+      </div>
+
+      <!-- 导航和主题切换 -->
+      <div class="header-actions">
+        <nav class="nav">
+          {menuItems.map(item => (
+            <a
+              href={item.url}
+              class="nav-link"
+              target={item.isExternal ? '_blank' : undefined}
+              rel={item.isExternal ? 'noopener noreferrer' : undefined}
+            >
+              {item.title}
+              {item.isExternal && <span class="external-icon">↗</span>}
+            </a>
+          ))}
+        </nav>
+        <ThemeToggle />
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .notion-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    backdrop-filter: saturate(180%) blur(20px);
+    transition: background-color var(--transition), border-color var(--transition);
+  }
+
+  /* 半透明效果 */
+  .notion-header {
+    background-color: rgba(255, 255, 255, 0.3);
+    border-bottom: 1px solid var(--notion-border);
+  }
+
+  :global(.dark) .notion-header {
+    background-color: rgba(25, 25, 25, 0.3);
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-2xl);
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 45px;
+  }
+
+  /* Logo */
+  .logo {
+    flex-shrink: 0;
+  }
+
+  .logo-link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--notion-text-primary);
+    text-decoration: none;
+    border: none;
+    transition: opacity var(--transition-fast);
+  }
+
+  .logo-link:hover {
+    opacity: 0.7;
+    border: none;
+  }
+
+  /* Header Actions */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  /* Navigation */
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+
+  .nav-link {
+    font-size: 0.875rem;
+    color: rgba(55, 53, 47, 0.8); /* 浅色模式：80% 不透明 */
+    text-decoration: none;
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  :global(.dark) .nav-link {
+    color: rgba(255, 255, 255, 0.75); /* 深色模式：75% 不透明 */
+  }
+
+  .nav-link:hover {
+    background-color: var(--notion-bg-hover);
+    color: var(--notion-text-primary);
+    border: none;
+  }
+
+  .external-icon {
+    display: inline-block;
+    margin-left: 0.25rem;
+    font-size: 0.75em;
+    opacity: 0.6;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .header-container {
+      padding: 0 var(--spacing-lg);
+    }
+
+    .header-content {
+      height: 45px;
+    }
+
+    .header-actions {
+      gap: var(--spacing-sm);
+    }
+
+    .nav {
+      gap: var(--spacing-sm);
+    }
+
+    .nav-link {
+      font-size: 0.8125rem;
+      padding: 4px 6px;
+    }
+
+    .logo-link {
+      font-size: 0.8125rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .header-container {
+      padding: 0 var(--spacing-md);
+    }
+
+    /* 在小屏幕上隐藏部分导航项或调整布局 */
+    .header-actions {
+      gap: var(--spacing-xs);
+    }
+
+    .nav {
+      gap: var(--spacing-xs);
+    }
+  }
+</style>

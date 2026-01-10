@@ -1,0 +1,73 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import { formatDate } from '@lib/utils/date';
+import type { PageLayoutProps } from '@lib/theme/types';
+import '@theme/styles/notion.css';
+
+const { page } = Astro.props as PageLayoutProps;
+---
+
+<BaseLayout title={page.title} description={page.summary}>
+  <article class="container content">
+    <!-- 页面头部 -->
+    <header class="page-header">
+      <h1>{page.title}</h1>
+      {page.summary && <p class="page-description">{page.summary}</p>}
+      {page.date && (
+        <div class="page-meta">
+          <time datetime={page.date}>
+            {formatDate(page.date)}
+          </time>
+          {page.updated && (
+            <span>· 更新于 {formatDate(page.updated)}</span>
+          )}
+        </div>
+      )}
+    </header>
+
+    <!-- 页面内容 -->
+    <div class="notion-content" set:html={page.content} />
+  </article>
+</BaseLayout>
+
+<style>
+  .page-header {
+    text-align: center;
+    padding: var(--spacing-xl) 0;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    margin-bottom: var(--spacing-md);
+    color: var(--color-text);
+  }
+
+  .page-description {
+    font-size: 1.125rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+  }
+
+  .page-meta {
+    font-size: 0.938rem;
+    color: var(--color-text-secondary);
+  }
+
+  .notion-content {
+    padding: var(--spacing-lg) 0;
+  }
+
+  @media (max-width: 768px) {
+    .page-header h1 {
+      font-size: 1.875rem;
+    }
+
+    .page-description {
+      font-size: 1rem;
+    }
+  }
+</style>

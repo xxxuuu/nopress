@@ -1,0 +1,625 @@
+---
+import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import dataService from '@lib/data';
+import { formatDate } from '@lib/utils/date';
+import '@theme/styles/notion.css';
+
+export async function getStaticPaths() {
+  console.log('[getStaticPaths] Function called');
+
+  const posts = await dataService.getAllPosts();
+
+  console.log(`[getStaticPaths] Total posts: ${posts.length}`);
+
+  // 验证 slug 的有效性
+  function isValidSlug(slug: string): boolean {
+    if (!slug || typeof slug !== 'string' || slug.length === 0) {
+      return false;
+    }
+
+    // slug 不能包含斜杠（会破坏路由）
+    if (slug.includes('/')) {
+      return false;
+    }
+
+    // slug 不能是 URL（不能包含协议）
+    if (slug.includes('://') || slug.includes('http') || slug.includes('https')) {
+      return false;
+    }
+
+    // slug 不能包含特殊字符（只允许字母、数字、连字符、下划线、中文）
+    if (!/^[a-zA-Z0-9\-_\u4e00-\u9fa5]+$/.test(slug)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // 检查并过滤无效的 slug
+  const invalidPosts = posts.filter(post => !isValidSlug(post.slug));
+  if (invalidPosts.length > 0) {
+    console.error(`[getStaticPaths] Found ${invalidPosts.length} posts with invalid slug:`,
+      invalidPosts.map(p => ({ id: p.id, title: p.title, slug: p.slug }))
+    );
+  }
+
+  const paths = posts
+    .filter(post => isValidSlug(post.slug))
+    .map(post => {
+      return {
+        params: { slug: post.slug },
+        props: { post },
+      };
+    });
+
+  console.log(`[getStaticPaths] Generated ${paths.length} valid paths (filtered out ${posts.length - paths.length} invalid)`);
+
+  return paths;
+}
+
+const { post } = Astro.props;
+
+---
+
+<BaseLayout title={post.title} description={post.description} image={post.coverUrl}>
+  <article class="content">
+    <!-- Notion 风格页面 -->
+    <div class="notion-page">
+      <!-- 封面图 - Notion 风格全宽封面 -->
+      {post.coverUrl && (
+        <div class="page-cover">
+          <img src={post.coverUrl} alt={post.title} loading="eager" />
+        </div>
+      )}
+
+      <div class="page-container">
+        <!-- 主内容区 -->
+        <div class="page-main">
+          <!-- 页面标题 - Notion 风格大标题 -->
+          <header class="page-header">
+            <h1 class="page-title">
+              {post.icon && (
+                post.icon.startsWith('http')
+                  ? <img src={post.icon} alt="" class="page-icon" />
+                  : <span class="page-icon-emoji">{post.icon}</span>
+              )}
+              {post.title}
+            </h1>
+          </header>
+
+          <!-- 页面属性 - Notion 风格属性列表 -->
+          <div class="page-properties">
+            {/* 发布日期 */}
+            <div class="property-row">
+              <div class="property-name">📅 发布日期</div>
+              <div class="property-value">
+                <time datetime={post.publishedAt}>
+                  {formatDate(post.publishedAt)}
+                </time>
+              </div>
+            </div>
+
+            {/* 更新日期 */}
+            {post.updatedAt && (
+              <div class="property-row">
+                <div class="property-name">🔄 更新日期</div>
+                <div class="property-value">
+                  <time datetime={post.updatedAt}>
+                    {formatDate(post.updatedAt)}
+                  </time>
+                </div>
+              </div>
+            )}
+
+            {/* 阅读时间 */}
+            {post.readingTime && (
+              <div class="property-row">
+                <div class="property-name">⏱️ 阅读时间</div>
+                <div class="property-value">{post.readingTime} 分钟</div>
+              </div>
+            )}
+
+            {/* 标签 */}
+            {post.tags.length > 0 && (
+              <div class="property-row">
+                <div class="property-name">🏷️ 标签</div>
+                <div class="property-value tags-value">
+                  {post.tags.map(tag => (
+                    <a href={`/tag/${tag.toLowerCase()}`} class="tag-pill">{tag}</a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 摘要 */}
+            {post.description && (
+              <div class="property-row">
+                <div class="property-name">📝 摘要</div>
+                <div class="property-value">{post.description}</div>
+              </div>
+            )}
+          </div>
+
+          <!-- 分隔线 -->
+          <hr class="page-divider" />
+
+          <!-- 页面内容 -->
+          <div class="notion-content" set:html={post.content} />
+
+          <!-- 页面底部 -->
+          <footer class="page-footer">
+            <a href="/" class="back-link">← 返回首页</a>
+          </footer>
+        </div>
+
+        <!-- 目录侧边栏 -->
+        <aside class="toc-container">
+          <div class="toc-wrapper">
+            <div class="toc-title">目录</div>
+            <nav class="toc-nav">
+              <!-- 目录内容由 JavaScript 生成 -->
+            </nav>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </article>
+</BaseLayout>
+
+<script>
+  import { initTableOfContents } from '@/scripts/table-of-contents';
+  initTableOfContents();
+</script>
+
+<style>
+  /* Notion 页面容器 */
+  .notion-page {
+    max-width: 100%;
+  }
+
+  /* 页面容器 - 相对定位，用于定位目录 */
+  .page-container {
+    position: relative;
+    max-width: 900px; /* 正文最大宽度 */
+    margin: 0 auto;
+  }
+
+  .page-main {
+    width: 100%;
+  }
+
+  /* 封面图 - Notion 风格全宽封面 */
+  .page-cover {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: -45px; /* 向上移动抵消 main 的 padding-top，让封面图从顶部开始 */
+    height: 30vh;
+    min-height: 280px;
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+  .page-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 页面标题 - Notion 风格 */
+  .page-header {
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--notion-text-primary);
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* 页面图标 */
+  .page-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .page-icon-emoji {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* 页面属性 - Notion 风格 */
+  .page-properties {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xl);
+  }
+
+  .property-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    min-height: 28px;
+  }
+
+  .property-name {
+    flex-shrink: 0;
+    width: 140px;
+    color: var(--notion-text-secondary);
+    font-weight: 500;
+  }
+
+  .property-value {
+    flex: 1;
+    color: var(--notion-text-primary);
+  }
+
+  /* 标签值 */
+  .tags-value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background-color: var(--notion-bg-secondary);
+    color: var(--notion-text-secondary);
+    border-radius: 3px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+    border: none;
+  }
+
+  .tag-pill:hover {
+    background-color: var(--notion-bg-hover);
+    color: var(--notion-text-primary);
+    border: none;
+  }
+
+  /* 分隔线 */
+  .page-divider {
+    margin: var(--spacing-xl) 0;
+    border: none;
+    border-top: 1px solid var(--notion-border);
+  }
+
+  /* Notion 内容 */
+  .notion-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--notion-text-primary);
+    margin-bottom: var(--spacing-3xl);
+  }
+
+  /* 页面底部 */
+  .page-footer {
+    padding-top: var(--spacing-2xl);
+    margin-top: var(--spacing-2xl);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--notion-text-secondary);
+    text-decoration: none;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    border: none;
+  }
+
+  .back-link:hover {
+    background-color: var(--notion-bg-hover);
+    color: var(--notion-text-primary);
+    border: none;
+  }
+
+  /* ========== 目录样式 ========== */
+
+  .toc-container {
+    position: fixed;
+    right: max(32px, calc((100vw - 900px) / 2 - 240px - 48px));
+    top: 100px; /* 初始值，会被 JavaScript 动态调整 */
+    width: 240px;
+    max-height: calc(100vh - 120px); /* 初始值，会被 JavaScript 动态调整 */
+    overflow-y: auto;
+    z-index: 10;
+  }
+
+  .toc-wrapper {
+    padding: 0;
+  }
+
+  .toc-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(55, 53, 47, 0.65);
+    margin-bottom: var(--spacing-md);
+    padding-left: 0;
+  }
+
+  :root.dark .toc-title {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .toc-nav {
+    font-size: 0.875rem;
+  }
+
+  /* 动态生成的目录列表需要全局样式 */
+  :global(.toc-list) {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    padding-left: 0;
+  }
+
+  :global(.toc-item) {
+    margin: 2px 0;
+    padding: 0;
+    line-height: 1.5;
+  }
+
+  :global(.toc-link) {
+    color: rgba(55, 53, 47, 0.65);
+    text-decoration: none;
+    transition: color 0.12s ease;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-bottom: none !important;
+    display: block;
+  }
+
+  :root.dark :global(.toc-link) {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  :global(.toc-link:hover) {
+    color: rgba(55, 53, 47, 0.85);
+    border-bottom: none !important;
+  }
+
+  :root.dark :global(.toc-link:hover) {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  :global(.toc-link.toc-active) {
+    color: rgb(35, 131, 226);
+  }
+
+  :root.dark :global(.toc-link.toc-active) {
+    color: rgb(82, 156, 202);
+  }
+
+  /* 滚动条样式 */
+  .toc-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(55, 53, 47, 0.16) transparent;
+  }
+
+  .toc-container::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .toc-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-container::-webkit-scrollbar-thumb {
+    background: rgba(55, 53, 47, 0.16);
+    border-radius: 2px;
+  }
+
+  .toc-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(55, 53, 47, 0.24);
+  }
+
+  :root.dark .toc-container {
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+
+  :root.dark .toc-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  :root.dark .toc-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  /* 空目录时隐藏 */
+  .toc-empty {
+    display: none;
+  }
+
+  /* 响应式 */
+  @media (min-width: 769px) and (max-width: 1440px) {
+    /* 窄屏模式 - 显示为短横条 */
+    .toc-container {
+      width: auto;
+      max-width: 60px;
+      right: 24px;
+      background: transparent;
+      padding: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toc-title {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.2s ease 0.15s;
+    }
+
+    .toc-nav {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* 短横条列表 */
+    :global(.toc-list) {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    /* 非 hover 时横条左对齐 */
+    .toc-container:not(:hover) :global(.toc-item) {
+      margin: 6px 0 !important;
+      padding: 0;
+      line-height: 1;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: auto;
+    }
+
+    :global(.toc-link) {
+      display: flex;
+      align-items: center;
+      width: var(--bar-width, 32px);
+      max-width: 240px;
+      height: 3px;
+      padding: 0;
+      background: rgba(55, 53, 47, 0.15);
+      border-radius: 2px;
+      color: transparent;
+      font-size: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-bottom: none !important;
+    }
+
+    :root.dark :global(.toc-link) {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Active 状态 */
+    :global(.toc-link.toc-active) {
+      background: rgba(55, 53, 47, 0.5);
+    }
+
+    :root.dark :global(.toc-link.toc-active) {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Hover 整个容器时展开 */
+    .toc-container:hover {
+      width: 240px;
+      max-width: 240px;
+      background: var(--notion-bg-primary);
+      border: 1px solid var(--notion-border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: rgba(15, 15, 15, 0.03) 0px 0px 0px 1px,
+                  rgba(15, 15, 15, 0.05) 0px 5px 10px,
+                  rgba(15, 15, 15, 0.08) 0px 15px 40px;
+    }
+
+    :root.dark .toc-container:hover {
+      background: var(--notion-bg-primary);
+      box-shadow: rgba(255, 255, 255, 0.03) 0px 0px 0px 1px,
+                  rgba(0, 0, 0, 0.2) 0px 5px 10px,
+                  rgba(0, 0, 0, 0.3) 0px 15px 40px;
+    }
+
+    /* 容器hover时显示标题 */
+    .toc-container:hover .toc-title {
+      display: block;
+      opacity: 1;
+    }
+
+    /* 容器hover时显示完整文字 */
+    .toc-container:hover :global(.toc-link) {
+      width: auto;
+      height: auto;
+      min-height: auto;
+      padding: 0;
+      background: transparent;
+      color: rgba(55, 53, 47, 0.65);
+      font-size: 0.875rem;
+      border-radius: 0;
+    }
+
+    :root.dark .toc-container:hover :global(.toc-link) {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* 容器hover时的链接hover效果 */
+    .toc-container:hover :global(.toc-link:hover) {
+      color: rgba(55, 53, 47, 0.85);
+      background: transparent;
+    }
+
+    :root.dark .toc-container:hover :global(.toc-link:hover) {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    /* 容器hover时的active状态 */
+    .toc-container:hover :global(.toc-link.toc-active) {
+      color: rgb(35, 131, 226);
+      background: transparent;
+    }
+
+    :root.dark .toc-container:hover :global(.toc-link.toc-active) {
+      color: rgb(82, 156, 202);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .toc-container {
+      display: none;
+    }
+
+    .page-cover {
+      height: 25vh;
+      min-height: 200px;
+      max-height: 300px;
+    }
+
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .property-row {
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .property-name {
+      width: auto;
+      font-size: 0.8125rem;
+    }
+
+    .property-value {
+      font-size: 0.8125rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>

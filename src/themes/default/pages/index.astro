@@ -1,0 +1,381 @@
+---
+import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import { SITE_CONFIG } from '@config/site';
+import dataService from '@lib/data';
+import { formatDate } from '@lib/utils/date';
+
+// 获取所有文章数据（首页即为文章列表页）
+const allPosts = await dataService.getAllPosts();
+
+// 获取 Notion Database 的标题、描述、封面和图标
+const dbInfo = await dataService.getDatabaseInfo();
+const pageTitle = dbInfo.title || SITE_CONFIG.title;
+const pageDescription = dbInfo.description || SITE_CONFIG.description;
+const pageCover = dbInfo.coverUrl || '';
+const pageIcon = dbInfo.icon || '';
+---
+
+<BaseLayout>
+  <div class="content">
+    <!-- Database 封面图（如果有） -->
+    {pageCover && (
+      <div class="page-cover">
+        <img src={pageCover} alt={pageTitle} loading="eager" />
+      </div>
+    )}
+
+    <!-- Notion 风格页面标题 -->
+    <header class="page-header">
+      <h1 class="page-title">
+        {pageIcon && (
+          pageIcon.startsWith('http')
+            ? <img src={pageIcon} alt="" class="page-icon" />
+            : <span class="page-icon-emoji">{pageIcon}</span>
+        )}
+        {pageTitle}
+      </h1>
+      {pageDescription && (
+        <p class="page-description">{pageDescription}</p>
+      )}
+    </header>
+
+    <!-- Notion 数据库视图 - 列表风格 -->
+    <div class="notion-database">
+      {allPosts.map(post => (
+        <article class="database-row">
+          <a href={`/post/${post.slug}`} class="row-link">
+            <div class="row-content">
+              <div class="row-main">
+                <!-- 标题列 -->
+                <div class="row-title">
+                  {post.icon ? (
+                    post.icon.startsWith('http')
+                      ? <img src={post.icon} alt="" class="title-icon-img" />
+                      : <span class="title-icon-emoji">{post.icon}</span>
+                  ) : (
+                    <span class="title-icon">📄</span>
+                  )}
+                  <h2 class="title-text">{post.title}</h2>
+                </div>
+
+                <!-- 属性列 -->
+                <div class="row-properties">
+                  <!-- 标签 -->
+                  {post.tags.length > 0 && (
+                    <div class="property tags-property">
+                      {post.tags.map(tag => (
+                        <span class="tag-pill">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  <!-- 日期 -->
+                  <div class="property date-property">
+                    <time datetime={post.publishedAt}>
+                      {formatDate(post.publishedAt)}
+                    </time>
+                  </div>
+                </div>
+
+                <!-- 摘要 -->
+                {post.description && (
+                  <p class="row-description">{post.description}</p>
+                )}
+              </div>
+
+              <!-- 封面图缩略图（如果有） -->
+              {post.coverUrl && (
+                <div class="row-cover">
+                  <img src={post.coverUrl} alt={post.title} loading="lazy" />
+                </div>
+              )}
+            </div>
+          </a>
+        </article>
+      ))}
+    </div>
+
+    {allPosts.length === 0 && (
+      <div class="empty-state">
+        <p>暂无文章</p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* Database 封面图 - Notion 风格全宽封面 */
+  .page-cover {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: -45px; /* 向上移动抵消 main 的 padding-top，让封面图从顶部开始 */
+    height: 30vh;
+    min-height: 280px;
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+  .page-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 页面头部 - Notion 风格 */
+  .page-header {
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--spacing-sm);
+    color: var(--notion-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* 页面图标 */
+  .page-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .page-icon-emoji {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .page-description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--notion-text-secondary);
+    margin: 0;
+  }
+
+  /* Notion 数据库视图容器 */
+  .notion-database {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* 数据库行 - Notion 风格 */
+  .database-row {
+    background-color: var(--notion-bg-primary);
+    transition: background-color var(--transition-fast);
+    border-radius: var(--radius-sm);
+  }
+
+  .database-row:hover {
+    background-color: var(--notion-bg-hover);
+  }
+
+  .row-link {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    text-decoration: none;
+    color: inherit;
+    border: none;
+  }
+
+  .row-link:hover {
+    border: none;
+  }
+
+  .row-content {
+    display: flex;
+    gap: var(--spacing-md);
+  }
+
+  /* 封面图缩略图 - 横向长方形 */
+  .row-cover {
+    flex-shrink: 0;
+    width: 140px;
+    height: 90px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--notion-bg-secondary);
+  }
+
+  .row-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 行主体内容 */
+  .row-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0; /* 防止 flex 子元素溢出 */
+  }
+
+  /* 标题行 */
+  .row-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .title-icon,
+  .title-icon-emoji {
+    font-size: 1.125rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .title-icon-img {
+    width: 1.125rem;
+    height: 1.125rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .title-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.3;
+    margin: 0;
+    color: var(--notion-text-primary);
+    transition: color var(--transition-fast);
+  }
+
+  .row-link:hover .title-text {
+    color: var(--notion-link);
+  }
+
+  /* 属性行 */
+  .row-properties {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    margin-left: calc(1.125rem + var(--spacing-sm)); /* 对齐图标 */
+  }
+
+  .property {
+    display: flex;
+    align-items: center;
+    font-size: 0.8125rem;
+    color: var(--notion-text-secondary);
+  }
+
+  /* 标签样式 - Notion pill */
+  .tags-property {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+  }
+
+  .tag-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background-color: var(--notion-bg-secondary);
+    color: var(--notion-text-secondary);
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: background-color var(--transition-fast);
+  }
+
+  .database-row:hover .tag-pill {
+    background-color: var(--notion-bg-hover);
+  }
+
+  /* 日期样式 */
+  .date-property {
+    color: var(--notion-text-tertiary);
+    font-size: 0.8125rem;
+  }
+
+  /* 描述文本 */
+  .row-description {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--notion-text-secondary);
+    margin: 0;
+    margin-left: calc(1.125rem + var(--spacing-sm)); /* 对齐图标 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 空状态 */
+  .empty-state {
+    padding: var(--spacing-3xl) 0;
+    text-align: center;
+    color: var(--notion-text-tertiary);
+    font-size: 0.875rem;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .page-cover {
+      height: 25vh;
+      min-height: 200px;
+      max-height: 300px;
+    }
+
+    .page-title {
+      font-size: 2rem;
+    }
+
+    .row-cover {
+      width: 110px;
+      height: 70px;
+    }
+
+    .row-link {
+      padding: var(--spacing-sm) var(--spacing-xs);
+    }
+
+    .row-properties {
+      margin-left: 0;
+      font-size: 0.75rem;
+    }
+
+    .row-description {
+      margin-left: 0;
+      font-size: 0.8125rem;
+    }
+
+    .title-icon {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title {
+      font-size: 1.75rem;
+    }
+
+    .row-cover {
+      width: 90px;
+      height: 60px;
+    }
+
+    .row-properties {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--spacing-xs);
+    }
+  }
+</style>

@@ -1,0 +1,138 @@
+---
+import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import dataService from '@lib/data';
+import '@theme/styles/notion.css';
+
+export async function getStaticPaths() {
+  const pages = await dataService.getAllPages();
+
+  console.log(`[getStaticPaths] Total pages: ${pages.length}`);
+
+  // 验证 slug 的有效性（与 blog/[slug].astro 相同）
+  function isValidSlug(slug: string): boolean {
+    if (!slug || typeof slug !== 'string' || slug.length === 0) {
+      return false;
+    }
+
+    // slug 不能包含斜杠（会破坏路由）
+    if (slug.includes('/')) {
+      return false;
+    }
+
+    // slug 不能是 URL（不能包含协议）
+    if (slug.includes('://') || slug.includes('http') || slug.includes('https')) {
+      return false;
+    }
+
+    // slug 不能包含特殊字符（只允许字母、数字、连字符、下划线、中文）
+    if (!/^[a-zA-Z0-9\-_\u4e00-\u9fa5]+$/.test(slug)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  // 检查并过滤无效的 slug
+  const invalidPages = pages.filter(page => !isValidSlug(page.slug));
+  if (invalidPages.length > 0) {
+    console.error(`[getStaticPaths] Found ${invalidPages.length} pages with invalid slug:`,
+      invalidPages.map(p => ({ id: p.id, title: p.title, slug: p.slug }))
+    );
+  }
+
+  const paths = pages
+    .filter(page => isValidSlug(page.slug))
+    .map(page => ({
+      params: { slug: page.slug },
+      props: { page },
+    }));
+
+  console.log(`[getStaticPaths] Generated ${paths.length} valid page paths (filtered out ${pages.length - paths.length} invalid)`);
+
+  return paths;
+}
+
+const { page } = Astro.props;
+---
+
+<BaseLayout title={page.title} description={page.description} image={page.coverUrl}>
+  <article class="content">
+    <!-- Notion 风格页面 -->
+    <div class="notion-page">
+      <!-- 页面标题 - Notion 风格 -->
+      <header class="page-header">
+        <h1 class="page-title">
+          {page.icon && (
+            page.icon.startsWith('http')
+              ? <img src={page.icon} alt="" class="page-icon" />
+              : <span class="page-icon-emoji">{page.icon}</span>
+          )}
+          {page.title}
+        </h1>
+      </header>
+
+      <!-- 页面内容（独立页面不显示元数据） -->
+      <div class="notion-content" set:html={page.content} />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  /* Notion 页面容器 */
+  .notion-page {
+    max-width: 100%;
+  }
+
+  /* 页面标题 - Notion 风格 */
+  .page-header {
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--notion-text-primary);
+    word-wrap: break-word;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* 页面图标 */
+  .page-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .page-icon-emoji {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  /* Notion 内容 */
+  .notion-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--notion-text-primary);
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>

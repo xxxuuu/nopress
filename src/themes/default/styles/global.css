@@ -1,0 +1,369 @@
+/**
+ * NoPress 默认主题 - Notion 风格全局样式
+ * 力求还原 Notion 原汁原味的界面设计
+ */
+
+/* 导入图片 Gallery 样式 */
+@import './image-gallery.css';
+
+/* ========== CSS 变量定义 ========== */
+
+:root {
+  /* Notion 浅色主题配色 */
+  --notion-bg-primary: #ffffff;
+  --notion-bg-secondary: rgba(66,35,3,.031);
+  --notion-bg-hover: rgba(55, 53, 47, 0.08);
+
+  --notion-text-primary: #37352f;
+  --notion-text-secondary: rgba(55, 53, 47, 0.65);
+  --notion-text-tertiary: rgba(55, 53, 47, 0.45);
+
+  --notion-border: rgba(55, 53, 47, 0.09);
+  --notion-border-hover: rgba(55, 53, 47, 0.16);
+
+  --notion-link: #0b6e99;
+  --notion-link-hover: #095b7e;
+
+  --notion-code-bg: rgba(135, 131, 120, 0.15);
+  --notion-code-text: #eb5757;
+
+  /* Notion 字体系统 */
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-serif: Lyon-Text, Georgia, ui-serif, serif;
+  --font-mono: "SFMono-Regular", Menlo, Consolas, "PT Mono", "Liberation Mono", Courier, monospace;
+
+  /* 间距系统 - 使用 4px 基准 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* 圆角 - Notion 风格小圆角 */
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+
+  /* 阴影 - 极简阴影 */
+  --shadow-sm: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 3px 6px, rgba(15, 15, 15, 0.2) 0px 9px 24px;
+  --shadow-md: rgba(15, 15, 15, 0.05) 0px 0px 0px 1px, rgba(15, 15, 15, 0.1) 0px 5px 10px, rgba(15, 15, 15, 0.2) 0px 15px 40px;
+
+  /* 过渡 */
+  --transition-fast: 120ms ease;
+  --transition: 200ms ease;
+}
+
+/* ========== 深色主题 ========== */
+
+:root.dark {
+  --notion-bg-primary: #191919;
+  --notion-bg-secondary: #2f2f2f;
+  --notion-bg-hover: rgba(255, 255, 255, 0.055);
+
+  --notion-text-primary: rgba(255, 255, 255, 0.9);
+  --notion-text-secondary: rgba(255, 255, 255, 0.6);
+  --notion-text-tertiary: rgba(255, 255, 255, 0.4);
+
+  --notion-border: rgba(255, 255, 255, 0.09);
+  --notion-border-hover: rgba(255, 255, 255, 0.16);
+
+  --notion-link: #6cb8e0;
+  --notion-link-hover: #8ecde8;
+
+  --notion-code-bg: rgba(255, 255, 255, 0.1);
+  --notion-code-text: #ff6b6b;
+}
+
+/* ========== 重置和基础样式 ========== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--notion-text-primary);
+  background-color: var(--notion-bg-primary);
+  transition: background-color var(--transition), color var(--transition);
+}
+
+/* ========== 标题 - Notion 风格 ========== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+  color: var(--notion-text-primary);
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-top: 0;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+h6 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ========== 段落和文本 ========== */
+
+p {
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-style: italic;
+}
+
+/* ========== 链接 - Notion 风格（符合无障碍规范） ========== */
+
+a {
+  color: var(--notion-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, var(--notion-link) 50%, transparent);
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+a:hover {
+  color: var(--notion-link-hover);
+  text-decoration-color: var(--notion-link-hover);
+}
+
+/* ========== 列表 ========== */
+
+ul, ol {
+  margin: 0.5em 0 0.5em 1.5em;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 0.25em;
+  line-height: 1.6;
+}
+
+/* ========== 代码 - Notion 风格 ========== */
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.2em 0.4em;
+  background-color: var(--notion-code-bg);
+  color: var(--notion-code-text);
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: var(--spacing-lg);
+  background-color: var(--notion-bg-secondary);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+pre code {
+  padding: 0;
+  background-color: transparent;
+  /* 不设置 color，让 Prism token 的语法高亮颜色生效 */
+  font-weight: 400;
+}
+
+/* ========== 引用 - Notion 风格 ========== */
+
+blockquote {
+  margin: 1em 0;
+  padding: 3px 0 3px 16px;
+  border-left: 3px solid var(--notion-text-primary);
+  color: var(--notion-text-primary);
+  font-size: 1em;
+  line-height: 1.6;
+}
+
+/* ========== 分隔线 - Notion 风格 ========== */
+
+hr {
+  margin: 1.5em 0;
+  border: none;
+  border-top: 1px solid var(--notion-border);
+}
+
+/* ========== 图片 ========== */
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: var(--radius-md);
+}
+
+/* ========== 表格 - Notion 风格 ========== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.95em;
+}
+
+th, td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  border: 1px solid var(--notion-border);
+}
+
+th {
+  font-weight: 600;
+  background-color: var(--notion-bg-secondary);
+  color: var(--notion-text-secondary);
+  font-size: 0.875em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+tr:hover {
+  background-color: var(--notion-bg-hover);
+}
+
+/* ========== 容器 ========== */
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-2xl);
+}
+
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+}
+
+/* ========== 选择文本 ========== */
+
+::selection {
+  background-color: rgba(45, 170, 219, 0.3);
+}
+
+::-moz-selection {
+  background-color: rgba(45, 170, 219, 0.3);
+}
+
+/* ========== 滚动条 - Notion 风格 ========== */
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(55, 53, 47, 0.2);
+  border-radius: 6px;
+  border: 3px solid var(--notion-bg-primary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(55, 53, 47, 0.3);
+}
+
+:root.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--notion-bg-primary);
+}
+
+:root.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ========== 响应式 ========== */
+
+@media (max-width: 768px) {
+  html {
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.625rem;
+  }
+
+  h3 {
+    font-size: 1.375rem;
+  }
+
+  .content {
+    padding: 0 var(--spacing-lg);
+  }
+
+  .container {
+    padding: 0 var(--spacing-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  .content,
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+}

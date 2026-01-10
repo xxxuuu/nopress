@@ -1,0 +1,101 @@
+---
+import { SITE_CONFIG } from '@config/site';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonicalURL?: string;
+}
+
+const {
+  title = SITE_CONFIG.title,
+  description = SITE_CONFIG.description,
+  image = SITE_CONFIG.seo.ogImage,
+  canonicalURL,
+} = Astro.props;
+
+const canonical = canonicalURL || new URL(Astro.url.pathname, Astro.site);
+const fullTitle = title === SITE_CONFIG.title ? title : `${title} | ${SITE_CONFIG.title}`;
+---
+
+<!doctype html>
+<html lang={SITE_CONFIG.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={canonical} />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL(image, Astro.site)} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={SITE_CONFIG.seo.twitterCard} />
+    <meta name="twitter:site" content={SITE_CONFIG.seo.twitterSite} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={new URL(image, Astro.site)} />
+
+    <!-- PhotoSwipe CSS 用于图片预览 (异步加载，避免阻塞首屏渲染) -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" /></noscript>
+
+    <!-- 防止主题闪烁的脚本 (必须在 head 中 inline) -->
+    <script is:inline>
+      (function() {
+        const theme = localStorage.getItem('theme') ||
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <Header />
+    <main class="notion-main">
+      <slot />
+    </main>
+    <Footer />
+
+    <!-- 语法高亮、数学公式、图表渲染和图片预览 -->
+    <script>
+      import '@/scripts/syntax-highlight';
+      import '@/scripts/code-copy';
+      import '@/scripts/math-rendering';
+      import '@/scripts/mermaid-rendering';
+      import '@/scripts/image-gallery';
+    </script>
+  </body>
+</html>
+
+<style>
+  .notion-main {
+    min-height: calc(100vh - 150px);
+    padding-bottom: var(--spacing-3xl);
+    /* 为 fixed header 预留空间（45px header 高度） */
+    padding-top: 45px;
+    overflow-x: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .notion-main {
+      padding-bottom: var(--spacing-2xl);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .notion-main {
+      padding-bottom: var(--spacing-xl);
+    }
+  }
+</style>

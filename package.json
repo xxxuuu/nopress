@@ -1,0 +1,39 @@
+{
+  "name": "nopress",
+  "type": "module",
+  "version": "0.1.0",
+  "description": "NoPress - A powerful blog generator combining Notion and WordPress simplicity, powered by Astro",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.7",
+    "@astrojs/sitemap": "^3.1.6",
+    "@notionhq/client": "^5.6.0",
+    "astro": "^4.15.0",
+    "date-fns": "^3.6.0",
+    "dotenv": "^17.2.3",
+    "katex": "^0.16.27",
+    "mermaid": "^11.12.2",
+    "metascraper": "^5.49.15",
+    "metascraper-author": "^5.49.15",
+    "metascraper-date": "^5.49.15",
+    "metascraper-description": "^5.49.15",
+    "metascraper-image": "^5.49.15",
+    "metascraper-logo": "^5.49.15",
+    "metascraper-publisher": "^5.49.15",
+    "metascraper-title": "^5.49.15",
+    "metascraper-url": "^5.49.15",
+    "notion-client": "^7.7.3",
+    "p-limit": "^7.2.0",
+    "prismjs": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}

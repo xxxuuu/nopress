@@ -1,0 +1,244 @@
+/**
+ * PhotoSwipe 自定义样式
+ * 深色模式适配 + NoPress 主题整合
+ * 包括：背景效果、按钮样式、说明文字、响应式等
+ */
+
+/* ========== 基础覆盖 ========== */
+
+/* 背景遮罩 */
+.pswp__bg {
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* 图片说明文字 - 在缩略图列表上方 */
+.pswp__caption {
+  position: fixed;
+  bottom: 130px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 12px 20px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10050;
+}
+
+/* 空 caption 隐藏 */
+.pswp__caption--empty {
+  display: none;
+}
+
+/* 图片计数器 */
+.pswp__counter {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== 深色模式适配 ========== */
+
+:root.dark .pswp__bg {
+  background: rgba(0, 0, 0, 0.98);
+}
+
+:root.dark .pswp__caption {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ========== 原文章图片样式增强 ========== */
+
+.notion-image a.glightbox {
+  display: inline-block;
+  cursor: zoom-in;
+  transition: opacity 0.3s ease;
+  border: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.notion-image a.glightbox:hover {
+  border: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+  opacity: 0.9;
+}
+
+.notion-image a.glightbox:focus {
+  border: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+.notion-image a.glightbox img {
+  transition: transform 0.3s ease;
+  display: block;
+}
+
+.notion-image a.glightbox:hover img {
+  transform: scale(1.02);
+}
+
+/* ========== 响应式调整 ========== */
+
+@media (max-width: 768px) {
+  .pswp__caption {
+    font-size: 0.85rem;
+    padding: 10px 16px;
+    max-width: 95%;
+  }
+
+  .pswp__button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pswp__caption {
+    font-size: 0.8rem;
+    padding: 8px 14px;
+  }
+
+  .pswp__counter {
+    font-size: 0.75rem;
+  }
+}
+
+/* ========== 加载动画 ========== */
+
+.pswp__preloader {
+  width: 40px;
+  height: 40px;
+}
+
+.pswp__preloader__icn {
+  fill: var(--color-primary, #3b82f6);
+}
+
+/* ========== Zoom 动画优化 ========== */
+
+.pswp--zoom-allowed .pswp__img {
+  cursor: zoom-in;
+}
+
+.pswp--zoomed-in .pswp__img {
+  cursor: grab;
+}
+
+.pswp--dragging .pswp__img {
+  cursor: grabbing;
+}
+
+/* ========== 缩略图栏样式 ========== */
+
+.pswp__thumbnails {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  max-height: 120px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 10050;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  scroll-behavior: smooth;
+}
+
+.pswp__thumbnails::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pswp__thumbnails::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pswp__thumbnails::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.pswp__thumbnails::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pswp__thumbnail {
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm, 6px);
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.pswp__thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.pswp__thumbnail:hover {
+  opacity: 0.85;
+  transform: scale(1.08);
+}
+
+.pswp__thumbnail--active {
+  border-color: var(--color-primary, #3b82f6);
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+}
+
+:root.dark .pswp__thumbnails {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+  .pswp__thumbnails {
+    padding: 10px 16px;
+    max-height: 100px;
+  }
+
+  .pswp__thumbnail {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pswp__thumbnails {
+    padding: 8px 12px;
+    max-height: 80px;
+  }
+
+  .pswp__thumbnail {
+    width: 45px;
+    height: 45px;
+  }
+}

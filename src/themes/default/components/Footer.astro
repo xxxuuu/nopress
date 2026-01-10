@@ -1,0 +1,81 @@
+---
+import { SITE_CONFIG } from '@config/site';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="copyright">
+        <p>&copy; {currentYear} {SITE_CONFIG.author.name}. All rights reserved.</p>
+        <p class="powered-by">Powered by <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> & <a href="https://www.notion.so" target="_blank" rel="noopener noreferrer">Notion</a></p>
+      </div>
+      <div class="social-links">
+        {Object.entries(SITE_CONFIG.author.social).map(([platform, url]) => (
+          <a href={url} target="_blank" rel="noopener noreferrer" class="social-link">
+            {platform.charAt(0).toUpperCase() + platform.slice(1)}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    background-color: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    padding: var(--spacing-xl) 0;
+    margin-top: var(--spacing-xl);
+  }
+
+  .footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-lg);
+  }
+
+  .copyright {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  .copyright p {
+    margin: 0.25rem 0;
+  }
+
+  .powered-by {
+    opacity: 0.8;
+  }
+
+  .powered-by a {
+    color: var(--color-primary);
+    font-weight: 500;
+  }
+
+  .social-links {
+    display: flex;
+    gap: var(--spacing-md);
+  }
+
+  .social-link {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color var(--transition);
+    text-decoration: none;
+  }
+
+  .social-link:hover {
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>
