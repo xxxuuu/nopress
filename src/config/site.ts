@@ -19,9 +19,9 @@ export const SITE_CONFIG = {
     social: {
       github: 'https://github.com/yourusername',
       twitter: 'https://twitter.com/yourusername',
+      email: 'mailto:your@email.com',
       // 可以添加更多社交链接
       // linkedin: 'https://linkedin.com/in/yourusername',
-      // email: 'mailto:your@email.com',
     },
   },
 
