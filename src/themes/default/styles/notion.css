@@ -1209,10 +1209,6 @@ code.notion-equation .katex {
   text-align: left;
 }
 
-.notion-table thead {
-  background-color: var(--notion-bg-secondary);
-}
-
 .notion-table th {
   font-weight: 600;
   color: var(--notion-text-secondary);

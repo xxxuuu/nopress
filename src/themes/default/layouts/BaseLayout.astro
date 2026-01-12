@@ -1,5 +1,7 @@
 ---
 import { SITE_CONFIG } from '@config/site';
+import { getMetaConfig } from '@core/config/meta';
+import { generateMetaTags } from '@core/lib/meta-helpers';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -13,51 +15,68 @@ interface Props {
 
 const {
   title = SITE_CONFIG.title,
-  description = SITE_CONFIG.description,
+  description,
   image = SITE_CONFIG.seo.ogImage,
   canonicalURL,
 } = Astro.props;
 
+// 从 core 获取元信息配置
+const metaConfig = getMetaConfig(SITE_CONFIG);
 const canonical = canonicalURL || new URL(Astro.url.pathname, Astro.site);
 const fullTitle = title === SITE_CONFIG.title ? title : `${title} | ${SITE_CONFIG.title}`;
+
+// 使用 core 工具函数生成 meta 标签
+const metaTags = generateMetaTags(
+  metaConfig,
+  title,
+  canonical.pathname,
+  description,
+);
 ---
 
 <!doctype html>
-<html lang={SITE_CONFIG.language}>
+<html lang={metaConfig.language}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={canonical} />
 
-    <title>{fullTitle}</title>
-    <meta name="description" content={description} />
+    <!-- RSS Feed 自动发现 -->
+    {metaConfig.enableRSS && (
+      <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
+    )}
+
+    <title>{metaTags.title}</title>
+    <meta name="description" content={metaTags.description} />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical} />
-    <meta property="og:title" content={fullTitle} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={new URL(image, Astro.site)} />
+    <meta property="og:type" content={metaTags.ogType} />
+    <meta property="og:url" content={metaTags.ogUrl} />
+    <meta property="og:title" content={metaTags.ogTitle} />
+    <meta property="og:description" content={metaTags.ogDescription} />
+    <meta property="og:image" content={metaTags.ogImage} />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content={SITE_CONFIG.seo.twitterCard} />
-    <meta name="twitter:site" content={SITE_CONFIG.seo.twitterSite} />
-    <meta name="twitter:title" content={fullTitle} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={new URL(image, Astro.site)} />
+    <meta name="twitter:card" content={metaTags.twitterCard} />
+    {metaTags.twitterSite && <meta name="twitter:site" content={metaTags.twitterSite} />}
+    <meta name="twitter:title" content={metaTags.twitterTitle} />
+    <meta name="twitter:description" content={metaTags.twitterDescription} />
+    <meta name="twitter:image" content={metaTags.twitterImage} />
 
     <!-- PhotoSwipe CSS 用于图片预览 (异步加载，避免阻塞首屏渲染) -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" /></noscript>
 
     <!-- 防止主题闪烁的脚本 (必须在 head 中 inline) -->
-    <script is:inline>
-      (function() {
-        const theme = localStorage.getItem('theme') ||
-          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.classList.add(theme);
-      })();
+    <script is:inline define:vars={{ darkMode: metaConfig.darkMode }}>
+      if (darkMode) {
+        (function() {
+          const theme = localStorage.getItem('theme') ||
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.add(theme);
+        })();
+      }
     </script>
   </head>
   <body>

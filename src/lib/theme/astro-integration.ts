@@ -60,6 +60,7 @@ export function nopressThemeIntegration(): AstroIntegration {
 
         // 配置 Vite 别名
         const aliases: Record<string, string> = {
+          '@core': path.join(projectRoot, 'src/core'),
           '@theme': activeTheme.paths.root,
         };
 
