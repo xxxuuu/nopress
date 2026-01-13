@@ -14,33 +14,56 @@ export function truncate(text: string, length: number, suffix: string = '...'): 
 
 /**
  * 计算阅读时间（分钟）
- * @param content 文章内容
- * @param wordsPerMinute 每分钟阅读字数，默认 200
+ *
+ * 阅读速度参考：
+ * - 中日文（汉字/假名）：475 字/分钟（平均速度）
+ * - 英文：225 词/分钟（正常阅读速度）
+ * - 代码：70 行/分钟（阅读代码比文本慢 2-3 倍）
+ *
+ * @param content 文章内容（HTML 或 Markdown）
  * @returns 阅读时间（分钟）
  */
-export function calculateReadingTime(content: string, wordsPerMinute: number = 200): number {
+export function calculateReadingTime(content: string): number {
   if (!content || typeof content !== 'string') {
     return 1; // 默认返回1分钟
   }
 
-  // 移除 Markdown 语法
+  // 提取代码块并计算行数
+  const codeBlocks = content.match(/```[\s\S]*?```/g) || [];
+  const codeLines = codeBlocks.reduce((total, block) => {
+    // 移除 ``` 标记后计算实际代码行数
+    const code = block.replace(/^```\w*\n?/gm, '').replace(/```$/g, '');
+    return total + code.split('\n').filter(line => line.trim()).length;
+  }, 0);
+
+  // 移除代码块、图片、链接等非文本内容
   const plainText = content
     .replace(/```[\s\S]*?```/g, '') // 移除代码块
     .replace(/`[^`]*`/g, '') // 移除行内代码
     .replace(/!\[.*?\]\(.*?\)/g, '') // 移除图片
-    .replace(/\[.*?\]\(.*?\)/g, '') // 移除链接
+    .replace(/\[([^\]]+)\]\(.*?\)/g, '$1') // 移除链接，保留文本
+    .replace(/<[^>]*>/g, '') // 移除 HTML 标签
     .replace(/#+\s/g, '') // 移除标题标记
-    .replace(/[*_~`]/g, '') // 移除其他标记
-    .replace(/\n/g, ' '); // 替换换行为空格
+    .replace(/[*_~`|]/g, '') // 移除其他标记
+    .replace(/\s+/g, ' ') // 合并空白字符
+    .trim();
 
-  // 中文按字符计数，英文按单词计数
-  const chineseChars = plainText.match(/[\u4e00-\u9fa5]/g) || [];
-  const englishWords = plainText.match(/[a-zA-Z]+/g) || [];
+  // 分别计算中日文字符和英文单词
+  // 中日文包括：汉字 + 平假名 + 片假名
+  const cjkChars = (
+    plainText.match(/[\u4e00-\u9fa5\u3040-\u309f\u30a0-\u30ff]/g) || []
+  ).length;
+  const englishWords = (plainText.match(/[a-zA-Z]+/g) || []).length;
 
-  const totalWords = chineseChars.length + englishWords.length;
-  const minutes = Math.ceil(totalWords / wordsPerMinute);
+  // 计算各部分阅读时间（分钟）
+  const cjkTime = cjkChars / 475; // 中日文：475 字/分钟（平均速度）
+  const englishTime = englishWords / 225; // 英文：225 词/分钟
+  const codeTime = codeLines / 70; // 代码：70 行/分钟
 
-  return Math.max(1, minutes); // 至少1分钟
+  // 总时间向上取整，最少1分钟
+  const totalMinutes = Math.ceil(cjkTime + englishTime + codeTime);
+
+  return Math.max(1, totalMinutes);
 }
 
 /**

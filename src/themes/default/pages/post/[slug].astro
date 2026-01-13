@@ -87,55 +87,35 @@ const { post } = Astro.props;
             </h1>
           </header>
 
-          <!-- 页面属性 - Notion 风格属性列表 -->
-          <div class="page-properties">
-            {/* 发布日期 */}
-            <div class="property-row">
-              <div class="property-name">📅 发布日期</div>
-              <div class="property-value">
-                <time datetime={post.publishedAt}>
-                  {formatDate(post.publishedAt)}
-                </time>
-              </div>
+          <!-- 页面元信息 - 内联式显示 -->
+          <div class="page-meta">
+            <div class="meta-info">
+              <span class="meta-item">
+                <span class="meta-icon">📅</span>
+                <time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+              </span>
+              {post.readingTime && (
+                <span class="meta-item">
+                  <span class="meta-icon">⏱️</span>
+                  <span>{post.readingTime} 分钟阅读</span>
+                </span>
+              )}
             </div>
-
-            {/* 更新日期 */}
-            {post.updatedAt && (
-              <div class="property-row">
-                <div class="property-name">🔄 更新日期</div>
-                <div class="property-value">
-                  <time datetime={post.updatedAt}>
-                    {formatDate(post.updatedAt)}
-                  </time>
-                </div>
-              </div>
-            )}
-
-            {/* 阅读时间 */}
-            {post.readingTime && (
-              <div class="property-row">
-                <div class="property-name">⏱️ 阅读时间</div>
-                <div class="property-value">{post.readingTime} 分钟</div>
-              </div>
-            )}
 
             {/* 标签 */}
             {post.tags.length > 0 && (
-              <div class="property-row">
-                <div class="property-name">🏷️ 标签</div>
-                <div class="property-value tags-value">
-                  {post.tags.map(tag => (
-                    <a href={`/tag/${tag.toLowerCase()}`} class="tag-pill">{tag}</a>
-                  ))}
-                </div>
+              <div class="meta-tags">
+                <span class="tags-icon">🏷️</span>
+                {post.tags.map(tag => (
+                  <a href={`/tag/${tag.toLowerCase()}`} class="tag-pill">{tag}</a>
+                ))}
               </div>
             )}
 
             {/* 摘要 */}
             {post.description && (
-              <div class="property-row">
-                <div class="property-name">📝 摘要</div>
-                <div class="property-value">{post.description}</div>
+              <div class="meta-description">
+                {post.description}
               </div>
             )}
           </div>
@@ -244,40 +224,51 @@ const { post } = Astro.props;
     flex-shrink: 0;
   }
 
-  /* 页面属性 - Notion 风格 */
-  .page-properties {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+  /* 页面元信息 - 内联式显示 */
+  .page-meta {
     margin-bottom: var(--spacing-xl);
   }
 
-  .property-row {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    font-size: 0.875rem;
-    line-height: 1.5;
-    min-height: 28px;
-  }
-
-  .property-name {
-    flex-shrink: 0;
-    width: 140px;
-    color: var(--notion-text-secondary);
-    font-weight: 500;
-  }
-
-  .property-value {
-    flex: 1;
-    color: var(--notion-text-primary);
-  }
-
-  /* 标签值 */
-  .tags-value {
+  /* 元信息行：日期和阅读时间 */
+  .meta-info {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-md);
+    font-size: 0.875rem;
+    color: var(--notion-text-secondary);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-icon {
+    font-size: 0.875rem;
+    line-height: 1;
+    width: 1.2em; /* 固定宽度确保对齐 */
+    text-align: center;
+  }
+
+  /* 标签行 */
+  .meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+    padding-left: 0; /* 对齐元信息的图标位置 */
+  }
+
+  .tags-icon {
+    font-size: 0.875rem;
+    line-height: 1;
+    width: 1.2em; /* 和 meta-icon 保持一致 */
+    text-align: center;
+    margin-right: var(--spacing-xs);
   }
 
   .tag-pill {
@@ -298,6 +289,17 @@ const { post } = Astro.props;
     background-color: var(--notion-bg-hover);
     color: var(--notion-text-primary);
     border: none;
+  }
+
+  /* 摘要 - 引用块样式 */
+  .meta-description {
+    font-size: 0.937rem;
+    line-height: 1.6;
+    color: var(--notion-text-secondary);
+    font-style: italic;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-left: 3px solid var(--notion-border);
+    background-color: transparent;
   }
 
   /* 分隔线 */
@@ -603,18 +605,20 @@ const { post } = Astro.props;
       font-size: 2rem;
     }
 
-    .property-row {
-      flex-direction: column;
-      gap: var(--spacing-xs);
+    /* 移动端元信息自动换行 */
+    .meta-info {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
     }
 
-    .property-name {
-      width: auto;
-      font-size: 0.8125rem;
+    .meta-item:not(:last-child)::after {
+      margin-left: var(--spacing-sm);
     }
 
-    .property-value {
-      font-size: 0.8125rem;
+    .meta-description {
+      font-size: 0.875rem;
+      padding: var(--spacing-xs) var(--spacing-sm);
     }
   }
 
