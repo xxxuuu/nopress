@@ -124,6 +124,7 @@ const pageIcon = dbInfo.icon || '';
     height: 100%;
     object-fit: cover;
     display: block;
+    border-radius: 0;
   }
 
   /* 页面头部 - Notion 风格 */
@@ -338,9 +339,33 @@ const pageIcon = dbInfo.icon || '';
       font-size: 2rem;
     }
 
+    /* 移动端：增加文章项之间的间距 */
+    .notion-database {
+      gap: 20px;
+    }
+
+    /* 移动端：文章项之间的分割线 */
+    .database-row {
+      border-bottom: 1px solid var(--notion-border);
+      padding-bottom: 20px;
+    }
+
+    .database-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    /* 移动端：上下布局，配图在上方 */
+    .row-content {
+      flex-direction: column;
+      gap: var(--spacing-xs)
+    }
+
     .row-cover {
-      width: 110px;
-      height: 70px;
+      width: 100%;
+      height: 180px;
+      order: -1; /* 将配图移到最前面 */
+      margin-bottom: var(--spacing-md);
     }
 
     .row-link {
@@ -368,8 +393,7 @@ const pageIcon = dbInfo.icon || '';
     }
 
     .row-cover {
-      width: 90px;
-      height: 60px;
+      height: 140px; /* 小屏幕下稍微矮一点 */
     }
 
     .row-properties {

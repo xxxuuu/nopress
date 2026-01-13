@@ -164,6 +164,9 @@ blockquote.notion-red-background {
 .notion-content h1 + .notion-video,
 .notion-content h2 + .notion-video,
 .notion-content h3 + .notion-video,
+.notion-content h1 + .notion-column-list,
+.notion-content h2 + .notion-column-list,
+.notion-content h3 + .notion-column-list,
 .notion-content h1 + .notion-table-wrapper,
 .notion-content h2 + .notion-table-wrapper,
 .notion-content h3 + .notion-table-wrapper {
@@ -189,6 +192,7 @@ blockquote.notion-red-background {
 .notion-content p + .notion-equation-block,
 .notion-content p + .mermaid-diagram,
 .notion-content p + .notion-callout,
+.notion-content p + .notion-column-list,
 .notion-content p + blockquote {
   margin-top: 0.75em;
 }
@@ -777,6 +781,8 @@ code.notion-equation .katex {
 .notion-content ol + .notion-video,
 .notion-content ul + .notion-table-wrapper,
 .notion-content ol + .notion-table-wrapper,
+.notion-content ul + .notion-column-list,
+.notion-content ol + .notion-column-list,
 .notion-content ul + .notion-equation-block,
 .notion-content ol + .notion-equation-block,
 .notion-content ul + .mermaid-diagram,
@@ -875,6 +881,12 @@ code.notion-equation .katex {
 /* 图片 - Notion 风格 */
 .notion-image {
   margin: 1.0em auto;
+}
+
+/* 分栏布局内的图片 - 默认去掉上下边距避免叠加 */
+.notion-column-list .notion-image {
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .notion-image img {
@@ -1097,6 +1109,7 @@ code.notion-equation .katex {
 
 .notion-bookmark-cover {
   width: 25%;
+  height: 100%;
   max-width: 280px;
   aspect-ratio: 16 / 10;
   overflow: hidden;
@@ -1560,7 +1573,7 @@ code.notion-equation .katex {
   text-decoration: none;
   transition: background-color var(--transition-fast);
   border: none;
-  vertical-align: baseline;
+  vertical-align: sub;
   line-height: 1;
 }
 
@@ -1597,7 +1610,7 @@ a.notion-mention:hover,
 .notion-mention-favicon {
   width: 16px;
   height: 16px;
-  vertical-align: baseline;
+  vertical-align: sub;
   object-fit: contain;
   flex-shrink: 0;
 }
