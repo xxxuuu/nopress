@@ -21,7 +21,7 @@ export const MetaConfigSchema = z.object({
 
   // RSS
   enableRSS: z.boolean().default(true),
-  rssUrl: z.string().default('/feed.xml'),
+  rssUrl: z.string().default('/rss/feed.xml'),
 });
 
 export type MetaConfig = z.infer<typeof MetaConfigSchema>;
@@ -40,7 +40,7 @@ export const DEFAULT_META_CONFIG: MetaConfig = {
   twitterSite: '@username',
   darkMode: true,
   enableRSS: true,
-  rssUrl: '/feed.xml',
+  rssUrl: '/rss/feed.xml',
 };
 
 /**
