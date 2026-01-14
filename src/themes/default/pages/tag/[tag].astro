@@ -51,10 +51,10 @@ const { tag, posts, displayTag } = Astro.props;
       <p class="page-stats">共 {posts.length} 篇文章</p>
     </header>
 
-    <!-- 文章列表 - Notion 数据库视图 -->
-    <div class="notion-database">
+    <!-- 文章列表 -->
+    <div class="post-list">
       {posts.map(post => (
-        <article class="database-row">
+        <article class="post-card">
           <a href={`/post/${post.slug}`} class="row-link">
             <div class="row-content">
               <!-- 标题和日期 -->
@@ -135,21 +135,21 @@ const { tag, posts, displayTag } = Astro.props;
     margin: 0;
   }
 
-  /* Notion 数据库视图 */
-  .notion-database {
+  /* 文章列表 */
+  .post-list {
     display: flex;
     flex-direction: column;
     gap: 2px;
     margin-bottom: var(--spacing-2xl);
   }
 
-  .database-row {
+  .post-card {
     background-color: var(--notion-bg-primary);
     transition: background-color var(--transition-fast);
     border-radius: var(--radius-sm);
   }
 
-  .database-row:hover {
+  .post-card:hover {
     background-color: var(--notion-bg-hover);
   }
 
@@ -240,7 +240,7 @@ const { tag, posts, displayTag } = Astro.props;
     color: white;
   }
 
-  .database-row:hover .tag-pill:not(.active) {
+  .post-card:hover .tag-pill:not(.active) {
     background-color: var(--notion-bg-hover);
   }
 

@@ -49,9 +49,9 @@ const sortedTags = Object.entries(postsByTag)
     <!-- 所有文章 - Notion 数据库视图 -->
     <section class="posts-section">
       <h2 class="section-title">📚 所有文章</h2>
-      <div class="notion-database">
+      <div class="post-list">
         {allPosts.map(post => (
-          <article class="database-row">
+          <article class="post-card">
             <a href={`/post/${post.slug}`} class="row-link">
               <div class="row-content">
                 <!-- 标题和日期 -->
@@ -166,20 +166,20 @@ const sortedTags = Object.entries(postsByTag)
     background-color: rgba(255, 255, 255, 0.1);
   }
 
-  /* Notion 数据库视图 */
-  .notion-database {
+  /* 文章列表 */
+  .post-list {
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
 
-  .database-row {
+  .post-card {
     background-color: var(--notion-bg-primary);
     transition: background-color var(--transition-fast);
     border-radius: var(--radius-sm);
   }
 
-  .database-row:hover {
+  .post-card:hover {
     background-color: var(--notion-bg-hover);
   }
 
@@ -265,7 +265,7 @@ const sortedTags = Object.entries(postsByTag)
     transition: background-color var(--transition-fast);
   }
 
-  .database-row:hover .tag-pill {
+  .post-card:hover .tag-pill {
     background-color: var(--notion-bg-hover);
   }
 

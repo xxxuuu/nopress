@@ -39,10 +39,10 @@ const pageIcon = dbInfo.icon || '';
       )}
     </header>
 
-    <!-- Notion 数据库视图 - 列表风格 -->
-    <div class="notion-database">
+    <!-- 文章列表 -->
+    <div class="post-list">
       {allPosts.map(post => (
-        <article class="database-row">
+        <article class="post-card">
           <a href={`/post/${post.slug}`} class="row-link">
             <div class="row-content">
               <div class="row-main">
@@ -166,21 +166,21 @@ const pageIcon = dbInfo.icon || '';
     margin: 0;
   }
 
-  /* Notion 数据库视图容器 */
-  .notion-database {
+  /* 文章列表容器 */
+  .post-list {
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
 
-  /* 数据库行 - Notion 风格 */
-  .database-row {
+  /* 文章卡片 */
+  .post-card {
     background-color: var(--notion-bg-primary);
     transition: background-color var(--transition-fast);
     border-radius: var(--radius-sm);
   }
 
-  .database-row:hover {
+  .post-card:hover {
     background-color: var(--notion-bg-hover);
   }
 
@@ -296,7 +296,7 @@ const pageIcon = dbInfo.icon || '';
     transition: background-color var(--transition-fast);
   }
 
-  .database-row:hover .tag-pill {
+  .post-card:hover .tag-pill {
     background-color: var(--notion-bg-hover);
   }
 
@@ -340,17 +340,17 @@ const pageIcon = dbInfo.icon || '';
     }
 
     /* 移动端：增加文章项之间的间距 */
-    .notion-database {
+    .post-list {
       gap: 20px;
     }
 
     /* 移动端：文章项之间的分割线 */
-    .database-row {
+    .post-card {
       border-bottom: 1px solid var(--notion-border);
       padding-bottom: 20px;
     }
 
-    .database-row:last-child {
+    .post-card:last-child {
       border-bottom: none;
       padding-bottom: 0;
     }
