@@ -1,0 +1,94 @@
+---
+/**
+ * 评论组件
+ *
+ * Theme 层的 UI 组件，每个主题可以有自己的实现。
+ *
+ * 架构设计：
+ * - Core 层：提供脚本逻辑 (src/scripts/comments/giscus.ts)
+ * - Theme 层：负责布局、样式和数据传递 (此组件)
+ *
+ * 当前实现：
+ * - Giscus 评论系统（基于 GitHub Discussions）
+ *
+ * 未来扩展：
+ * - Waline、Utterances、Twikoo 等其他评论系统
+ * - 主题跟随功能
+ */
+
+interface Props {
+  slug: string; // 页面 slug，用于映射评论
+  title?: string; // 页面标题
+}
+
+const { slug, title } = Astro.props;
+import { SITE_CONFIG } from '@config/site';
+
+// 构建 data 属性的配置数据（序列化为 JSON 字符串）
+const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.giscus });
+---
+
+{SITE_CONFIG.comments.enabled && (
+  <div
+    class="comments-container"
+    id="comments"
+    data-giscus-config={giscusData}
+    data-provider={SITE_CONFIG.comments.provider}
+  >
+    <div class="comments-loading">加载评论中...</div>
+  </div>
+)}
+
+<!-- 评论系统脚本 - 移到条件渲染外部，内部检查容器是否存在 -->
+<script>
+  import { initGiscus } from '@/scripts/comments/giscus';
+
+  // 检查评论容器是否存在（由服务端条件渲染控制）
+  const container = document.querySelector<HTMLElement>('.comments-container');
+  if (container) {
+    const provider = container.dataset.provider;
+    const configData = container.dataset.giscusConfig;
+
+    if (provider === 'giscus' && configData) {
+      try {
+        const { slug, title, config } = JSON.parse(configData);
+        initGiscus({ container, slug, title, config });
+      } catch (error) {
+        console.error('[Comments] Failed to parse config:', error);
+      }
+    } else if (provider === 'waline') {
+      console.warn('Waline 评论系统暂未实现');
+    } else if (provider === 'utterances') {
+      console.warn('Utterances 评论系统暂未实现');
+    }
+  }
+</script>
+
+<style>
+  .comments-container {
+    margin-top: var(--spacing-2xl, 3rem);
+    padding-top: var(--spacing-xl, 2rem);
+    border-top: 1px solid var(--notion-border, rgba(55, 53, 47, 0.16));
+  }
+
+  .comments-loading {
+    text-align: center;
+    color: var(--notion-text-secondary, rgba(55, 53, 47, 0.6));
+    padding: var(--spacing-xl, 2rem);
+    font-size: 0.9em;
+  }
+
+  /* Giscus 容器样式 */
+  :global(.comments-container iframe[src*="giscus.app"]) {
+    width: 100%;
+    border: none;
+  }
+
+  /* 响应式调整 */
+  @media (max-width: 768px) {
+    .comments-container {
+      margin-top: var(--spacing-xl, 2rem);
+      padding-top: var(--spacing-lg, 1.5rem);
+    }
+  }
+</style>

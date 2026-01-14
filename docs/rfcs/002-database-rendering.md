@@ -1,6 +1,6 @@
 # RFC 002: Notion Database 渲染功能
 
-**状态**: 草案
+**状态**: ✅ 已实现
 **创建日期**: 2026-01-10
 **作者**: NoPress Team
 **标签**: feature, rendering, database

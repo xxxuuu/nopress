@@ -19,6 +19,7 @@
 - 🎨 **图片 Gallery** - 点击图片全屏预览，支持左右切换和缩放
 - 🏷️ **标签和分类** - 灵活的内容组织
 - 🌙 **深色模式** - 自动切换
+- 💬 **评论系统** - 支持 Giscus（基于 GitHub Discussions）
 - 📱 **响应式设计** - 完美适配所有设备
 - 🚀 **一键部署** - Vercel/Netlify 零配置部署
 
@@ -110,9 +111,29 @@ npm run dev
 
 ### 5️⃣ 自定义配置
 
-**修改站点信息**: 编辑 `src/config/site.ts`
+NoPress 支持通过环境变量自定义配置，适用于 CI/CD 和多环境部署。
+
+**快速配置**：编辑 `.env` 文件
+```bash
+# 站点信息
+SITE_URL=https://yourdomain.com
+SITE_TITLE=我的博客
+SITE_DESCRIPTION=基于 Notion 和 Astro 的博客
+
+# 作者信息
+AUTHOR_NAME=Your Name
+AUTHOR_EMAIL=your@email.com
+
+# 评论系统（可选）
+COMMENTS_ENABLED=true
+COMMENTS_GISCUS_REPO=owner/repo
+COMMENTS_GISCUS_REPO_ID=R_kgDOG...
+COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
+```
 
 **修改主题颜色**: 编辑 `src/config/theme.ts`
+
+📖 **详细配置指南**: **[站点配置系统](./docs/CONFIGURATION.md)** - 完整的环境变量参考和部署配置
 
 ## 🎯 核心概念
 
@@ -250,6 +271,10 @@ A: 检查：
 - [ ] 文章 `status` 是否为 "Published"
 - [ ] 所有属性名是否全部小写
 
+### Q: 如何配置评论功能？
+
+A: 参考详细配置指南：**[评论功能配置](./docs/COMMENTS.md)**
+
 ## 📈 项目统计
 
 - **代码行数**: ~10,800 行
@@ -259,6 +284,8 @@ A: 检查：
 
 ## 📖 文档
 
+- **[站点配置系统](./docs/CONFIGURATION.md)** - 环境变量完整参考和部署配置指南 ⭐
+- **[评论功能配置](./docs/COMMENTS.md)** - Giscus 评论系统配置指南 ⭐
 - **[系统架构](./docs/ARCHITECTURE.md)** - 整体设计和数据流
 - **[开发者指南](./CLAUDE.md)** - 开发规范和最佳实践
 - **[RFCs](./docs/rfcs/)** - 功能设计和讨论

@@ -1,6 +1,8 @@
 ---
 import BaseLayout from '@theme/layouts/BaseLayout.astro';
 import dataService from '@lib/data';
+import { SITE_CONFIG } from '@config/site';
+import Comments from '@theme/components/Comments.astro';
 import '@theme/styles/notion.css';
 
 export async function getStaticPaths() {
@@ -73,6 +75,13 @@ const { page } = Astro.props;
 
       <!-- 页面内容（独立页面不显示元数据） -->
       <div class="notion-content" set:html={page.content} />
+
+      <!-- 评论系统 -->
+      {SITE_CONFIG.comments.enabled && (
+        <section class="comments-section">
+          <Comments slug={page.slug} title={page.title} />
+        </section>
+      )}
     </div>
   </article>
 </BaseLayout>

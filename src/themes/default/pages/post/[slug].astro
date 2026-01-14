@@ -2,6 +2,8 @@
 import BaseLayout from '@theme/layouts/BaseLayout.astro';
 import dataService from '@lib/data';
 import { formatDate } from '@lib/utils/date';
+import { SITE_CONFIG } from '@config/site';
+import Comments from '@theme/components/Comments.astro';
 import '@theme/styles/notion.css';
 
 export async function getStaticPaths() {
@@ -130,6 +132,13 @@ const { post } = Astro.props;
           <footer class="page-footer">
             <a href="/" class="back-link">← 返回首页</a>
           </footer>
+
+          <!-- 评论系统 -->
+          {SITE_CONFIG.comments.enabled && (
+            <section class="comments-section">
+              <Comments slug={post.slug} title={post.title} />
+            </section>
+          )}
         </div>
 
         <!-- 目录侧边栏 -->
@@ -315,6 +324,11 @@ const { post } = Astro.props;
     line-height: 1.6;
     color: var(--notion-text-primary);
     margin-bottom: var(--spacing-3xl);
+  }
+
+  /* 评论区 */
+  .comments-section {
+    margin-top: var(--spacing-2xl);
   }
 
   /* 页面底部 */
