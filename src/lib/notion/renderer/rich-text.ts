@@ -39,8 +39,7 @@ async function renderSingleRichText(richText: RichTextItemResponse): Promise<str
     // 处理链接
     if (richText.text.link) {
       const url = richText.text.link.url;
-      const displayText = extractGitHubRepoName(url) || text;
-      text = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(displayText)}</a>`;
+      text = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`;
     } else {
       text = escapeHtml(text);
     }
