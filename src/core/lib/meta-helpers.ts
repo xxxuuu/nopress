@@ -54,10 +54,9 @@ export function generateMetaTags(
 ): MetaTags {
   const fullTitle = getFullTitle(pageTitle, metaConfig.title);
   const canonical = getCanonicalUrl(metaConfig.siteUrl, pathname);
-  const ogImageUrl = getOgImageUrl(
-    metaConfig.ogImage || '/og-image.png',
-    metaConfig.siteUrl,
-  );
+  const ogImageUrl = metaConfig.ogImage
+    ? getOgImageUrl(metaConfig.ogImage, metaConfig.siteUrl)
+    : '';
 
   return {
     title: fullTitle,

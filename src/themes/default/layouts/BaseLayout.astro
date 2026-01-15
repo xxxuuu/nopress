@@ -1,5 +1,5 @@
 ---
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
 import Header from '../components/Header.astro';
@@ -13,17 +13,18 @@ interface Props {
   canonicalURL?: string;
 }
 
+// 获取解析后的站点配置（合并用户配置和 Database 元数据）
+const SITE_CONFIG = await getResolvedSiteConfig();
+
 const {
   title = SITE_CONFIG.title,
   description,
-  image = SITE_CONFIG.seo.ogImage,
   canonicalURL,
 } = Astro.props;
 
 // 从 core 获取元信息配置
 const metaConfig = getMetaConfig(SITE_CONFIG);
 const canonical = canonicalURL || new URL(Astro.url.pathname, Astro.site);
-const fullTitle = title === SITE_CONFIG.title ? title : `${title} | ${SITE_CONFIG.title}`;
 
 // 使用 core 工具函数生成 meta 标签
 const metaTags = generateMetaTags(
@@ -39,7 +40,7 @@ const metaTags = generateMetaTags(
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href={SITE_CONFIG.icon} />
     <link rel="canonical" href={canonical} />
 
     <!-- RSS Feed 自动发现 -->

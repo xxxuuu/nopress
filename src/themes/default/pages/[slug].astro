@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '@theme/layouts/BaseLayout.astro';
 import dataService from '@lib/data';
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
 import Comments from '@theme/components/Comments.astro';
 import '@theme/styles/notion.css';
 
@@ -55,6 +55,9 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
+
+// 获取解析后的站点配置
+const SITE_CONFIG = await getResolvedSiteConfig();
 ---
 
 <BaseLayout title={page.title} description={page.description} image={page.coverUrl}>

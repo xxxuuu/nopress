@@ -30,14 +30,14 @@ export type MetaConfig = z.infer<typeof MetaConfigSchema>;
  * 默认元信息配置
  */
 export const DEFAULT_META_CONFIG: MetaConfig = {
-  title: 'My Blog',
+  title: 'NoPress Blog',
   description: '基于 NoPress 构建的个人博客',
   siteUrl: 'http://localhost:4321',
   language: 'zh-CN',
   ogType: 'website',
-  ogImage: '/og-image.png',
+  ogImage: undefined,  // 没有默认 OG 图片
   twitterCard: 'summary_large_image',
-  twitterSite: '@username',
+  twitterSite: undefined,  // 没有默认 Twitter 账号
   darkMode: true,
   enableRSS: true,
   rssUrl: '/rss/feed.xml',
@@ -53,8 +53,8 @@ export function getMetaConfig(siteConfig: any): MetaConfig {
     description: siteConfig.description || DEFAULT_META_CONFIG.description,
     siteUrl: siteConfig.url || DEFAULT_META_CONFIG.siteUrl,
     language: siteConfig.language || DEFAULT_META_CONFIG.language,
-    ogImage: siteConfig.seo?.ogImage || DEFAULT_META_CONFIG.ogImage,
-    twitterCard: siteConfig.seo?.twitterCard || DEFAULT_META_CONFIG.twitterCard,
-    twitterSite: siteConfig.seo?.twitterSite || DEFAULT_META_CONFIG.twitterSite,
+    ogImage: siteConfig.seo?.ogImage ?? DEFAULT_META_CONFIG.ogImage,
+    twitterCard: siteConfig.seo?.twitterCard ?? DEFAULT_META_CONFIG.twitterCard,
+    twitterSite: siteConfig.seo?.twitterSite ?? DEFAULT_META_CONFIG.twitterSite,
   };
 }

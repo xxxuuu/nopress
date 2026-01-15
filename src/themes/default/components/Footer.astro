@@ -1,5 +1,8 @@
 ---
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
+
+// 获取解析后的站点配置
+const SITE_CONFIG = await getResolvedSiteConfig();
 
 const currentYear = new Date().getFullYear();
 
@@ -24,11 +27,11 @@ const icons = {
   <div class="container">
     <div class="footer-content">
       <div class="copyright">
-        <p>&copy; {currentYear} {SITE_CONFIG.author.name}. All rights reserved.</p>
+        <p>&copy; {currentYear} {SITE_CONFIG.title}. All rights reserved.</p>
         <p class="powered-by">Powered by <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> & <a href="https://www.notion.so" target="_blank" rel="noopener noreferrer">Notion</a></p>
       </div>
       <div class="social-links">
-        {Object.entries(SITE_CONFIG.author.social).map(([platform, url]) => (
+        {Object.entries(SITE_CONFIG.social).map(([platform, url]) => (
           <a href={url} target="_blank" rel="noopener noreferrer" class="social-icon" aria-label={platform}>
             <span class="icon-wrapper" set:html={icons[platform] || icons.github} />
           </a>

@@ -47,15 +47,24 @@ docker run -e SITE_URL=https://example.com -e SITE_TITLE="My Blog" ...
 
 1. **环境变量**（如 `SITE_URL`）
 2. **.env 文件**
-3. **代码默认值**（`src/lib/config/loader.ts`）
+3. **Notion Database 元数据**（仅适用于 `SITE_TITLE`、`SITE_DESCRIPTION`、`SITE_ICON`）
+4. **代码默认值**（`src/lib/config/loader.ts`）
+
+**自动获取 Database 元数据**：
+
+站点的标题、描述和图标可以自动从 Notion Database 获取：
+- `SITE_TITLE` 留空 → 使用 Database 名称
+- `SITE_DESCRIPTION` 留空 → 使用 Database 描述
+- `SITE_ICON` 留空 → 使用 Database 图标（Emoji 或图片 URL）
 
 **示例**：
 ```bash
 # .env 文件
-SITE_URL=https://staging.example.com
+SITE_TITLE=  # 留空，自动使用 Database 名称
+SITE_DESCRIPTION=  # 留空，自动使用 Database 描述
 
-# 生产环境环境变量（优先级更高）
-SITE_URL=https://example.com  # ← 最终使用这个值
+# 或者手动指定（优先级更高）
+SITE_TITLE=My Custom Blog  # ← 使用自定义标题，不使用 Database 名称
 ```
 
 ## 环境变量参考
@@ -74,43 +83,49 @@ SITE_URL=https://example.com  # ← 最终使用这个值
 | 变量名 | 说明 | 默认值 | 示例 |
 |--------|------|--------|------|
 | `SITE_URL` | 站点 URL | `http://localhost:4321` | `https://example.com` |
-| `SITE_TITLE` | 站点标题 | `My Blog` | `我的博客` |
-| `SITE_DESCRIPTION` | 站点描述 | `基于 NoPress...` | `关于技术的博客` |
-| `SITE_LANGUAGE` | 站点语言 | `zh-CN` | `en`, `ja`, `ko` |
+| `SITE_TITLE` | 站点标题 | 留空使用 Database 名称 | `我的博客` |
+| `SITE_DESCRIPTION` | 站点描述 | 留空使用 Database 描述 | `关于技术的博客` |
+| `SITE_ICON` | 站点图标/Favicon | 留空使用 Database 图标 | `/favicon.ico` 或 `🚀` |
 | `SITE_POSTS_PER_PAGE` | 每页文章数 | `10` | `20` |
 | `SITE_ENABLE_RSS` | 启用 RSS | `true` | `true`, `false` |
 | `SITE_ENABLE_SITEMAP` | 启用 Sitemap | `true` | `true`, `false` |
 
+**自动获取 Database 元数据**：
+
+- `SITE_TITLE`、`SITE_DESCRIPTION`、`SITE_ICON` 留空时，会自动使用 Notion Database 的元数据
+- 手动指定的值优先级更高，会覆盖 Database 元数据
+
 **使用示例**：
 
 ```bash
-# .env
+# .env - 完全使用 Database 元数据
 SITE_URL=https://myblog.com
-SITE_TITLE=技术博客
-SITE_DESCRIPTION=分享前端、后端、DevOps 技术文章
-SITE_LANGUAGE=zh-CN
+SITE_TITLE=  # 留空，自动使用 Database 名称
+SITE_DESCRIPTION=  # 留空，自动使用 Database 描述
+SITE_ICON=  # 留空，自动使用 Database 图标
 SITE_POSTS_PER_PAGE=15
+
+# 或者手动指定（覆盖 Database 元数据）
+SITE_TITLE=我的技术博客  # 使用自定义标题
+SITE_DESCRIPTION=分享前端、后端、DevOps 技术文章
+SITE_ICON=🚀  # 使用自定义 Emoji 图标
 ```
 
 ---
 
-### 作者信息
+### 社交链接
 
 | 变量名 | 说明 | 默认值 | 示例 |
 |--------|------|--------|------|
-| `AUTHOR_NAME` | 作者名称 | `Your Name` | `张三` |
-| `AUTHOR_EMAIL` | 作者邮箱 | `your@email.com` | `me@example.com` |
-| `AUTHOR_BIO` | 作者简介 | `热爱技术...` | `全栈开发者` |
-| `AUTHOR_AVATAR` | 头像路径 | `/avatar.jpg` | `/avatars/me.jpg` |
-| `AUTHOR_SOCIAL` | 社交链接（JSON） | 见下方示例 | - |
+| `SITE_SOCIAL` | 社交链接（JSON） | 见下方示例 | - |
 
-**AUTHOR_SOCIAL 格式**：
+**SITE_SOCIAL 格式**：
 
 必须是有效的 JSON 字符串：
 
 ```bash
 # .env
-AUTHOR_SOCIAL={"github":"https://github.com/username","twitter":"https://twitter.com/username","email":"mailto:me@example.com"}
+SITE_SOCIAL={"github":"https://github.com/username","twitter":"https://twitter.com/username","email":"mailto:me@example.com"}
 ```
 
 支持的社交链接：

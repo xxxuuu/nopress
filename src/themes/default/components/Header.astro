@@ -1,7 +1,10 @@
 ---
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
 import ThemeToggle from './ThemeToggle.astro';
 import dataService from '@lib/data';
+
+// 获取解析后的站点配置
+const SITE_CONFIG = await getResolvedSiteConfig();
 
 // 获取动态菜单项
 const menuItems = await dataService.getMenuItems();

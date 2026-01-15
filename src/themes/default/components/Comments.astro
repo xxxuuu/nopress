@@ -22,7 +22,10 @@ interface Props {
 }
 
 const { slug, title } = Astro.props;
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
+
+// 获取解析后的站点配置
+const SITE_CONFIG = await getResolvedSiteConfig();
 
 // 构建 data 属性的配置数据（序列化为 JSON 字符串）
 const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.giscus });

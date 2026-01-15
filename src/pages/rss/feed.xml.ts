@@ -1,8 +1,11 @@
 import rss from '@astrojs/rss';
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
 import dataService from '@lib/data';
 
 export async function GET(context) {
+  // 获取解析后的站点配置
+  const SITE_CONFIG = await getResolvedSiteConfig();
+
   // 从 dataService 获取所有文章（自动使用缓存）
   const allPosts = await dataService.getAllPosts();
 
@@ -28,6 +31,6 @@ export async function GET(context) {
 
     // RSS 配置
     trailingSlash: false,
-    customData: `<language>${SITE_CONFIG.language}</language>`,
+    customData: `<language>zh-CN</language>`,
   });
 }

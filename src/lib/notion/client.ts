@@ -68,7 +68,7 @@ export class NotionClient {
       // 提取数据库标题
       // @ts-ignore
       const titleArray = database.title || [];
-      const title = titleArray.map((t: any) => t.plain_text || '').join('') || 'My Blog';
+      const title = titleArray.map((t: any) => t.plain_text || '').join('') || '';
 
       // 提取数据库描述
       // @ts-ignore
@@ -123,7 +123,7 @@ export class NotionClient {
       console.error('Error getting database info:', error);
       // 如果获取失败，返回默认值
       return {
-        title: 'My Blog',
+        title: '',
         description: '',
         coverUrl: '',
         icon: '',

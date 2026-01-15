@@ -1,8 +1,11 @@
 ---
 import BaseLayout from '@theme/layouts/BaseLayout.astro';
-import { SITE_CONFIG } from '@config/site';
+import { getResolvedSiteConfig } from '@config/resolved-site';
 import dataService from '@lib/data';
 import { formatDate } from '@lib/utils/date';
+
+// 获取解析后的站点配置
+const SITE_CONFIG = await getResolvedSiteConfig();
 
 // 获取所有文章数据（首页即为文章列表页）
 const allPosts = await dataService.getAllPosts();
