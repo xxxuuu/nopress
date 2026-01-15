@@ -757,7 +757,18 @@ export class NotionBlockRenderer {
     const children = await this.fetchChildBlocks(block.id);
     const childrenHtml = await this.renderBlocks(children, context);
 
-    return `<div class="notion-column">
+    // 获取列宽比例
+    const format = this.getBlockFormat(block.id);
+    const columnRatio = format.column_ratio;
+
+    // 应用列宽样式
+    let styleAttr = '';
+    if (columnRatio && columnRatio > 0 && columnRatio < 1) {
+      const widthPercent = (columnRatio * 100).toFixed(2);
+      styleAttr = ` style="flex: 0 0 ${widthPercent}%; max-width: ${widthPercent}%;"`;
+    }
+
+    return `<div class="notion-column"${styleAttr}>
       ${childrenHtml}
     </div>`;
   }
