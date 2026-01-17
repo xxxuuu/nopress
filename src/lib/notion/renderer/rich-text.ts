@@ -39,9 +39,9 @@ async function renderSingleRichText(richText: RichTextItemResponse): Promise<str
     // 处理链接
     if (richText.text.link) {
       const url = richText.text.link.url;
-      text = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`;
+      text = `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text).replace(/\n/g, '<br>')}</a>`;
     } else {
-      text = escapeHtml(text);
+      text = escapeHtml(text).replace(/\n/g, '<br>');
     }
   } else if (richText.type === 'mention') {
     // 处理 @mention
