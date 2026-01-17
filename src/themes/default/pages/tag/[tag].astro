@@ -60,7 +60,13 @@ const { tag, posts, displayTag } = Astro.props;
               <!-- 标题和日期 -->
               <div class="row-main">
                 <div class="row-title">
-                  <span class="title-icon">📄</span>
+                  {post.icon ? (
+                    post.icon.startsWith('http')
+                      ? <img src={post.icon} alt="" class="title-icon-img" />
+                      : <span class="title-icon-emoji">{post.icon}</span>
+                  ) : (
+                    <span class="title-icon">📄</span>
+                  )}
                   <h2 class="title-text">{post.title}</h2>
                 </div>
                 <time class="row-date" datetime={post.publishedAt}>
@@ -188,6 +194,19 @@ const { tag, posts, displayTag } = Astro.props;
   }
 
   .title-icon {
+    font-size: 1.125rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .title-icon-img {
+    width: 1.125rem;
+    height: 1.125rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .title-icon-emoji {
     font-size: 1.125rem;
     line-height: 1;
     flex-shrink: 0;
