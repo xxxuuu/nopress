@@ -676,6 +676,7 @@ blockquote.notion-red-background {
 
 /* 行内公式 */
 code.notion-equation {
+  font-size: 1em;
   background-color: transparent;
   padding: 0;
   color: inherit;
