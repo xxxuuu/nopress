@@ -47,10 +47,14 @@ export async function getStaticPaths() {
 
   const paths = posts
     .filter(post => isValidSlug(post.slug))
-    .map(post => {
+    .map((post, index, filteredPosts) => {
+      // 计算上一篇和下一篇（文章按日期降序，索引 0 是最新）
+      const prevPost = index < filteredPosts.length - 1 ? filteredPosts[index + 1] : null;
+      const nextPost = index > 0 ? filteredPosts[index - 1] : null;
+
       return {
         params: { slug: post.slug },
-        props: { post },
+        props: { post, prevPost, nextPost },
       };
     });
 
@@ -59,7 +63,7 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { post } = Astro.props;
+const { post, prevPost, nextPost } = Astro.props;
 
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();
@@ -130,6 +134,23 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 
           <!-- 页面内容 -->
           <div class="notion-content" set:html={post.content} />
+
+          <!-- 上一篇/下一篇导航 -->
+          <nav class="post-navigation">
+            {prevPost && (
+              <a href={`/post/${prevPost.slug}`} class="nav-link nav-prev">
+                <span class="nav-label">← 上一篇</span>
+                <span class="nav-title">{prevPost.title}</span>
+              </a>
+            )}
+
+            {nextPost && (
+              <a href={`/post/${nextPost.slug}`} class="nav-link nav-next">
+                <span class="nav-label">下一篇 →</span>
+                <span class="nav-title">{nextPost.title}</span>
+              </a>
+            )}
+          </nav>
 
           <!-- 页面底部 -->
           <footer class="page-footer">
@@ -332,6 +353,66 @@ const SITE_CONFIG = await getResolvedSiteConfig();
   /* 评论区 */
   .comments-section {
     margin-top: var(--spacing-2xl);
+  }
+
+  /* ========== 上一篇/下一篇导航 ========== */
+  .post-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    margin: var(--spacing-3xl) 0;
+  }
+
+  .nav-link {
+    flex: 1;
+    max-width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: var(--notion-bg-secondary);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: background-color var(--transition-fast);
+    border: none;
+  }
+
+  .nav-link:hover {
+    background-color: var(--notion-bg-hover);
+    border: none;
+  }
+
+  .nav-prev {
+    text-align: left;
+    margin-right: auto;
+  }
+
+  .nav-next {
+    text-align: right;
+    margin-left: auto;
+  }
+
+  .nav-label {
+    font-size: 0.75rem;
+    color: var(--notion-text-tertiary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-title {
+    font-size: 0.937rem;
+    color: var(--notion-text-primary);
+    font-weight: 500;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .nav-link:hover .nav-title {
+    color: var(--notion-link);
   }
 
   /* 页面底部 */
@@ -620,6 +701,29 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 
     .page-title {
       font-size: 2rem;
+    }
+
+    /* 移动端导航样式 */
+    .post-navigation {
+      flex-direction: column;
+    }
+
+    .nav-link {
+      max-width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+
+    .nav-prev {
+      margin-right: 0;
+    }
+
+    .nav-next {
+      margin-left: 0;
+    }
+
+    .nav-prev,
+    .nav-next {
+      text-align: left;
     }
 
     /* 移动端元信息自动换行 */
