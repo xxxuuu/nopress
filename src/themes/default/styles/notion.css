@@ -287,15 +287,15 @@ blockquote.notion-red-background {
 :root.dark .notion-callout.notion-red-background { background-color: #594141; }
 
 /* Callout 颜色变体 - 单类名格式 (notion-callout-{color}-background) */
-.notion-callout-gray-background { background-color: #ebeced; }
-.notion-callout-brown-background { background-color: #e9e5e3; }
-.notion-callout-orange-background { background-color: #faebdd; }
-.notion-callout-yellow-background { background-color: #fbf3db; }
-.notion-callout-green-background { background-color: #ddedea; }
-.notion-callout-blue-background { background-color: #ddebf1; }
-.notion-callout-purple-background { background-color: #eae4f2; }
-.notion-callout-pink-background { background-color: #f4dfeb; }
-.notion-callout-red-background { background-color: #fbe4e4; }
+.notion-callout-gray-background { background-color: #f9f8f7; }
+.notion-callout-brown-background { background-color: #f5ede9; }
+.notion-callout-orange-background { background-color: #fbebde; }
+.notion-callout-yellow-background { background-color: #f2e3b7; }
+.notion-callout-green-background { background-color: #e8f1ec; }
+.notion-callout-blue-background { background-color: #e5f2fc; }
+.notion-callout-purple-background { background-color: #f3ebf9; }
+.notion-callout-pink-background { background-color: #fae9f1; }
+.notion-callout-red-background { background-color: #fce9e7; }
 
 /* 深色模式 - 单类名格式 */
 :root.dark .notion-callout-gray-background { background-color: #454b4e; }
