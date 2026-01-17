@@ -1,0 +1,147 @@
+---
+/**
+ * 首页/分页页共享布局组件
+ * @param posts - 文章数组
+ * @param currentPage - 当前页码
+ * @param totalPages - 总页数
+ * @param pageTitle - 页面标题
+ * @param pageDescription - 页面描述
+ * @param pageIcon - 页面图标
+ * @param pageCover - 页面封面图
+ */
+import Pagination from '@theme/components/Pagination.astro';
+import PostList from '@theme/components/PostList.astro';
+
+interface Props {
+  posts: typeof import('@lib/types').Post[];
+  currentPage: number;
+  totalPages: number;
+  pageTitle: string;
+  pageDescription?: string;
+  pageIcon?: string;
+  pageCover?: string;
+}
+
+const {
+  posts,
+  currentPage,
+  totalPages,
+  pageTitle,
+  pageDescription,
+  pageIcon,
+  pageCover,
+} = Astro.props;
+---
+
+<div class="content">
+  <!-- Database 封面图（如果有） -->
+  {pageCover && (
+    <div class="page-cover">
+      <img src={pageCover} alt={pageTitle} loading="eager" />
+    </div>
+  )}
+
+  <!-- Notion 风格页面标题 -->
+  <header class="page-header">
+    <h1 class="page-title">
+      {pageIcon && (
+        pageIcon.startsWith('http')
+          ? <img src={pageIcon} alt="" class="page-icon" />
+          : <span class="page-icon-emoji">{pageIcon}</span>
+      )}
+      {pageTitle}
+    </h1>
+    {pageDescription && (
+      <p class="page-description">{pageDescription}</p>
+    )}
+  </header>
+
+  <!-- 文章列表 -->
+  <PostList posts={posts} />
+
+  <!-- 分页导航 -->
+  <Pagination currentPage={currentPage} totalPages={totalPages} />
+</div>
+
+<style>
+  /* Database 封面图 - Notion 风格全宽封面 */
+  .page-cover {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    margin-top: -45px; /* 向上移动抵消 main 的 padding-top，让封面图从顶部开始 */
+    height: 30vh;
+    min-height: 280px;
+    max-height: 400px;
+    overflow: hidden;
+  }
+
+  .page-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 0;
+  }
+
+  /* 页面头部 - Notion 风格 */
+  .page-header {
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-2xl);
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--spacing-sm);
+    color: var(--notion-text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  /* 页面图标 */
+  .page-icon {
+    width: 3rem;
+    height: 3rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .page-icon-emoji {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .page-description {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--notion-text-secondary);
+    margin: 0;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .page-cover {
+      height: 25vh;
+      min-height: 200px;
+      max-height: 300px;
+    }
+
+    .page-title {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-title {
+      font-size: 1.75rem;
+    }
+  }
+</style>

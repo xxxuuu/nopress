@@ -1,0 +1,232 @@
+---
+/**
+ * 分页导航组件
+ * @param currentPage - 当前页码（从 1 开始）
+ * @param totalPages - 总页数
+ */
+interface Props {
+  currentPage: number;
+  totalPages: number;
+}
+
+const { currentPage, totalPages } = Astro.props;
+
+// 计算需要显示的页码
+function getPageRange(current: number, total: number): number[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const pages: number[] = [1];
+  const showStartDots = current > 3;
+  const showEndDots = current < total - 2;
+
+  if (showStartDots) pages.push(-1);
+
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i);
+  }
+
+  if (showEndDots) pages.push(-2);
+  if (total > 1) pages.push(total);
+
+  return pages;
+}
+
+const pages = getPageRange(currentPage, totalPages);
+const showPrev = currentPage > 1;
+const showNext = currentPage < totalPages;
+---
+
+{totalPages > 1 && (
+  <nav class="pagination" aria-label="分页导航">
+    <!-- 左侧区域 -->
+    <div class="pagination-left">
+      {showPrev ? (
+        <a
+          href={currentPage === 2 ? '/' : `/page/${currentPage - 1}`}
+          class="pagination-link"
+          aria-label="上一页"
+        >
+          ← 上一页
+        </a>
+      ) : (
+        <span class="pagination-placeholder"></span>
+      )}
+    </div>
+
+    <!-- 中间区域：页码列表 -->
+    <ol class="pagination-list">
+      {pages.map((page, index) => {
+        if (page < 0) {
+          return (
+            <li key={`dots-${index}`} class="pagination-item">
+              <span class="pagination-dots">...</span>
+            </li>
+          );
+        }
+
+        const isActive = page === currentPage;
+        const href = page === 1 ? '/' : `/page/${page}`;
+
+        return (
+          <li class={`pagination-item ${isActive ? 'pagination-item--active' : ''}`}>
+            {isActive ? (
+              <span class="pagination-link pagination-link--current" aria-current="page">
+                {page}
+              </span>
+            ) : (
+              <a href={href} class="pagination-link">
+                {page}
+              </a>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+
+    <!-- 右侧区域 -->
+    <div class="pagination-right">
+      {showNext ? (
+        <a
+          href={`/page/${currentPage + 1}`}
+          class="pagination-link"
+          aria-label="下一页"
+        >
+          下一页 →
+        </a>
+      ) : (
+        <span class="pagination-placeholder"></span>
+      )}
+    </div>
+  </nav>
+)}
+
+<style>
+  .pagination {
+    display: grid;
+    grid-template-columns: 100px 1fr 100px;
+    align-items: center;
+    gap: var(--spacing-md);
+    margin: var(--spacing-3xl) 0;
+    padding: var(--spacing-md) 0;
+  }
+
+  .pagination-left {
+    display: flex;
+    justify-content: start;
+  }
+
+  .pagination-right {
+    display: flex;
+    justify-content: end;
+  }
+
+  .pagination-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .pagination-item {
+    display: flex;
+  }
+
+  .pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 var(--spacing-sm);
+    font-size: 0.875rem;
+    color: var(--notion-text-secondary);
+    background-color: var(--notion-bg-secondary);
+    border-radius: 3px;
+    text-decoration: none;
+    transition: background-color var(--transition-fast), color var(--transition-fast);
+    white-space: nowrap;
+  }
+
+  .pagination-link:hover {
+    background-color: var(--notion-bg-hover);
+    color: var(--notion-text-primary);
+  }
+
+  .pagination-link--current {
+    background-color: rgba(55, 53, 47, 0.08);
+    color: var(--notion-text-primary);
+    font-weight: 500;
+  }
+
+  :root.dark .pagination-link--current {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .pagination-link--current:hover {
+    background-color: rgba(55, 53, 47, 0.12);
+  }
+
+  :root.dark .pagination-link--current:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .pagination-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    color: var(--notion-text-tertiary);
+    font-size: 0.875rem;
+  }
+
+  .pagination-placeholder {
+    display: inline-block;
+    width: 100px;
+    height: 36px;
+  }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .pagination {
+      grid-template-columns: 80px 1fr 80px;
+      gap: var(--spacing-sm);
+    }
+
+    .pagination-link {
+      min-width: 32px;
+      height: 32px;
+      font-size: 0.8125rem;
+      padding: 0 var(--spacing-xs);
+    }
+
+    .pagination-dots {
+      min-width: 32px;
+      height: 32px;
+      font-size: 0.8125rem;
+    }
+
+    .pagination-placeholder {
+      width: 80px;
+      height: 32px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pagination {
+      grid-template-columns: 60px 1fr 60px;
+    }
+
+    .pagination-placeholder {
+      width: 60px;
+    }
+  }
+</style>

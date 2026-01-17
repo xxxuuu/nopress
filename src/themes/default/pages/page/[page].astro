@@ -1,0 +1,67 @@
+---
+import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import { getResolvedSiteConfig } from '@config/resolved-site';
+import dataService from '@lib/notion/service';
+import IndexPage from '@theme/components/IndexPage.astro';
+
+export async function getStaticPaths() {
+  const allPosts = await dataService.getAllPosts();
+  const SITE_CONFIG = await getResolvedSiteConfig();
+  const postsPerPage = SITE_CONFIG.postsPerPage;
+
+  const totalPages = Math.ceil(allPosts.length / postsPerPage);
+
+  const paths = Array.from({ length: totalPages }, (_, i) => {
+    const page = i + 1; // 从第 1 页开始
+
+    // 跳过第 1 页（由 index.astro 处理）
+    if (page === 1) {
+      return null;
+    }
+
+    const start = (page - 1) * postsPerPage;
+    const end = start + postsPerPage;
+    const pagePosts = allPosts.slice(start, end);
+
+    return {
+      params: { page: page.toString() },
+      props: {
+        posts: pagePosts,
+        currentPage: page,
+        totalPages,
+      },
+    };
+  }).filter((path): path is Exclude<typeof path, null> => path !== null);
+
+  console.log(`[getStaticPaths] Generated ${paths.length} pagination pages (total pages: ${totalPages})`);
+
+  return paths;
+}
+
+interface Props {
+  posts: typeof import('@lib/types').Post[];
+  currentPage: number;
+  totalPages: number;
+}
+
+const { posts, currentPage, totalPages } = Astro.props;
+
+// 获取 Database 信息（与首页完全一致）
+const dbInfo = await dataService.getDatabaseInfo();
+const pageTitle = dbInfo.title || '博客';
+const pageDescription = dbInfo.description || '';
+const pageCover = dbInfo.coverUrl || '';
+const pageIcon = dbInfo.icon || '';
+---
+
+<BaseLayout title={`${pageTitle} - 第 ${currentPage} 页`}>
+  <IndexPage
+    posts={posts}
+    currentPage={currentPage}
+    totalPages={totalPages}
+    pageTitle={pageTitle}
+    pageDescription={pageDescription}
+    pageIcon={pageIcon}
+    pageCover={pageCover}
+  />
+</BaseLayout>
