@@ -936,8 +936,7 @@ export class NotionBlockRenderer {
       // 这是原始块，渲染其子块
       if (block.has_children) {
         const children = await this.fetchChildBlocks(block.id);
-        const childrenHtml = await this.renderBlocks(children, context);
-        return `<div class="notion-synced-block notion-synced-original">${childrenHtml}</div>`;
+        return await this.renderBlocks(children, context);
       }
       return '';
     } else {
@@ -948,8 +947,7 @@ export class NotionBlockRenderer {
         // 优先使用非官方 API 获取（可访问公开页面）
         const children = await this.fetchSyncedBlockContent(originalBlockId);
         if (children && children.length > 0) {
-          const childrenHtml = await this.renderBlocks(children, context);
-          return `<div class="notion-synced-block notion-synced-copy">${childrenHtml}</div>`;
+          return await this.renderBlocks(children, context);
         }
       } catch (error) {
         console.warn(`[SyncedBlock] Failed to fetch original block ${originalBlockId}:`, error);

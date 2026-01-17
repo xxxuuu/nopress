@@ -23,7 +23,14 @@ export class NotionPageRenderer {
     });
 
     // 注入方法到 blockRenderer（使用全局 notionAPI）
-    this.blockRenderer['fetchChildBlocks'] = (blockId: string) => notionAPI.getPageBlocks(blockId);
+    // fetchChildBlocks 先检查缓存（用于同步块嵌套内容），再用官方 API
+    this.blockRenderer['fetchChildBlocks'] = async (blockId: string) => {
+      const cached = notionAPI.getChildBlocksFromCache(blockId);
+      if (cached !== null) {
+        return cached.map(block => this.convertUnofficialBlock(block));
+      }
+      return notionAPI.getPageBlocks(blockId);
+    };
     this.blockRenderer['getBlockFormat'] = (blockId: string) => notionAPI.getBlockFormat(blockId);
     this.blockRenderer['databaseRenderer'] = (block: any) => this.renderChildDatabase(block);
     this.blockRenderer['fetchSyncedBlockContent'] = (blockId: string) => this.fetchSyncedBlockContent(blockId);

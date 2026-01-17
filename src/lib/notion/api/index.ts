@@ -34,6 +34,9 @@ export class NotionAPI {
   private collectionCache: Map<string, any> = new Map();
   private viewCache: Map<string, any> = new Map();
 
+  // 追踪通过同步块获取的块 ID（只有这些块才能通过 getChildBlocksFromCache 返回）
+  private syncedBlockIds: Set<string> = new Set();
+
   constructor(token: string, databaseId: string) {
     if (!token) {
       throw new Error('NOTION_TOKEN is required. Please set it in your .env file.');
@@ -419,16 +422,9 @@ export class NotionAPI {
   async getSyncedBlockContent(blockId: string): Promise<BlockValue[]> {
     // 标准化 ID 格式（去掉连字符）
     const normalizedId = blockId.replace(/-/g, '');
-    console.log(`[SyncedBlock] Getting content for block: ${blockId} (normalized: ${normalizedId})`);
 
     // 检查缓存（尝试两种格式）
     let block = this.blockCache.get(blockId) || this.blockCache.get(normalizedId);
-    console.log(`[SyncedBlock] Cache lookup result:`, {
-      found: !!block,
-      type: block?.type,
-      hasContent: !!block?.content,
-      contentLength: block?.content?.length || 0,
-    });
 
     if (block?.content && block.content.length > 0) {
       const children: BlockValue[] = [];
@@ -436,27 +432,25 @@ export class NotionAPI {
         const childBlock = this.blockCache.get(childId);
         if (childBlock) {
           children.push(childBlock);
+          // 标记为同步块来源
+          this.syncedBlockIds.add(childId);
         }
       }
       if (children.length > 0) {
-        console.log(`[SyncedBlock] Returning ${children.length} cached children`);
+        // 递归确保所有嵌套子块都在缓存中
+        await this.ensureNestedBlocksCached(children);
         return children;
       }
     }
 
     // 缓存未命中，使用 getBlocks 获取指定块
     try {
-      console.log(`[SyncedBlock] Cache miss, fetching via getBlocks API...`);
       // 非官方 API 通常使用不带连字符的 ID
       const response = await this.unofficialClient.getBlocks([normalizedId]);
-
-      console.log(`[SyncedBlock] getBlocks response keys:`, Object.keys(response || {}));
 
       // 从 response.recordMap.block 中获取块数据
       const recordMap = response?.recordMap;
       if (recordMap?.block) {
-        console.log(`[SyncedBlock] Block IDs in recordMap:`, Object.keys(recordMap.block));
-
         // 存储所有返回的块到缓存
         for (const [id, blockData] of Object.entries(recordMap.block)) {
           if ((blockData as any)?.value) {
@@ -467,16 +461,8 @@ export class NotionAPI {
 
       // 尝试两种格式获取目标块
       const blockValue = this.blockCache.get(normalizedId) || this.blockCache.get(blockId);
-      console.log(`[SyncedBlock] Target block value:`, {
-        found: !!blockValue,
-        type: blockValue?.type,
-        hasContent: !!blockValue?.content,
-        contentLength: blockValue?.content?.length || 0,
-        keys: blockValue ? Object.keys(blockValue) : [],
-      });
 
       if (!blockValue?.content) {
-        console.log(`[SyncedBlock] No content found in block`);
         return [];
       }
 
@@ -486,7 +472,6 @@ export class NotionAPI {
       );
 
       if (missingChildIds.length > 0) {
-        console.log(`[SyncedBlock] Fetching ${missingChildIds.length} missing children...`);
         const childResponse = await this.unofficialClient.getBlocks(missingChildIds);
         if (childResponse?.recordMap?.block) {
           for (const [id, blockData] of Object.entries(childResponse.recordMap.block)) {
@@ -500,20 +485,109 @@ export class NotionAPI {
       const children: BlockValue[] = [];
       for (const childId of blockValue.content) {
         const childBlock = this.blockCache.get(childId);
-        console.log(`[SyncedBlock] Child ${childId}:`, {
-          found: !!childBlock,
-          type: childBlock?.type,
-        });
         if (childBlock) {
           children.push(childBlock);
+          // 标记为同步块来源
+          this.syncedBlockIds.add(childId);
         }
       }
 
-      console.log(`[SyncedBlock] Returning ${children.length} fetched children`);
+      // 递归获取所有嵌套子块
+      await this.ensureNestedBlocksCached(children);
+
       return children;
     } catch (error) {
       console.warn(`[SyncedBlock] Failed to fetch synced block ${blockId}:`, error);
       return [];
+    }
+  }
+
+
+  /**
+   * 从缓存获取块的子块（用于渲染同步块内的嵌套内容）
+   * @returns 子块数组，如果缓存中没有完整数据则返回 null
+   */
+  getChildBlocksFromCache(blockId: string): BlockValue[] | null {
+    // 标准化 ID 格式
+    const normalizedId = blockId.replace(/-/g, '');
+
+    // 只对同步块来源的块使用缓存
+    // 如果父块不在 syncedBlockIds 中，返回 null 让调用方使用官方 API
+    if (!this.syncedBlockIds.has(blockId) && !this.syncedBlockIds.has(normalizedId)) {
+      return null;
+    }
+
+    const block = this.blockCache.get(blockId) || this.blockCache.get(normalizedId);
+
+    if (!block?.content || block.content.length === 0) {
+      return null;
+    }
+
+    const children: BlockValue[] = [];
+    for (const childId of block.content) {
+      const childBlock = this.blockCache.get(childId);
+      if (childBlock) {
+        children.push(childBlock);
+      } else {
+        // 如果有任何子块缺失，返回 null，让调用方使用官方 API
+        return null;
+      }
+    }
+
+    return children;
+  }
+
+
+  /**
+   * 递归确保所有嵌套子块都在缓存中
+   * 用于同步块渲染，确保嵌套内容可以从缓存获取
+   */
+  private async ensureNestedBlocksCached(blocks: BlockValue[]): Promise<void> {
+    const missingIds: string[] = [];
+
+    // 收集所有缺失的子块 ID，并标记已有的子块
+    for (const block of blocks) {
+      if (block.content && block.content.length > 0) {
+        for (const childId of block.content) {
+          // 标记为同步块来源
+          this.syncedBlockIds.add(childId);
+          if (!this.blockCache.has(childId)) {
+            missingIds.push(childId);
+          }
+        }
+      }
+    }
+
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    try {
+      const response = await this.unofficialClient.getBlocks(missingIds);
+      if (response?.recordMap?.block) {
+        for (const [id, blockData] of Object.entries(response.recordMap.block)) {
+          if ((blockData as any)?.value) {
+            this.blockCache.set(id, (blockData as any).value);
+            // 标记为同步块来源
+            this.syncedBlockIds.add(id);
+          }
+        }
+      }
+
+      // 递归处理新获取的块
+      const newBlocks: BlockValue[] = [];
+      for (const id of missingIds) {
+        const block = this.blockCache.get(id);
+        if (block) {
+          newBlocks.push(block);
+        }
+      }
+
+      if (newBlocks.length > 0) {
+        await this.ensureNestedBlocksCached(newBlocks);
+      }
+    } catch (error) {
+      console.warn(`[SyncedBlock] Failed to fetch nested blocks:`, error);
     }
   }
 
@@ -575,6 +649,7 @@ export const notionAPI = {
   getBlockFormat: (blockId: string) => getNotionAPI().getBlockFormat(blockId),
   getCollectionViewEntries: () => getNotionAPI().getCollectionViewEntries(),
   getSyncedBlockContent: (blockId: string) => getNotionAPI().getSyncedBlockContent(blockId),
+  getChildBlocksFromCache: (blockId: string) => getNotionAPI().getChildBlocksFromCache(blockId),
   queryDatabaseRows: (databaseId: string, options?: { pageSize?: number }) =>
     getNotionAPI().queryDatabaseRows(databaseId, options),
   retrieveDatabase: (databaseId: string) => getNotionAPI().retrieveDatabase(databaseId),

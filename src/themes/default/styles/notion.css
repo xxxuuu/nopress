@@ -222,9 +222,12 @@ blockquote.notion-red-background {
 }
 
 .notion-callout-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.5rem;
   flex-shrink: 0;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .notion-callout-icon-img {
@@ -1489,23 +1492,6 @@ code.notion-equation .katex {
 
 /* ========== 特殊块 ========== */
 
-/* Synced Block (同步块) */
-.notion-synced-block {
-  margin: 1em 0;
-  padding: var(--spacing-md);
-  border-radius: var(--radius-sm);
-  background-color: var(--notion-bg-secondary);
-  border: 1px solid var(--notion-border);
-}
-
-.notion-synced-original {
-  border-left: 3px solid var(--notion-link);
-}
-
-.notion-synced-copy {
-  border-left: 3px dashed var(--notion-text-tertiary);
-}
-
 /* 目录 */
 .notion-table-of-contents {
   margin: 1.5em 0;
@@ -1573,7 +1559,7 @@ code.notion-equation .katex {
   text-decoration: none;
   transition: background-color var(--transition-fast);
   border: none;
-  vertical-align: sub;
+  vertical-align: baseline;
   line-height: 1;
 }
 
@@ -1610,7 +1596,7 @@ a.notion-mention:hover,
 .notion-mention-favicon {
   width: 16px;
   height: 16px;
-  vertical-align: sub;
+  vertical-align: baseline;
   object-fit: contain;
   flex-shrink: 0;
 }
