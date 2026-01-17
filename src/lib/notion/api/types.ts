@@ -57,6 +57,7 @@ export interface PageData {
   block?: Record<string, { value: BlockValue }>;
   collection?: Record<string, { value: any }>;
   collection_view?: Record<string, { value: any }>;
+  signed_urls?: Record<string, string>;  // blockId -> 永久签名 URL
 }
 
 export interface DatabaseMeta {

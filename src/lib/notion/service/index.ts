@@ -128,7 +128,7 @@ class NotionDataService implements DataService {
 
     const pages = await notionAPI.queryMenuItems();
 
-    const menuItems: MenuItem[] = pages.reverse().map(page => {
+    const menuItems: MenuItem[] = pages.map(page => {
       const properties = page.properties as any;
       const title = properties.title?.title?.[0]?.plain_text || 'Untitled';
       let url = properties.slug?.rich_text?.[0]?.plain_text || '/';

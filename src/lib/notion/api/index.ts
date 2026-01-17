@@ -33,6 +33,7 @@ export class NotionAPI {
   private blockCache: Map<string, BlockValue> = new Map();
   private collectionCache: Map<string, any> = new Map();
   private viewCache: Map<string, any> = new Map();
+  private signedUrlsCache: Map<string, string> = new Map();  // blockId -> 永久签名 URL
 
   // 追踪通过同步块获取的块 ID（只有这些块才能通过 getChildBlocksFromCache 返回）
   private syncedBlockIds: Set<string> = new Set();
@@ -388,6 +389,15 @@ export class NotionAPI {
         }
       }
     }
+
+    // 保存 signed_urls（用于文件/PDF 的永久 URL）
+    if (pageData.signed_urls) {
+      for (const [blockId, signedUrl] of Object.entries(pageData.signed_urls)) {
+        if (signedUrl) {
+          this.signedUrlsCache.set(blockId, signedUrl);
+        }
+      }
+    }
   }
 
   /**
@@ -396,6 +406,18 @@ export class NotionAPI {
   getBlockFormat(blockId: string): any {
     const block = this.blockCache.get(blockId);
     return block?.format ?? {};
+  }
+
+  /**
+   * 获取块的签名 URL（从缓存）
+   * 用于获取文件/PDF 的永久 URL
+   */
+  getSignedUrl(blockId: string): string | null {
+    // 尝试原始 ID 和标准化 ID（去掉连字符）
+    const normalizedId = blockId.replace(/-/g, '');
+    return this.signedUrlsCache.get(blockId) ||
+           this.signedUrlsCache.get(normalizedId) ||
+           null;
   }
 
   /**
@@ -647,6 +669,7 @@ export const notionAPI = {
   getPageBlocks: (pageId: string) => getNotionAPI().getPageBlocks(pageId),
   getPageData: (pageId: string) => getNotionAPI().getPageData(pageId),
   getBlockFormat: (blockId: string) => getNotionAPI().getBlockFormat(blockId),
+  getSignedUrl: (blockId: string) => getNotionAPI().getSignedUrl(blockId),
   getCollectionViewEntries: () => getNotionAPI().getCollectionViewEntries(),
   getSyncedBlockContent: (blockId: string) => getNotionAPI().getSyncedBlockContent(blockId),
   getChildBlocksFromCache: (blockId: string) => getNotionAPI().getChildBlocksFromCache(blockId),

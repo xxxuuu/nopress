@@ -13,6 +13,7 @@ export class NotionBlockRenderer {
   private options: Required<RenderOptions>;
   private fetchChildBlocks: (blockId: string) => Promise<BlockObjectResponse[]>;
   private getBlockFormat: (blockId: string) => any;
+  private getSignedUrl: (blockId: string) => string | null;
   private databaseRenderer: (block: BlockObjectResponse) => Promise<string>;
   private fetchSyncedBlockContent: (blockId: string) => Promise<BlockObjectResponse[]>;
 
@@ -28,6 +29,7 @@ export class NotionBlockRenderer {
     // 这些方法会在 NotionPageRenderer 中注入
     this.fetchChildBlocks = async () => [];
     this.getBlockFormat = () => ({});
+    this.getSignedUrl = () => null;
     this.databaseRenderer = async () => '';
     this.fetchSyncedBlockContent = async () => [];
   }
@@ -524,14 +526,21 @@ export class NotionBlockRenderer {
     const file = (block as any).file;
     let url = this.getFileUrl(file);
 
-    // 转换临时 URL 为永久 URL
-    url = mapImageUrl(url, block);
+    // 优先使用 signed_url（永久 URL），否则使用图片代理（对文件可能不生效）
+    const signedUrl = this.getSignedUrl(block.id);
+    if (signedUrl) {
+      url = signedUrl;
+    } else if (file.type === 'file') {
+      // 上传的文件尝试使用图片代理（可能不生效）
+      url = mapImageUrl(url, block);
+    }
 
-    const caption = file.caption && file.caption.length > 0
-      ? renderPlainText(file.caption)
-      : '';
+    const caption =
+      file.caption && file.caption.length > 0
+        ? renderPlainText(file.caption)
+        : '';
 
-    const fileName = caption || url.split('/').pop() || 'Download File';
+    const fileName = caption || this.extractFileName(url) || '';
 
     return `<div class="notion-file">
       <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" download>
@@ -541,32 +550,42 @@ export class NotionBlockRenderer {
   }
 
   /**
+   * 从 URL 提取文件名
+   */
+  private extractFileName(url: string): string {
+    try {
+      const pathname = new URL(url).pathname;
+      return decodeURIComponent(pathname.split('/').pop() || '');
+    } catch {
+      return url.split('/').pop() || '';
+    }
+  }
+
+  /**
    * 渲染 PDF
    */
   private async renderPdf(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const pdf = (block as any).pdf;
     let url = this.getFileUrl(pdf);
 
-    // 转换临时 URL 为永久 URL
-    url = mapImageUrl(url, block);
+    // 优先使用 signed_url（永久 URL）
+    // 注意：mapImageUrl 使用 /image/ 代理，不支持 PDF，所以必须用 signed_url
+    const signedUrl = this.getSignedUrl(block.id);
+    if (signedUrl) {
+      url = signedUrl;
+    }
+    // 如果没有 signed_url，保持原始 URL（可能会过期）
 
     const caption = pdf.caption && pdf.caption.length > 0
       ? renderPlainText(pdf.caption)
       : '';
 
-    const fileName = caption || 'PDF Document';
-
     // 嵌入 PDF 查看器
     return `<div class="notion-pdf">
       <div class="notion-pdf-viewer">
-        <embed src="${escapeHtml(url)}" type="application/pdf" width="100%" height="600px" />
+        <embed src="${escapeHtml(url)}" type="application/pdf" />
       </div>
       ${caption ? `<div class="notion-pdf-caption">${caption}</div>` : ''}
-      <div class="notion-pdf-download">
-        <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" download>
-          📄 ${escapeHtml(fileName)}
-        </a>
-      </div>
     </div>`;
   }
 

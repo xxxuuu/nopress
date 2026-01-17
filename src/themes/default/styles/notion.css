@@ -1034,27 +1034,6 @@ code.notion-equation .katex {
   color: var(--notion-text-secondary);
 }
 
-.notion-pdf-download {
-  padding: var(--spacing-sm) var(--spacing-md);
-  background-color: var(--notion-bg-secondary);
-  border: 1px solid var(--notion-border);
-  border-radius: var(--radius-sm);
-  text-align: center;
-}
-
-.notion-pdf-download a {
-  color: var(--notion-link);
-  text-decoration: none;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.notion-pdf-download a:hover {
-  text-decoration: underline;
-}
-
 /* ========== 嵌入和书签 ========== */
 
 /* 嵌入内容 */

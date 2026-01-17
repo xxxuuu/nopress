@@ -32,6 +32,7 @@ export class NotionPageRenderer {
       return notionAPI.getPageBlocks(blockId);
     };
     this.blockRenderer['getBlockFormat'] = (blockId: string) => notionAPI.getBlockFormat(blockId);
+    this.blockRenderer['getSignedUrl'] = (blockId: string) => notionAPI.getSignedUrl(blockId);
     this.blockRenderer['databaseRenderer'] = (block: any) => this.renderChildDatabase(block);
     this.blockRenderer['fetchSyncedBlockContent'] = (blockId: string) => this.fetchSyncedBlockContent(blockId);
   }
