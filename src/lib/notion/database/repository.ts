@@ -3,7 +3,7 @@
  * 负责从 Notion API 获取数据库数据并返回标准化格式
  */
 
-import type { NotionClient } from '../client';
+import { notionAPI } from '../api';
 import { notionCache } from '../../cache';
 import type {
   Database,
@@ -11,6 +11,7 @@ import type {
   DatabaseRow,
   PropertySchema,
   PropertyValue,
+  PropertyType,
   TextPropertyValue,
   NumberPropertyValue,
   SelectPropertyValue,
@@ -36,12 +37,10 @@ export interface IDatabaseRepository {
 
 /**
  * Notion 数据库仓储实现
+ * 使用统一的 notionAPI 单例
  */
 export class DatabaseRepository implements IDatabaseRepository {
-  constructor(
-    private client: NotionClient,
-    private cache = notionCache
-  ) {}
+  constructor(private cache = notionCache) {}
 
   /**
    * 获取数据库元信息
@@ -52,7 +51,7 @@ export class DatabaseRepository implements IDatabaseRepository {
     const cached = await this.cache.get<Database>(cacheKey);
     if (cached) return cached;
 
-    const response = await this.client.retrieveDatabase(databaseId) as any;
+    const response = await notionAPI.retrieveDatabase(databaseId) as any;
 
     const database: Database = {
       id: response.id,
@@ -86,7 +85,7 @@ export class DatabaseRepository implements IDatabaseRepository {
     const cached = await this.cache.get<DatabaseSchema>(cacheKey);
     if (cached) return cached;
 
-    const response = await this.client.retrieveDatabase(databaseId) as any;
+    const response = await notionAPI.retrieveDatabase(databaseId) as any;
 
     let properties: Record<string, PropertySchema> = {};
 
@@ -95,7 +94,7 @@ export class DatabaseRepository implements IDatabaseRepository {
       properties = this.normalizeProperties(response.properties);
     } else {
       // SDK 5.x：从行数据中推断 schema
-      const rowsResponse = await this.client.queryDatabaseRows(databaseId, { pageSize: 1 }) as any;
+      const rowsResponse = await notionAPI.queryDatabaseRows(databaseId, { pageSize: 1 }) as any;
 
       if (rowsResponse.results?.length > 0) {
         const firstRow = rowsResponse.results[0];
@@ -244,10 +243,13 @@ export class DatabaseRepository implements IDatabaseRepository {
     const baseCacheKey = `database:rows:${databaseId}:${options.limit || 100}`;
 
     // 先尝试获取基础缓存
-    let rows = await this.cache.get<DatabaseRow[]>(baseCacheKey);
+    const cached = await this.cache.get<DatabaseRow[]>(baseCacheKey);
 
-    if (!rows) {
-      const response = await this.client.queryDatabaseRows(databaseId, {
+    let rows: DatabaseRow[];
+    if (cached) {
+      rows = cached;
+    } else {
+      const response = await notionAPI.queryDatabaseRows(databaseId, {
         pageSize: options.limit || 100,
       }) as any;
 
@@ -545,6 +547,6 @@ export class DatabaseRepository implements IDatabaseRepository {
 /**
  * 创建数据库仓储实例
  */
-export function createDatabaseRepository(client: NotionClient): IDatabaseRepository {
-  return new DatabaseRepository(client);
+export function createDatabaseRepository(): IDatabaseRepository {
+  return new DatabaseRepository();
 }

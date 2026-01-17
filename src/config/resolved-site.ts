@@ -11,7 +11,7 @@
  */
 
 import { SITE_CONFIG } from './site';
-import dataService from '@lib/data';
+import dataService from '@lib/notion/service';
 
 let resolvedConfig: typeof SITE_CONFIG | null = null;
 

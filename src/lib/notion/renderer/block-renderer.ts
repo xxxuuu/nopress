@@ -14,6 +14,7 @@ export class NotionBlockRenderer {
   private fetchChildBlocks: (blockId: string) => Promise<BlockObjectResponse[]>;
   private getBlockFormat: (blockId: string) => any;
   private databaseRenderer: (block: BlockObjectResponse) => Promise<string>;
+  private fetchSyncedBlockContent: (blockId: string) => Promise<BlockObjectResponse[]>;
 
 
   constructor(options: RenderOptions = {}) {
@@ -24,10 +25,11 @@ export class NotionBlockRenderer {
       ...options,
     };
 
-    // 这个方法会在 NotionPageRenderer 中注入
+    // 这些方法会在 NotionPageRenderer 中注入
     this.fetchChildBlocks = async () => [];
     this.getBlockFormat = () => ({});
     this.databaseRenderer = async () => '';
+    this.fetchSyncedBlockContent = async () => [];
   }
 
   /**
@@ -935,22 +937,24 @@ export class NotionBlockRenderer {
       if (block.has_children) {
         const children = await this.fetchChildBlocks(block.id);
         const childrenHtml = await this.renderBlocks(children, context);
-        return `<div class="notion-synced-block notion-synced-original">
-          ${childrenHtml}
-        </div>`;
+        return `<div class="notion-synced-block notion-synced-original">${childrenHtml}</div>`;
       }
       return '';
     } else {
-      // 这是同步的副本
-      // 根据 Notion API，我们需要获取原始块的内容
-      // 由于我们没有直接访问原始块的方法，我们只能渲染子块
-      if (block.has_children) {
-        const children = await this.fetchChildBlocks(block.id);
-        const childrenHtml = await this.renderBlocks(children, context);
-        return `<div class="notion-synced-block notion-synced-copy">
-          ${childrenHtml}
-        </div>`;
+      // 这是同步的副本，需要获取原始块的子块
+      const originalBlockId = syncedBlock.synced_from.block_id;
+
+      try {
+        // 优先使用非官方 API 获取（可访问公开页面）
+        const children = await this.fetchSyncedBlockContent(originalBlockId);
+        if (children && children.length > 0) {
+          const childrenHtml = await this.renderBlocks(children, context);
+          return `<div class="notion-synced-block notion-synced-copy">${childrenHtml}</div>`;
+        }
+      } catch (error) {
+        console.warn(`[SyncedBlock] Failed to fetch original block ${originalBlockId}:`, error);
       }
+
       return '';
     }
   }

@@ -42,3 +42,26 @@ export interface NotionPost extends NotionPostMetadata {
   content: string;
   markdown: string;
 }
+
+// API 层类型
+export interface BlockValue {
+  id: string;
+  type: string;
+  format?: any;
+  properties?: any;
+  content?: string[];
+  [key: string]: any;
+}
+
+export interface PageData {
+  block?: Record<string, { value: BlockValue }>;
+  collection?: Record<string, { value: any }>;
+  collection_view?: Record<string, { value: any }>;
+}
+
+export interface DatabaseMeta {
+  title: string;
+  description: string;
+  coverUrl: string;
+  icon: string;
+}

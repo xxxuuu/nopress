@@ -1,6 +1,6 @@
 import rss from '@astrojs/rss';
 import { getResolvedSiteConfig } from '@config/resolved-site';
-import dataService from '@lib/data';
+import dataService from '@lib/notion/service';
 
 export async function GET(context) {
   // 获取解析后的站点配置

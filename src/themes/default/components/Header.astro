@@ -1,7 +1,7 @@
 ---
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import ThemeToggle from './ThemeToggle.astro';
-import dataService from '@lib/data';
+import dataService from '@lib/notion/service';
 
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();

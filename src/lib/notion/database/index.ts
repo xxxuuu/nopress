@@ -4,7 +4,6 @@
  */
 
 import type { BlockObjectResponse } from '@notionhq/client';
-import type { NotionClient } from '../client';
 import { createDatabaseRepository, type IDatabaseRepository } from './repository';
 import { TableLayoutRenderer } from './table-layout';
 import { GalleryLayoutRenderer } from './gallery-layout';
@@ -22,10 +21,7 @@ import type {
  * 协调数据获取和布局渲染
  */
 export class DatabaseRenderer {
-  constructor(
-    private client: NotionClient,
-    private options: DatabaseRenderOptions = {}
-  ) {}
+  constructor(private options: DatabaseRenderOptions = {}) {}
 
   /**
    * 渲染 child_database block
@@ -41,10 +37,10 @@ export class DatabaseRenderer {
     const databaseId = block.id;
 
     try {
-      const repository = createDatabaseRepository(this.client);
+      const repository = createDatabaseRepository();
 
       // 构建视图配置（传递给数据层）
-      const repoViewConfig: ViewConfig = viewConfig ? {
+      const repoViewConfig: ViewConfig | undefined = viewConfig ? {
         tableProperties: viewConfig.config?.table_properties,
         pageSort: viewConfig.page_sort,
       } : undefined;
@@ -136,11 +132,8 @@ export class DatabaseRenderer {
 }
 
 /**
- * 创建数据库渲染器实例
+ * 创建数据库渲染器实例（简化，不再需要 client）
  */
-export function createDatabaseRenderer(
-  client: NotionClient,
-  options?: DatabaseRenderOptions
-): DatabaseRenderer {
-  return new DatabaseRenderer(client, options);
+export function createDatabaseRenderer(options?: DatabaseRenderOptions): DatabaseRenderer {
+  return new DatabaseRenderer(options);
 }
