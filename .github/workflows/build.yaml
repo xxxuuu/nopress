@@ -1,0 +1,70 @@
+name: Build and Deploy
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 设置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. 构建项目
+      - name: Build project
+        run: npm run build
+        env:
+          # 敏感信息（从 Secrets 读取）
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          COMMENTS_GISCUS_REPO_ID: ${{ secrets.COMMENTS_GISCUS_REPO_ID }}
+          COMMENTS_GISCUS_CATEGORY_ID: ${{ secrets.COMMENTS_GISCUS_CATEGORY_ID }}
+
+          # 公开配置（从环境变量读取，可在仓库 Settings → Variables 中设置）
+          SITE_URL: ${{ vars.SITE_URL }}
+          SITE_TITLE: ${{ vars.SITE_TITLE }}
+          SITE_DESCRIPTION: ${{ vars.SITE_DESCRIPTION }}
+          SITE_ICON: ${{ vars.SITE_ICON }}
+          SITE_SOCIAL: ${{ vars.SITE_SOCIAL }}
+          SITE_POSTS_PER_PAGE: ${{ vars.SITE_POSTS_PER_PAGE }}
+          SITE_ENABLE_RSS: ${{ vars.SITE_ENABLE_RSS }}
+          SITE_ENABLE_SITEMAP: ${{ vars.SITE_ENABLE_SITEMAP }}
+          COMMENTS_ENABLED: ${{ vars.COMMENTS_ENABLED }}
+          COMMENTS_PROVIDER: ${{ vars.COMMENTS_PROVIDER }}
+          COMMENTS_GISCUS_REPO: ${{ vars.COMMENTS_GISCUS_REPO }}
+          COMMENTS_GISCUS_CATEGORY: ${{ vars.COMMENTS_GISCUS_CATEGORY }}
+          COMMENTS_GISCUS_MAPPING: ${{ vars.COMMENTS_GISCUS_MAPPING }}
+          COMMENTS_GISCUS_STRICT: ${{ vars.COMMENTS_GISCUS_STRICT }}
+          COMMENTS_GISCUS_REACTIONS_ENABLED: ${{ vars.COMMENTS_GISCUS_REACTIONS_ENABLED }}
+          COMMENTS_GISCUS_EMIT_METADATA: ${{ vars.COMMENTS_GISCUS_EMIT_METADATA }}
+          COMMENTS_GISCUS_INPUT_POSITION: ${{ vars.COMMENTS_GISCUS_INPUT_POSITION }}
+          COMMENTS_GISCUS_LANG: ${{ vars.COMMENTS_GISCUS_LANG }}
+          COMMENTS_GISCUS_LAZY: ${{ vars.COMMENTS_GISCUS_LAZY }}
+
+      # 5. 推送构建产物到目标仓库
+      - name: Push to deployment repository
+        uses: cpina/github-action-push-to-another-repository@v1.7.2
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: 'dist'
+          destination-github-username: ${{ vars.DEPLOY_USERNAME }}
+          destination-repository-name: ${{ vars.DEPLOY_REPOSITORY }}
+          target-branch: ${{ vars.DEPLOY_BRANCH || 'main' }}
+          commit-message: |
+            Deploy: Update from ${{ github.repository }}@${{ github.sha }}
+
+            Build date: ${{ github.event.head_commit.timestamp }}
