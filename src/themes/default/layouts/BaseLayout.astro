@@ -47,6 +47,7 @@ const metaTags = generateMetaTags(
     {metaConfig.enableRSS && (
       <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
     )}
+    <link rel="sitemap" href="/sitemap-index.xml" />
 
     <title>{metaTags.title}</title>
     <meta name="description" content={metaTags.description} />
