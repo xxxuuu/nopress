@@ -1,9 +1,12 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { nopressThemeIntegration } from './src/lib/theme/astro-integration.ts';
+import { loadEnv } from 'vite';
 
-// 从环境变量读取站点 URL，默认使用开发环境地址
-const SITE_URL = import.meta.env.SITE_URL || 'http://localhost:4321';
+// Astro 配置文件加载较早，使用 loadEnv 读取环境变量
+// 参考: https://docs.astro.build/zh-cn/guides/environment-variables/#在-astro-配置文件中
+const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+const SITE_URL = env.SITE_URL || 'http://localhost:4321';
 
 // https://astro.build/config
 export default defineConfig({
