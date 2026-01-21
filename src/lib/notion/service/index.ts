@@ -27,6 +27,7 @@ import { compareDate } from '../../utils/date';
 import { calculateReadingTime, generateExcerpt } from '../../utils/format';
 import { notionRateLimiter, notionRetryHelper } from '../../utils/api-helpers';
 import { notionCache } from '../../cache';
+import { mapImageUrl } from '../map-image-url';
 
 /**
  * Notion 数据服务
@@ -265,10 +266,10 @@ class NotionDataService implements DataService {
     let coverUrl = '';
     const cover = (page as any).cover;
     if (cover) {
-      if (cover.type === 'external' && cover.external?.url) {
-        coverUrl = cover.external.url;
-      } else if (cover.type === 'file' && cover.file?.url) {
-        coverUrl = cover.file.url;
+      const rawUrl = cover.type === 'external' ? cover.external?.url : cover.file?.url;
+      if (rawUrl) {
+        // 使用 mapImageUrl 转换为永久 URL
+        coverUrl = mapImageUrl(rawUrl, page);
       }
     }
 
@@ -278,10 +279,12 @@ class NotionDataService implements DataService {
     if (pageIcon) {
       if (pageIcon.type === 'emoji') {
         icon = pageIcon.emoji || '';
-      } else if (pageIcon.type === 'external' && pageIcon.external?.url) {
-        icon = pageIcon.external.url;
-      } else if (pageIcon.type === 'file' && pageIcon.file?.url) {
-        icon = pageIcon.file.url;
+      } else {
+        const rawIconUrl = pageIcon.type === 'external' ? pageIcon.external?.url : pageIcon.file?.url;
+        if (rawIconUrl) {
+          // 使用 mapImageUrl 转换为永久 URL
+          icon = mapImageUrl(rawIconUrl, page);
+        }
       }
     }
 
