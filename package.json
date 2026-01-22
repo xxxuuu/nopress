@@ -15,6 +15,7 @@
     "@astrojs/sitemap": "^3.1.6",
     "@notionhq/client": "^5.6.0",
     "astro": "^4.15.0",
+    "astro-compress": "^2.3.9",
     "date-fns": "^3.6.0",
     "dotenv": "^17.2.3",
     "katex": "^0.16.27",
