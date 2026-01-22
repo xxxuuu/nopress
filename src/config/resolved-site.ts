@@ -36,6 +36,26 @@ function processFavicon(icon: string): string {
 }
 
 /**
+ * 格式化配置输出
+ */
+function formatConfigOutput(config: typeof SITE_CONFIG, seo: any) {
+  const output: string[] = [];
+
+  output.push('[ResolvedConfig] ✅ Configuration resolved:');
+  output.push('  Site: ' + `${config.title} | ${config.url}`);
+  output.push('  Social: ' + Object.keys(config.social || {}).join(', '));
+  output.push('  Settings: ' + `postsPerPage=${config.postsPerPage}, RSS=${config.enableRSS}, Sitemap=${config.enableSitemap}`);
+  output.push('  Comments: ' + (config.comments.enabled
+    ? `✅ ${config.comments.provider}` + (config.comments.provider === 'giscus'
+      ? ` (${config.comments.giscus.repo}, ${config.comments.giscus.lang})`
+      : '')
+    : '❌ disabled'));
+  output.push('  SEO: ' + `ogImage=${seo.ogImage ? '✅' : '❌'}, twitterCard=${seo.twitterCard}, twitterSite=${seo.twitterSite || 'N/A'}`);
+
+  console.log(output.join('\n'));
+}
+
+/**
  * 从 Twitter URL 中提取用户名
  * @example
  * extractTwitterUsername('https://twitter.com/username') => '@username'
@@ -92,13 +112,7 @@ export async function getResolvedSiteConfig() {
       },
     };
 
-    console.log('[ResolvedConfig] ✅ Configuration resolved:', {
-      title: resolvedConfig.title,
-      description: resolvedConfig.description,
-      icon: resolvedConfig.icon,
-      ogImage: resolvedConfig.seo.ogImage,
-      twitterSite: resolvedConfig.seo.twitterSite,
-    });
+    formatConfigOutput(resolvedConfig, resolvedConfig.seo);
 
     return resolvedConfig;
   } catch (error) {
@@ -121,6 +135,8 @@ export async function getResolvedSiteConfig() {
         twitterSite: twitterSite || undefined,  // 使用解析的 Twitter 用户名，没有则为 undefined
       },
     };
+
+    formatConfigOutput(resolvedConfig, resolvedConfig.seo);
 
     return resolvedConfig;
   }
