@@ -2,7 +2,7 @@
  * 配置加载器
  *
  * 支持从多个来源加载配置，优先级从高到低：
- * 1. 环境变量 (NODE_ENV)
+ * 1. 环境变量 (process.env)
  * 2. .env 文件
  * 3. 默认配置值
  *
@@ -12,11 +12,15 @@
  * - 评论配置：COMMENTS_GISCUS_* (例如: COMMENTS_GISCUS_REPO)
  */
 
+// 使用 Vite 的 loadEnv 加载环境变量（与 astro.config.mjs 保持一致）
+import { loadEnv } from 'vite';
+const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), '');
+
 /**
  * 从环境变量读取字符串值
  */
 function getEnvString(key: string, defaultValue?: string): string | undefined {
-  const value = import.meta.env[key];
+  const value = env[key];
   return value && value.trim() !== '' ? value : defaultValue;
 }
 
@@ -25,7 +29,7 @@ function getEnvString(key: string, defaultValue?: string): string | undefined {
  * 支持: true, false, 1, 0
  */
 function getEnvBoolean(key: string, defaultValue?: boolean): boolean | undefined {
-  const value = import.meta.env[key];
+  const value = env[key];
   if (value === undefined || value.trim() === '') {
     return defaultValue;
   }
@@ -45,7 +49,7 @@ function getEnvBoolean(key: string, defaultValue?: boolean): boolean | undefined
  * 从环境变量读取数字值
  */
 function getEnvNumber(key: string, defaultValue?: number): number | undefined {
-  const value = import.meta.env[key];
+  const value = env[key];
   if (value === undefined || value.trim() === '') {
     return defaultValue;
   }
@@ -59,7 +63,7 @@ function getEnvNumber(key: string, defaultValue?: number): number | undefined {
  * 支持 JSON 字符串格式的配置
  */
 function getEnvJson<T>(key: string, defaultValue?: T): T | undefined {
-  const value = import.meta.env[key];
+  const value = env[key];
   if (value === undefined || value.trim() === '') {
     return defaultValue;
   }
