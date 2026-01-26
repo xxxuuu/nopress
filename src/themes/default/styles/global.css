@@ -332,10 +332,6 @@ tr:hover {
 /* ========== 响应式 ========== */
 
 @media (max-width: 768px) {
-  html {
-    font-size: 15px;
-  }
-
   h1 {
     font-size: 2rem;
   }
@@ -358,10 +354,6 @@ tr:hover {
 }
 
 @media (max-width: 480px) {
-  html {
-    font-size: 14px;
-  }
-
   .content,
   .container {
     padding: 0 var(--spacing-md);
