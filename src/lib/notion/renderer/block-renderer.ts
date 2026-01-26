@@ -782,11 +782,12 @@ export class NotionBlockRenderer {
     const format = this.getBlockFormat(block.id);
     const columnRatio = format.column_ratio;
 
-    // 应用列宽样式
+    // 应用列宽样式（使用 CSS 变量，支持移动端响应式）
     let styleAttr = '';
     if (columnRatio && columnRatio > 0 && columnRatio < 1) {
       const widthPercent = (columnRatio * 100).toFixed(2);
-      styleAttr = ` style="flex: 0 0 ${widthPercent}%; max-width: ${widthPercent}%;"`;
+      // 使用 CSS 变量，移动端可通过 CSS 覆盖这些变量
+      styleAttr = ` style="--column-flex: 0 0 ${widthPercent}%; --column-width: ${widthPercent}%;"`;
     }
 
     return `<div class="notion-column"${styleAttr}>

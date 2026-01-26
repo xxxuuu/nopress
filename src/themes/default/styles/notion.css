@@ -1413,14 +1413,8 @@ code.notion-equation .katex {
 /* 响应式 */
 @media (max-width: 768px) {
   .notion-database-gallery {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: 1fr; /* 移动端强制单列 */
     gap: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .notion-database-gallery {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1432,13 +1426,41 @@ code.notion-equation .katex {
 }
 
 .notion-column {
-  flex: 1;
+  /* 使用 CSS 变量，支持桌面端百分比和移动端响应式 */
+  flex: var(--column-flex, 1); /* 默认 flex: 1，如果没有设置变量 */
   min-width: 0;
+  max-width: var(--column-width, 100%); /* 默认 100%，如果没有设置变量 */
 }
 
 @media (max-width: 768px) {
   .notion-column-list {
     flex-direction: column;
+    gap: var(--spacing-md); /* 增加移动端列之间的间距 */
+  }
+
+  /* 移动端：Column 占满宽度，覆盖 CSS 变量 */
+  .notion-column {
+    --column-flex: 1 1 100% !important; /* 覆盖内联样式的变量 */
+    --column-width: 100% !important; /* 覆盖内联样式的变量 */
+    flex: var(--column-flex) !important;
+    max-width: var(--column-width) !important;
+  }
+
+  /* 移动端：Bookmark 横向改纵向 */
+  .notion-bookmark > a {
+    flex-direction: column; /* 纵向布局 */
+  }
+
+  .notion-bookmark-cover {
+    width: 100%; /* 占满宽度 */
+    max-width: none; /* 移除最大宽度限制 */
+    height: auto; /* 高度自适应 */
+    aspect-ratio: 16 / 10; /* 保持宽高比 */
+    max-height: 200px; /* 限制最大高度 */
+  }
+
+  .notion-bookmark-info {
+    padding: var(--spacing-sm); /* 减小内边距 */
   }
 }
 
