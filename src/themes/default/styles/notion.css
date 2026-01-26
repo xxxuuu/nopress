@@ -903,9 +903,47 @@ code.notion-equation .katex {
 
 .notion-image img {
   max-width: 100%;
-  height: auto;
   border-radius: var(--radius-md);
   display: block;
+}
+
+/* 图片链接容器 - 当有 aspect-ratio 时作为占位容器 */
+.notion-image a[data-aspect-ratio] {
+  display: block;
+  width: 100%;
+  background-color: var(--notion-bg-secondary);
+  position: relative;
+}
+
+/* 图片加载前的占位图标（类似 gallery） */
+.notion-image a[data-aspect-ratio]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23d0d0d0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+:root.dark .notion-image a[data-aspect-ratio]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23555555' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+}
+
+/* 有 aspect-ratio 容器的图片填充整个容器，覆盖占位符 */
+.notion-image a[data-aspect-ratio] img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
 }
 
 .notion-image figcaption {
@@ -938,21 +976,62 @@ code.notion-equation .katex {
   margin-right: -50vw;
 }
 
-.notion-image-full-width img {
-  width: 100%;
-  max-width: none;
-  border-radius: 0;
-}
-
-/* 页面宽度图片 - 占满容器 */
-.notion-image-page-width {
+/* pageWidth/fullWidth 容器 */
+.notion-image-full-width a,
+.notion-image-page-width a {
+  display: block;
   width: 100%;
 }
 
+/* pageWidth/fullWidth 的占位效果 */
+.notion-image-full-width a[data-aspect-ratio],
+.notion-image-page-width a[data-aspect-ratio] {
+  background-color: var(--notion-bg-secondary);
+  position: relative;
+}
+
+.notion-image-full-width a[data-aspect-ratio]::before,
+.notion-image-page-width a[data-aspect-ratio]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23d0d0d0' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.5;
+  z-index: 0;
+}
+
+:root.dark .notion-image-full-width a[data-aspect-ratio]::before,
+:root.dark .notion-image-page-width a[data-aspect-ratio]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23555555' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+}
+
+.notion-image-full-width img,
 .notion-image-page-width img {
   width: 100%;
   max-width: none;
 }
+
+.notion-image-full-width img {
+  border-radius: 0;
+}
+
+/* 当有 aspect-ratio 时，img 填充容器高度并覆盖占位符 */
+.notion-image-full-width a[data-aspect-ratio] img,
+.notion-image-page-width a[data-aspect-ratio] img {
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+
+/* 当有 aspect-ratio 样式时，height 会自动计算以保持比例 */
 
 /* 视频 */
 .notion-video {

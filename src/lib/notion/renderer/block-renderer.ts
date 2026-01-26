@@ -4,7 +4,7 @@
  */
 
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import type { RenderContext, RenderOptions } from './types';
+import type { RenderContext, RenderOptions, BlockFormat } from './types';
 import { renderRichText, extractPlainText, escapeHtml, renderPlainText } from './rich-text';
 import { mapImageUrl, compressImage } from '../map-image-url';
 import { fetchOpenGraphData } from '../opengraph';
@@ -12,7 +12,7 @@ import { fetchOpenGraphData } from '../opengraph';
 export class NotionBlockRenderer {
   private options: Required<RenderOptions>;
   private fetchChildBlocks: (blockId: string) => Promise<BlockObjectResponse[]>;
-  private getBlockFormat: (blockId: string) => any;
+  private getBlockFormat: (blockId: string) => BlockFormat;
   private getSignedUrl: (blockId: string) => string | null;
   private databaseRenderer: (block: BlockObjectResponse) => Promise<string>;
   private fetchSyncedBlockContent: (blockId: string) => Promise<BlockObjectResponse[]>;
@@ -443,6 +443,8 @@ export class NotionBlockRenderer {
     // 提取样式属性
     const alignment = format.block_alignment || 'center'; // left, center, right
     const blockWidth = format.block_width; // 像素宽度
+    const blockHeight = format.block_height; // 像素高度
+    const aspectRatio = format.block_aspect_ratio; // 宽高比
     const isFullWidth = format.block_full_width;
     const isPageWidth = format.block_page_width;
 
@@ -461,11 +463,38 @@ export class NotionBlockRenderer {
       styleAttr = `style="max-width: ${this.options.imageMaxWidth}px;"`;
     }
 
+    // 计算图片宽高比用于容器占位（防止 CLS）
+    // 采用与 gallery 相同的方案：容器设置 aspect-ratio，img 填充容器
+    // 同时添加 data-aspect-ratio 属性用于 CSS 选择器
+    let wrapperStyleAttr = '';
+    let wrapperDataAttr = '';
+
+    // 优先使用 block_aspect_ratio，因为它更准确（考虑了实际图片尺寸）
+    if (blockWidth && aspectRatio) {
+      // Notion 的 block_aspect_ratio 是 height / width，需要取倒数
+      let cssRatio = 1 / aspectRatio;
+
+      // 考虑裁剪的影响（image_edit_metadata.crop）
+      const crop = format.image_edit_metadata?.crop;
+      if (crop && crop.width !== undefined && crop.height !== undefined) {
+        // 调整宽高比：原始比例 * (裁剪高度比例 / 裁剪宽度比例)
+        cssRatio = cssRatio * (crop.height / crop.width);
+      }
+
+      wrapperStyleAttr = ` style="aspect-ratio: ${cssRatio.toFixed(6)};"`;
+      wrapperDataAttr = ` data-aspect-ratio="${cssRatio.toFixed(6)}"`;
+    } else if (blockWidth && blockHeight) {
+      // 后备方案：使用 block_width 和 block_height
+      const ratio = blockWidth / blockHeight;
+      wrapperStyleAttr = ` style="aspect-ratio: ${ratio.toFixed(6)};"`;
+      wrapperDataAttr = ` data-aspect-ratio="${ratio.toFixed(6)}"`;
+    }
+
     const escapedUrl = escapeHtml(url);
     const escapedCaption = escapeHtml(caption);
 
     return `<figure class="${figureClass}" ${styleAttr}>
-      <a href="${escapedUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}">
+      <a href="${escapedUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}"${wrapperStyleAttr}${wrapperDataAttr}>
         <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} />
       </a>
       ${caption ? `<figcaption>${caption}</figcaption>` : ''}
