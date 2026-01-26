@@ -1426,10 +1426,9 @@ code.notion-equation .katex {
 }
 
 .notion-column {
-  /* 使用 CSS 变量，支持桌面端百分比和移动端响应式 */
-  flex: var(--column-flex, 1); /* 默认 flex: 1，如果没有设置变量 */
+  /* 直接使用原始比例，flex-shrink 会自动处理 gap */
+  flex: 0 1 var(--column-width, 100%);
   min-width: 0;
-  max-width: var(--column-width, 100%); /* 默认 100%，如果没有设置变量 */
 }
 
 @media (max-width: 768px) {
@@ -1438,12 +1437,10 @@ code.notion-equation .katex {
     gap: var(--spacing-md); /* 增加移动端列之间的间距 */
   }
 
-  /* 移动端：Column 占满宽度，覆盖 CSS 变量 */
+  /* 移动端：Column 占满宽度，覆盖桌面端的 calc() 样式 */
   .notion-column {
-    --column-flex: 1 1 100% !important; /* 覆盖内联样式的变量 */
     --column-width: 100% !important; /* 覆盖内联样式的变量 */
-    flex: var(--column-flex) !important;
-    max-width: var(--column-width) !important;
+    flex: 1 1 100% !important; /* 移动端直接覆盖 flex，不再使用 calc() */
   }
 
   /* 移动端：Bookmark 横向改纵向 */
