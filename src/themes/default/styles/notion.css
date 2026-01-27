@@ -1170,8 +1170,6 @@ code.notion-equation .katex {
   border: 1px solid rgba(55, 53, 47, 0.16);
   border-radius: 10px;
   overflow: hidden;
-  display: flex;
-  flex-direction: row;
   transition: background-color var(--transition-fast);
 }
 
@@ -1190,22 +1188,20 @@ code.notion-equation .katex {
 .notion-bookmark > a {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   text-decoration: none !important;
   color: var(--notion-text-primary);
   width: 100%;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .notion-bookmark-cover {
   width: 25%;
-  height: 100%;
   max-width: 280px;
   aspect-ratio: 16 / 10;
-  overflow: hidden;
   flex-shrink: 0;
   background-color: transparent;
-  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1217,8 +1213,6 @@ code.notion-equation .katex {
   width: auto;
   height: auto;
   object-fit: contain;
-  object-position: center;
-  display: block;
 }
 
 .notion-bookmark-info {
@@ -1227,41 +1221,47 @@ code.notion-equation .katex {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
+  /* 关键：确保宽度受限 */
+  width: 0;
 }
 
 .notion-bookmark-title {
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.4;
   color: var(--notion-text-primary);
   margin-bottom: 4px;
+  /* 单行省略 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .notion-bookmark-description {
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.4;
   color: var(--notion-text-secondary);
   margin-bottom: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* 2 行省略 */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* 兼容性 */
+  max-height: 2.8em;
 }
 
 .notion-bookmark-url {
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.3;
   color: var(--notion-text-tertiary);
+  margin-top: auto;
+  padding-top: 6px;
+  /* 单行省略 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin-top: auto;
-  padding-top: 6px;
 }
 
 /* 链接预览 */
@@ -1551,21 +1551,34 @@ code.notion-equation .katex {
     flex: 1 1 100% !important; /* 移动端直接覆盖 flex，不再使用 calc() */
   }
 
-  /* 移动端：Bookmark 横向改纵向 */
+  /* 移动端：Bookmark */
   .notion-bookmark > a {
-    flex-direction: column; /* 纵向布局 */
+    flex-direction: column;
   }
 
   .notion-bookmark-cover {
-    width: 100%; /* 占满宽度 */
-    max-width: none; /* 移除最大宽度限制 */
-    height: auto; /* 高度自适应 */
-    aspect-ratio: 16 / 10; /* 保持宽高比 */
-    max-height: 200px; /* 限制最大高度 */
+    display: none;
   }
 
   .notion-bookmark-info {
-    padding: var(--spacing-sm); /* 减小内边距 */
+    width: 100%;
+  }
+
+  .notion-bookmark-title {
+    font-size: 0.85rem;
+  }
+
+  .notion-bookmark-description {
+    font-size: 0.8rem;
+  }
+
+  /* 移动端：Database Card 字体调整 */
+  .notion-database-card-title {
+    font-size: 0.85rem;
+  }
+
+  .notion-database-card-property {
+    font-size: 0.8rem;
   }
 }
 
