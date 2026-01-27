@@ -464,27 +464,17 @@ export class NotionBlockRenderer {
     }
 
     // 计算图片宽高比用于容器占位（防止 CLS）
-    // 采用与 gallery 相同的方案：容器设置 aspect-ratio，img 填充容器
-    // 同时添加 data-aspect-ratio 属性用于 CSS 选择器
+    // 图片加载完成后会用 naturalWidth/naturalHeight 替换为真实比例
     let wrapperStyleAttr = '';
     let wrapperDataAttr = '';
 
-    // 优先使用 block_aspect_ratio，因为它更准确（考虑了实际图片尺寸）
     if (blockWidth && aspectRatio) {
       // Notion 的 block_aspect_ratio 是 height / width，需要取倒数
-      let cssRatio = 1 / aspectRatio;
-
-      // 考虑裁剪的影响（image_edit_metadata.crop）
-      const crop = format.image_edit_metadata?.crop;
-      if (crop && crop.width !== undefined && crop.height !== undefined) {
-        // 调整宽高比：原始比例 * (裁剪高度比例 / 裁剪宽度比例)
-        cssRatio = cssRatio * (crop.height / crop.width);
-      }
-
+      const cssRatio = 1 / aspectRatio;
       wrapperStyleAttr = ` style="aspect-ratio: ${cssRatio.toFixed(6)};"`;
       wrapperDataAttr = ` data-aspect-ratio="${cssRatio.toFixed(6)}"`;
     } else if (blockWidth && blockHeight) {
-      // 后备方案：使用 block_width 和 block_height
+      // 后备方案：使用 block_width 和 block_height（可能是用户手动调整的尺寸，加载后会被真实比例替换）
       const ratio = blockWidth / blockHeight;
       wrapperStyleAttr = ` style="aspect-ratio: ${ratio.toFixed(6)};"`;
       wrapperDataAttr = ` data-aspect-ratio="${ratio.toFixed(6)}"`;
@@ -495,7 +485,7 @@ export class NotionBlockRenderer {
 
     return `<figure class="${figureClass}" ${styleAttr}>
       <a href="${escapedUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}"${wrapperStyleAttr}${wrapperDataAttr}>
-        <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} onload="this.parentElement.classList.add('loaded')" />
+        <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} onload="const ratio=this.naturalWidth/this.naturalHeight;this.parentElement.style.aspectRatio=ratio.toFixed(6);this.parentElement.setAttribute('data-aspect-ratio',ratio.toFixed(6));this.parentElement.classList.add('loaded')" />
       </a>
       ${caption ? `<figcaption>${caption}</figcaption>` : ''}
     </figure>`;
