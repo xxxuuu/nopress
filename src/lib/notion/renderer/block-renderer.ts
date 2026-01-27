@@ -599,16 +599,117 @@ export class NotionBlockRenderer {
       ? renderPlainText(pdf.caption)
       : '';
 
-    // 嵌入 PDF 查看器
+    // 使用 Google Docs Viewer 嵌入 PDF
+    const viewerUrl = `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(url)}`;
+
     return `<div class="notion-pdf">
       <div class="notion-pdf-viewer">
-        <embed src="${escapeHtml(url)}" type="application/pdf" />
+        <embed src="${escapeHtml(viewerUrl)}" type="application/pdf" />
       </div>
       ${caption ? `<div class="notion-pdf-caption">${caption}</div>` : ''}
     </div>`;
   }
 
   // ========== 嵌入和书签渲染 ==========
+
+  /**
+   * 将普通 URL 转换为 embed URL（作为 fallback，format 优先）
+   */
+  private convertToEmbedUrl(url: string): string {
+    try {
+      const urlObj = new URL(url);
+
+      // YouTube
+      if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+        return this.extractYouTubeEmbedUrl(url);
+      }
+
+      // Spotify
+      if (urlObj.hostname === 'open.spotify.com') {
+        return url.replace(/^https:\/\/open\.spotify\.com\//, 'https://open.spotify.com/embed/');
+      }
+
+      // Vimeo
+      if (urlObj.hostname === 'vimeo.com') {
+        const pathParts = urlObj.pathname.split('/').filter(Boolean);
+        const videoId = pathParts[0];
+        return `https://player.vimeo.com/video/${videoId}`;
+      }
+
+      // 其他 URL 直接返回（依赖 format 中的正确 URL）
+      return url;
+    } catch {
+      return url;
+    }
+  }
+
+  /**
+   * 提取 YouTube embed URL
+   */
+  private extractYouTubeEmbedUrl(url: string): string {
+    // youtube.com/watch?v=VIDEO_ID
+    const watchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    if (watchMatch) {
+      return `https://www.youtube.com/embed/${watchMatch[1]}`;
+    }
+    // youtube.com/shorts/VIDEO_ID
+    const shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]+)/);
+    if (shortsMatch) {
+      return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+    }
+    // youtube.com/embed/VIDEO_ID (已经是 embed 格式)
+    if (url.includes('youtube.com/embed/')) {
+      return url;
+    }
+    return url;
+  }
+
+  /**
+   * 判断是否是 Twitter/X URL
+   */
+  private isTwitterUrl(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname === 'x.com' || urlObj.hostname === 'twitter.com' || urlObj.hostname === 'www.twitter.com';
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * 渲染 Twitter/X 嵌入（使用 oEmbed API）
+   */
+  private async renderTwitterEmbed(url: string, caption: string): Promise<string> {
+    try {
+      const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`;
+      const response = await fetch(oembedUrl, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Twitter oEmbed failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      return `<figure class="notion-embed notion-embed--twitter">
+        ${data.html || ''}
+        ${caption ? `<figcaption>${caption}</figcaption>` : ''}
+      </figure>`;
+    } catch (error) {
+      console.warn('[Embed] Twitter oEmbed failed:', error);
+      // 降级：显示链接卡片
+      return `<figure class="notion-embed notion-embed--fallback">
+        <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="notion-embed-fallback-link">
+          <span class="notion-embed-fallback-icon">𝕏</span>
+          <span class="notion-embed-fallback-text">查看 Twitter/X 内容</span>
+        </a>
+        ${caption ? `<figcaption>${caption}</figcaption>` : ''}
+      </figure>`;
+    }
+  }
 
   /**
    * 渲染嵌入内容
@@ -620,9 +721,25 @@ export class NotionBlockRenderer {
       ? renderPlainText(embed.caption)
       : '';
 
+    // 获取 format 信息（来自非官方 API，可能包含正确的 embed URL）
+    const format = this.getBlockFormat(block.id);
+
+    // 检查是否是 Twitter/X
+    if (this.isTwitterUrl(url)) {
+      return await this.renderTwitterEmbed(url, caption);
+    }
+
+    // 如果 format 中有正确的 embed URL，优先使用
+    let embedUrl = format.display_source || '';
+
+    // 否则转换普通 URL 为 embed URL
+    if (!embedUrl) {
+      embedUrl = this.convertToEmbedUrl(url);
+    }
+
     return `<figure class="notion-embed">
       <div class="notion-embed-wrapper">
-        <iframe src="${escapeHtml(url)}" frameborder="0" allowfullscreen></iframe>
+        <iframe src="${escapeHtml(embedUrl)}" frameborder="0" allowfullscreen data-loading="lazy"></iframe>
       </div>
       ${caption ? `<figcaption>${caption}</figcaption>` : ''}
     </figure>`;

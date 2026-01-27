@@ -164,6 +164,9 @@ blockquote.notion-red-background {
 .notion-content h1 + .notion-video,
 .notion-content h2 + .notion-video,
 .notion-content h3 + .notion-video,
+.notion-content h1 + .notion-embed,
+.notion-content h2 + .notion-embed,
+.notion-content h3 + .notion-embed,
 .notion-content h1 + .notion-column-list,
 .notion-content h2 + .notion-column-list,
 .notion-content h3 + .notion-column-list,
@@ -188,6 +191,7 @@ blockquote.notion-red-background {
 .notion-content p + .notion-image,
 .notion-content p + .notion-code-block,
 .notion-content p + .notion-video,
+.notion-content p + .notion-embed,
 .notion-content p + .notion-table-wrapper,
 .notion-content p + .notion-equation-block,
 .notion-content p + .mermaid-diagram,
@@ -791,6 +795,8 @@ code.notion-equation .katex {
 .notion-content ol + .notion-code-block,
 .notion-content ul + .notion-video,
 .notion-content ol + .notion-video,
+.notion-content ul + .notion-embed,
+.notion-content ol + .notion-embed,
 .notion-content ul + .notion-table-wrapper,
 .notion-content ol + .notion-table-wrapper,
 .notion-content ul + .notion-column-list,
@@ -1155,6 +1161,51 @@ code.notion-equation .katex {
   left: 0;
   width: 100%;
   height: 100%;
+}
+
+/* Twitter 嵌入样式 */
+.notion-embed--twitter {
+  margin: 1.5em auto;
+  text-align: center;
+}
+
+/* Twitter 嵌入内容居中 */
+.notion-embed--twitter > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Embed 失败时的降级样式 */
+.notion-embed--fallback {
+  margin: 1em 0;
+  padding: var(--spacing-lg);
+  background-color: var(--notion-bg-secondary);
+  border: 1px solid var(--notion-border);
+  border-radius: var(--radius-sm);
+}
+
+.notion-embed-fallback-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  color: var(--notion-link);
+  text-decoration: none;
+  font-weight: 500;
+  padding: var(--spacing-sm);
+}
+
+.notion-embed-fallback-link:hover {
+  text-decoration: underline;
+}
+
+.notion-embed-fallback-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.notion-embed-fallback-text {
+  font-size: 1rem;
 }
 
 .notion-embed figcaption {
