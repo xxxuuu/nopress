@@ -495,7 +495,7 @@ export class NotionBlockRenderer {
 
     return `<figure class="${figureClass}" ${styleAttr}>
       <a href="${escapedUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}"${wrapperStyleAttr}${wrapperDataAttr}>
-        <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} />
+        <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} onload="this.parentElement.classList.add('loaded')" />
       </a>
       ${caption ? `<figcaption>${caption}</figcaption>` : ''}
     </figure>`;

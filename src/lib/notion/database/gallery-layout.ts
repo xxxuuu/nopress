@@ -171,7 +171,7 @@ export class GalleryLayoutRenderer {
         if (imageUrl) {
           // 转换临时 URL 为永久 URL
           const mappedUrl = mapImageUrl(imageUrl, { id: row.id, type: 'block' });
-          imageHtml = `<img src="${escapeHtml(mappedUrl)}" alt="" loading="lazy" onerror="this.parentElement.classList.add('notion-database-card-cover-error')" />`;
+          imageHtml = `<img src="${escapeHtml(mappedUrl)}" alt="" loading="lazy" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('notion-database-card-cover-error')" />`;
         }
       }
     }
