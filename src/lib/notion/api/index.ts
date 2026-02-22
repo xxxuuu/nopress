@@ -133,15 +133,15 @@ export class NotionAPI {
           if (collectionId) {
             const collectionData = pageData.collection[collectionId];
 
-            if (collectionData?.value?.cover) {
-              coverUrl = mapImageUrl(collectionData.value.cover, {
+            if (collectionData?.value?.value?.cover) {
+              coverUrl = mapImageUrl(collectionData.value.value.cover, {
                 id: collectionId,
                 type: 'collection'
               });
             }
 
-            if (collectionData?.value?.icon) {
-              const rawIcon = collectionData.value.icon;
+            if (collectionData?.value?.value?.icon) {
+              const rawIcon = collectionData.value.value.icon;
               if (rawIcon.startsWith('http')) {
                 icon = mapImageUrl(rawIcon, {
                   id: collectionId,
@@ -376,8 +376,8 @@ export class NotionAPI {
 
     if (pageData.collection) {
       for (const [collectionId, collectionData] of Object.entries(pageData.collection)) {
-        if (collectionData?.value) {
-          this.collectionCache.set(collectionId, collectionData.value);
+        if (collectionData?.value?.value) {
+          this.collectionCache.set(collectionId, collectionData.value.value);
         }
       }
     }
