@@ -34,11 +34,7 @@ const GALLERY_PROPERTY_TYPES: PropertyType[] = [
  * 将数据库渲染为卡片网格
  */
 export class GalleryLayoutRenderer {
-  private viewConfig: any;
-
-  constructor(private options: DatabaseRenderOptions = {}, viewConfig?: any) {
-    this.viewConfig = viewConfig;
-  }
+  constructor(private options: DatabaseRenderOptions = {}, private viewConfig?: any) {}
 
   /**
    * 渲染完整画廊
@@ -79,9 +75,10 @@ export class GalleryLayoutRenderer {
     const galleryCover = this.viewConfig?.gallery_cover;
 
     if (galleryCover?.type === 'property' && galleryCover.property) {
-      // 根据 property ID 查找
       const prop = Object.values(properties).find(p => p.id === galleryCover.property);
-      if (prop) return prop;
+      if (prop) {
+        return prop;
+      }
     }
 
     // 默认查找第一个 file 类型的属性
@@ -116,7 +113,6 @@ export class GalleryLayoutRenderer {
     }
   ): string {
     if (rows.length === 0) return '';
-
     return rows.map(row => this.renderCard(row, config)).join('');
   }
 

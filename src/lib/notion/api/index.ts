@@ -364,28 +364,48 @@ export class NotionAPI {
 
   /**
    * 存储页面数据到缓存
+   *
+   * Notion API 格式变化：增加了 spaceId 包装层
+   * 旧格式：block[blockId] = { value: {...} }
+   * 新格式：block[blockId] = { value: { value: {...} } }
    */
   private storePageData(pageData: PageData): void {
     if (pageData.block) {
       for (const [blockId, blockData] of Object.entries(pageData.block)) {
-        if (blockData?.value) {
-          this.blockCache.set(blockId, blockData.value);
+        // 检测并解包 spaceId 层
+        let blockValue = blockData?.value;
+        if (blockValue?.value) {
+          // 存在 spaceId 包装，取内层 value
+          blockValue = blockValue.value;
+        }
+        if (blockValue) {
+          this.blockCache.set(blockId, blockValue);
         }
       }
     }
 
     if (pageData.collection) {
       for (const [collectionId, collectionData] of Object.entries(pageData.collection)) {
-        if (collectionData?.value?.value) {
-          this.collectionCache.set(collectionId, collectionData.value.value);
+        // collection 也可能有 spaceId 包装
+        let collectionValue = collectionData?.value?.value;
+        if (!collectionValue && collectionData?.value) {
+          collectionValue = collectionData.value;
+        }
+        if (collectionValue) {
+          this.collectionCache.set(collectionId, collectionValue);
         }
       }
     }
 
     if (pageData.collection_view) {
       for (const [viewId, viewData] of Object.entries(pageData.collection_view)) {
-        if (viewData?.value) {
-          this.viewCache.set(viewId, viewData.value);
+        // collection_view 也可能有 spaceId 包装
+        let viewValue = viewData?.value;
+        if (viewValue?.value) {
+          viewValue = viewValue.value;
+        }
+        if (viewValue) {
+          this.viewCache.set(viewId, viewValue);
         }
       }
     }
@@ -473,10 +493,15 @@ export class NotionAPI {
       // 从 response.recordMap.block 中获取块数据
       const recordMap = response?.recordMap;
       if (recordMap?.block) {
-        // 存储所有返回的块到缓存
+        // 存储所有返回的块到缓存（处理 spaceId 包装）
         for (const [id, blockData] of Object.entries(recordMap.block)) {
-          if ((blockData as any)?.value) {
-            this.blockCache.set(id, (blockData as any).value);
+          let blockValue = (blockData as any)?.value;
+          if (blockValue?.value) {
+            // 解包 spaceId 层
+            blockValue = blockValue.value;
+          }
+          if (blockValue) {
+            this.blockCache.set(id, blockValue);
           }
         }
       }
@@ -497,8 +522,13 @@ export class NotionAPI {
         const childResponse = await this.unofficialClient.getBlocks(missingChildIds);
         if (childResponse?.recordMap?.block) {
           for (const [id, blockData] of Object.entries(childResponse.recordMap.block)) {
-            if ((blockData as any)?.value) {
-              this.blockCache.set(id, (blockData as any).value);
+            let blockValue = (blockData as any)?.value;
+            if (blockValue?.value) {
+              // 解包 spaceId 层
+              blockValue = blockValue.value;
+            }
+            if (blockValue) {
+              this.blockCache.set(id, blockValue);
             }
           }
         }
@@ -588,8 +618,13 @@ export class NotionAPI {
       const response = await this.unofficialClient.getBlocks(missingIds);
       if (response?.recordMap?.block) {
         for (const [id, blockData] of Object.entries(response.recordMap.block)) {
-          if ((blockData as any)?.value) {
-            this.blockCache.set(id, (blockData as any).value);
+          let blockValue = (blockData as any)?.value;
+          if (blockValue?.value) {
+            // 解包 spaceId 层
+            blockValue = blockValue.value;
+          }
+          if (blockValue) {
+            this.blockCache.set(id, blockValue);
             // 标记为同步块来源
             this.syncedBlockIds.add(id);
           }

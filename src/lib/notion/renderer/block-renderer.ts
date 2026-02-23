@@ -953,7 +953,7 @@ export class NotionBlockRenderer {
   private async renderChildDatabase(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     try {
       return await this.databaseRenderer(block);
-    } catch {
+    } catch (err) {
       // 降级显示：简单的数据库标题
       const childDatabase = (block as any).child_database;
       const title = childDatabase.title;

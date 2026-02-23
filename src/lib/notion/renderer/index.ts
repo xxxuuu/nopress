@@ -71,8 +71,6 @@ export class NotionPageRenderer {
   private async renderChildDatabase(block: any): Promise<string> {
     try {
       const format = notionAPI.getBlockFormat(block.id);
-
-      // 尝试从 block format 中获取视图信息
       let viewConfig = this.extractViewConfig(format);
 
       // 如果没有找到视图配置（child_database 使用不同的 collection），单独获取
@@ -94,10 +92,7 @@ export class NotionPageRenderer {
    */
   private async fetchDatabaseViewConfig(blockId: string): Promise<{ type: 'table' | 'gallery'; config?: any; page_sort?: string[] }> {
     try {
-      // 获取数据（自动缓存）
       await notionAPI.getPageData(blockId);
-
-      // 从缓存提取视图配置
       const newFormat = notionAPI.getBlockFormat(blockId);
       return this.extractViewConfig(newFormat);
     } catch (error) {
@@ -110,13 +105,19 @@ export class NotionPageRenderer {
    * 从 block format 中提取视图配置
    */
   private extractViewConfig(format: any): { type: 'table' | 'gallery'; config?: any; page_sort?: string[] } {
+    const allViews = notionAPI.getCollectionViewEntries();
     const targetCollectionId = format?.collection_pointer?.id;
 
     // 如果 format 中有 collection_pointer，从 collection_view 找到对应的视图
     if (targetCollectionId) {
-      for (const [, view] of notionAPI.getCollectionViewEntries()) {
-        if (view?.format?.collection_pointer?.id === targetCollectionId) {
-          const viewType = view.type === 'gallery' ? 'gallery' : 'table';
+      for (const [viewId, view] of allViews) {
+        const viewCollectionId = view?.format?.collection_pointer?.id;
+        if (viewCollectionId === targetCollectionId) {
+          const isGallery = view.type === 'gallery' ||
+                           view.type === 'gallery_view' ||
+                           view.type === 'board' ||
+                           (typeof view.type === 'string' && view.type.toLowerCase().includes('gallery'));
+          const viewType = isGallery ? 'gallery' : 'table';
           return {
             type: viewType,
             config: view.format,
