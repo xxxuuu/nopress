@@ -6,6 +6,10 @@
 import { Client } from '@notionhq/client';
 import { NotionAPI as NotionAPILib } from 'notion-client';
 import { mapImageUrl } from '../map-image-url';
+import {
+  notionUnofficialRateLimiter,
+  notionUnofficialRetryHelper,
+} from '../../utils/api-helpers';
 import type { NotionPage, NotionBlock, BlockValue, PageData, DatabaseMeta } from './types';
 
 // 重新导出类型
@@ -38,6 +42,9 @@ export class NotionAPI {
   // 追踪通过同步块获取的块 ID（只有这些块才能通过 getChildBlocksFromCache 返回）
   private syncedBlockIds: Set<string> = new Set();
 
+  // 已成功通过非官方 API 抓取的页面 ID（避免重复请求）
+  private fetchedPageIds: Set<string> = new Set();
+
   constructor(token: string, databaseId: string) {
     if (!token) {
       throw new Error('NOTION_TOKEN is required. Please set it in your .env file.');
@@ -47,7 +54,17 @@ export class NotionAPI {
     }
 
     this.officialClient = new Client({ auth: token });
-    this.unofficialClient = new NotionAPILib();
+    // 2026-08 起 Notion 的 Cloudflare 防护拒绝不带 User-Agent 的请求（403）
+    // 参见 https://github.com/NotionX/react-notion-x/issues/710
+    this.unofficialClient = new NotionAPILib({
+      ofetchOptions: {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+          'accept-language': 'en-US,en;q=0.9',
+        },
+      },
+    });
     this.databaseId = databaseId;
   }
 
@@ -133,15 +150,18 @@ export class NotionAPI {
           if (collectionId) {
             const collectionData = pageData.collection[collectionId];
 
-            if (collectionData?.value?.value?.cover) {
-              coverUrl = mapImageUrl(collectionData.value.value.cover, {
+            // 兼容原始格式（spaceId 包装的双层 value）和缓存重组格式（单层 value）
+            const collectionValue = collectionData?.value?.value ?? collectionData?.value;
+
+            if (collectionValue?.cover) {
+              coverUrl = mapImageUrl(collectionValue.cover, {
                 id: collectionId,
                 type: 'collection'
               });
             }
 
-            if (collectionData?.value?.value?.icon) {
-              const rawIcon = collectionData.value.value.icon;
+            if (collectionValue?.icon) {
+              const rawIcon = collectionValue.icon;
               if (rawIcon.startsWith('http')) {
                 icon = mapImageUrl(rawIcon, {
                   id: collectionId,
@@ -350,16 +370,175 @@ export class NotionAPI {
   /**
    * 获取页面完整数据（非官方 API，自动缓存）
    * 用于获取块格式、同步块内容等官方 API 不提供的信息
+   *
+   * 内置限流 + 429 重试 + 抓取去重：
+   * - 限流器控制非官方 API 的全局并发和请求间隔
+   * - 已成功抓取过的页面直接从缓存重组数据，不再发起请求
+   *
+   * 重要：关闭 notion-client 内部的 fetchMissingBlocks / signFileUrls。
+   * Notion 新增 spaceId 包装层后，notion-utils 的 getPageContentBlockIds
+   * 遍历在根节点即中断，导致 chunk 0 之外的块永远补不齐（图片宽度等
+   * format 信息缺失）。这里由 normalizeRecordMap + ensureCompleteRecordMap
+   * + signPageFileUrls 自行完成同样的工作。
    */
   async getPageData(pageId: string): Promise<PageData> {
-    const pageData = await this.unofficialClient.getPage(pageId);
+    const normalizedId = pageId.replace(/-/g, '');
 
-    // 自动存储到缓存
+    // 已抓取过：从块级缓存重组返回，避免重复请求
+    if (this.fetchedPageIds.has(normalizedId)) {
+      return this.rebuildPageData();
+    }
+
+    const pageData = await notionUnofficialRateLimiter.execute(() =>
+      notionUnofficialRetryHelper.execute(
+        () => this.unofficialClient.getPage(pageId, {
+          concurrency: 2,
+          fetchMissingBlocks: false,
+          signFileUrls: false,
+        }),
+        `Fetching page data ${pageId}`
+      )
+    );
+
     if (pageData) {
+      this.normalizeRecordMap(pageData);
+      await this.ensureCompleteRecordMap(pageData);
+      await this.signPageFileUrls(pageData);
+      this.fetchedPageIds.add(normalizedId);
       this.storePageData(pageData);
     }
 
     return pageData;
+  }
+
+  /**
+   * 解包 Notion 新格式的 spaceId 包装层（原地修改）
+   * 旧格式：block[id] = { value: {...} }
+   * 新格式：block[id] = { value: { value: {...} } }
+   */
+  private normalizeRecordMap(pageData: PageData): void {
+    const tables = ['block', 'collection', 'collection_view'] as const;
+    for (const table of tables) {
+      const record = pageData[table];
+      if (!record) continue;
+
+      for (const [id, entry] of Object.entries(record)) {
+        const inner = (entry as any)?.value?.value;
+        if (inner) {
+          (record as any)[id] = { value: inner };
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取块引用的所有子块 ID（content 数组 + 同步块引用指针）
+   */
+  private getBlockReferences(block: BlockValue): string[] {
+    const refs: string[] = [...(block.content || [])];
+    const transclusionRef = block.format?.transclusion_reference_pointer?.id;
+    if (transclusionRef) {
+      refs.push(transclusionRef);
+    }
+    return refs;
+  }
+
+  /**
+   * 递归补齐 recordMap 中缺失的块
+   *
+   * 沿 content / transclusion_reference_pointer 引用逐层遍历，
+   * 分批请求缺失块并合并，直到整棵块树完整。
+   * 无法获取的块用占位符标记，防止死循环。
+   */
+  private async ensureCompleteRecordMap(pageData: PageData): Promise<void> {
+    const blockMap = pageData.block;
+    if (!blockMap) return;
+
+    const MAX_ROUNDS = 50;
+
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+      const pending = new Set<string>();
+      for (const entry of Object.values(blockMap)) {
+        const block = (entry as any)?.value as BlockValue;
+        if (!block) continue;
+        for (const ref of this.getBlockReferences(block)) {
+          if (!blockMap[ref]) {
+            pending.add(ref);
+          }
+        }
+      }
+
+      if (pending.size === 0) {
+        return;
+      }
+
+      const ids = Array.from(pending);
+      for (let i = 0; i < ids.length; i += 100) {
+        const batch = ids.slice(i, i + 100);
+        try {
+          const res = await this.fetchBlocksGuarded(batch);
+          const newBlocks = res?.recordMap?.block || {};
+
+          let added = 0;
+          for (const [id, raw] of Object.entries(newBlocks)) {
+            const value = (raw as any)?.value?.value ?? (raw as any)?.value;
+            if (value && !blockMap[id]) {
+              blockMap[id] = { value };
+              added++;
+            }
+          }
+
+          if (added === 0) {
+            // 本批没有任何新增（块已删除或无权限），标记占位符避免死循环
+            for (const id of batch) {
+              if (!blockMap[id]) {
+                blockMap[id] = { value: { id, type: 'missing' } };
+              }
+            }
+          }
+        } catch (error) {
+          console.warn(`[NotionAPI] Failed to complete record map:`, error);
+          return;
+        }
+      }
+    }
+  }
+
+  /**
+   * 为页面内所有文件块（图片/PDF/附件/封面）获取签名 URL
+   * notion-client 的 addSignedUrls 是公开方法，传入完整块 ID 列表即可
+   */
+  private async signPageFileUrls(pageData: PageData): Promise<void> {
+    try {
+      await (this.unofficialClient as any).addSignedUrls({
+        recordMap: pageData,
+        contentBlockIds: Object.keys(pageData.block || {}),
+      });
+    } catch (error) {
+      console.warn(`[NotionAPI] Failed to sign file urls:`, error);
+    }
+  }
+
+  /**
+   * 从内部块级缓存重组 PageData
+   */
+  private rebuildPageData(): PageData {
+    const block: Record<string, { value: BlockValue }> = {};
+    for (const [id, value] of this.blockCache.entries()) {
+      block[id] = { value };
+    }
+
+    const collection: Record<string, { value: any }> = {};
+    for (const [id, value] of this.collectionCache.entries()) {
+      collection[id] = { value };
+    }
+
+    const collection_view: Record<string, { value: any }> = {};
+    for (const [id, value] of this.viewCache.entries()) {
+      collection_view[id] = { value };
+    }
+
+    return { block, collection, collection_view };
   }
 
   /**
@@ -455,6 +634,18 @@ export class NotionAPI {
   }
 
   /**
+   * 调用非官方 API 的 getBlocks（带限流和 429 重试）
+   */
+  private fetchBlocksGuarded(blockIds: string[]): Promise<any> {
+    return notionUnofficialRateLimiter.execute(() =>
+      notionUnofficialRetryHelper.execute(
+        () => this.unofficialClient.getBlocks(blockIds),
+        `Fetching blocks (${blockIds.length})`
+      )
+    );
+  }
+
+  /**
    * 获取同步块的子块内容（缓存优先，未命中时通过 getBlocks 获取）
    *
    * 非官方 API 的同步块类型：
@@ -488,7 +679,7 @@ export class NotionAPI {
     // 缓存未命中，使用 getBlocks 获取指定块
     try {
       // 非官方 API 通常使用不带连字符的 ID
-      const response = await this.unofficialClient.getBlocks([normalizedId]);
+      const response = await this.fetchBlocksGuarded([normalizedId]);
 
       // 从 response.recordMap.block 中获取块数据
       const recordMap = response?.recordMap;
@@ -519,7 +710,7 @@ export class NotionAPI {
       );
 
       if (missingChildIds.length > 0) {
-        const childResponse = await this.unofficialClient.getBlocks(missingChildIds);
+        const childResponse = await this.fetchBlocksGuarded(missingChildIds);
         if (childResponse?.recordMap?.block) {
           for (const [id, blockData] of Object.entries(childResponse.recordMap.block)) {
             let blockValue = (blockData as any)?.value;
@@ -615,7 +806,7 @@ export class NotionAPI {
     }
 
     try {
-      const response = await this.unofficialClient.getBlocks(missingIds);
+      const response = await this.fetchBlocksGuarded(missingIds);
       if (response?.recordMap?.block) {
         for (const [id, blockData] of Object.entries(response.recordMap.block)) {
           let blockValue = (blockData as any)?.value;
@@ -668,6 +859,7 @@ export class NotionAPI {
     this.blockCache.clear();
     this.collectionCache.clear();
     this.viewCache.clear();
+    this.fetchedPageIds.clear();
   }
 }
 

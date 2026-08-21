@@ -20,22 +20,21 @@ export class RateLimiter {
 
   /**
    * 执行带限流的异步操作
+   *
+   * 间隔控制在获得并发槽之后进行，确保并发排队时 minDelay 依然生效
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    // 请求间隔控制
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
+    return this.limit(async () => {
+      const now = Date.now();
+      const waitTime = this.minDelay - (now - this.lastRequestTime);
 
-    if (timeSinceLastRequest < this.minDelay) {
-      const waitTime = this.minDelay - timeSinceLastRequest;
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
+      if (waitTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
 
-    // 并发控制 + 记录最后请求时间
-    const result = await this.limit(fn);
-    this.lastRequestTime = Date.now();
-
-    return result;
+      this.lastRequestTime = Date.now();
+      return fn();
+    });
   }
 
   /**
@@ -85,7 +84,7 @@ export class RetryHelper {
 
   /**
    * 默认的重试判断逻辑
-   * 网络错误和 5xx 服务器错误应该重试
+   * 网络错误、限流（429）和 5xx 服务器错误应该重试
    */
   private defaultShouldRetry(error: Error): boolean {
     // 网络错误
@@ -96,10 +95,20 @@ export class RetryHelper {
       return true;
     }
 
+    // 限流错误（官方 API: rate_limited；非官方 API: 429 Too Many Requests）
+    if (isRateLimitError(error)) {
+      return true;
+    }
+
     // Notion API 特定错误
     if (error.message.includes('rate_limited') ||
         error.message.includes('service_unavailable') ||
         error.message.includes('internal_server_error')) {
+      return true;
+    }
+
+    // 5xx HTTP 错误（如 "500 Internal Server Error"、"502 Bad Gateway"）
+    if (/\b5\d{2}\b/.test(error.message)) {
       return true;
     }
 
@@ -126,10 +135,15 @@ export class RetryHelper {
         }
 
         // 计算延迟时间（指数退避）
-        const delay = Math.min(
+        let delay = Math.min(
           this.config.initialDelay * Math.pow(this.config.backoffMultiplier, attempt - 1),
           this.config.maxDelay
         );
+
+        // 限流错误：优先使用服务端 Retry-After 头，否则加重退避
+        if (isRateLimitError(lastError)) {
+          delay = Math.max(extractRetryAfterMs(lastError) ?? 0, delay * 2, 2000);
+        }
 
         console.warn(
           `[Retry] Attempt ${attempt}/${this.config.maxRetries} failed${context ? ` (${context})` : ''}: ${lastError.message}`
@@ -156,7 +170,42 @@ export class RetryHelper {
   }
 }
 
-// 创建全局限流器实例（用于 Notion API）
+/**
+ * 判断是否为限流错误（429 / Too Many Requests / rate_limited）
+ */
+export function isRateLimitError(error: any): boolean {
+  const message = String(error?.message || '');
+  return (
+    message.includes('429') ||
+    /too many requests/i.test(message) ||
+    message.includes('rate_limited') ||
+    error?.status === 429 ||
+    error?.statusCode === 429
+  );
+}
+
+/**
+ * 从错误中提取 Retry-After 头（支持秒数和 HTTP 日期两种格式）
+ * ofetch 的 FetchError 挂载了 response 属性
+ */
+export function extractRetryAfterMs(error: any): number | null {
+  const retryAfter = error?.response?.headers?.get?.('retry-after');
+  if (!retryAfter) return null;
+
+  const seconds = Number(retryAfter);
+  if (!Number.isNaN(seconds)) {
+    return seconds * 1000;
+  }
+
+  const date = Date.parse(retryAfter);
+  if (!Number.isNaN(date)) {
+    return Math.max(0, date - Date.now());
+  }
+
+  return null;
+}
+
+// 创建全局限流器实例（用于 Notion 官方 API）
 export const notionRateLimiter = new RateLimiter(5, 50);
 
 // 创建全局重试助手实例
@@ -164,5 +213,17 @@ export const notionRetryHelper = new RetryHelper({
   maxRetries: 3,
   initialDelay: 1000,
   backoffMultiplier: 2,
-  maxDelay: 10000,
+  maxDelay: 30000,
+});
+
+// 非官方 API（notion-client）专用限流器：低并发 + 请求间隔
+// Notion 私有接口限流较严格，高频调用会触发 429
+export const notionUnofficialRateLimiter = new RateLimiter(2, 350);
+
+// 非官方 API 专用重试助手：更多次数 + 更长初始延迟，覆盖 429 自愈
+export const notionUnofficialRetryHelper = new RetryHelper({
+  maxRetries: 4,
+  initialDelay: 2000,
+  backoffMultiplier: 2,
+  maxDelay: 30000,
 });
