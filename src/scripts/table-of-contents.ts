@@ -72,6 +72,9 @@ function setupToc() {
   // 设置点击事件
   setupTocClicks(tocContainer);
 
+  // 悬浮显示 hover 条目对应的完整标题（窄屏横条模式）
+  setupTocTooltip(tocContainer);
+
   // 设置动态位置调整
   setupTocPosition(tocContainer);
 
@@ -124,7 +127,7 @@ function generateTocHtml(items: TocItem[]): string {
     const barWidth = Math.round(range.min + adjustedLength * (range.max - range.min));
 
     html += `
-      <li class="toc-item toc-level-${item.level}" style="margin-left: ${indent}rem;" data-bar-width="${barWidth}">
+      <li class="toc-item toc-level-${item.level}" style="--toc-indent: ${indent}rem;" data-bar-width="${barWidth}">
         <a href="#${item.id}" class="toc-link" data-target="${item.id}">
           ${escapeHtml(item.text)}
         </a>
@@ -173,9 +176,12 @@ function setupTocPosition(tocContainer: Element) {
 
     tocEl.style.top = `${newTop}px`;
 
-    // 同步更新最大高度，确保目录不会超出视口
+    // 最大高度设在面板上（面板承担滚动），确保目录不会超出视口
     const maxHeight = window.innerHeight - newTop - 20;
-    tocEl.style.maxHeight = `${maxHeight}px`;
+    const panel = tocEl.querySelector('.toc-wrapper') as HTMLElement | null;
+    if (panel) {
+      panel.style.maxHeight = `${maxHeight}px`;
+    }
   };
 
   // 滚动时更新位置
@@ -235,6 +241,59 @@ function setupTocClicks(container: Element) {
     // 更新URL hash（但不触发跳转）
     history.pushState(null, '', `#${targetId}`);
   });
+}
+
+/**
+ * 悬浮标题提示
+ * 窄屏横条模式下，hover 某个横条时在其左侧显示完整标题。
+ * tooltip 挂在滚动容器（.toc-wrapper）之外，避免被 overflow 裁剪。
+ */
+function setupTocTooltip(tocContainer: Element) {
+  const tooltip = document.createElement('div');
+  tooltip.className = 'toc-tooltip';
+  tocContainer.appendChild(tooltip);
+
+  const nav = tocContainer.querySelector('.toc-nav');
+  if (!nav) return;
+
+  const show = (link: HTMLElement) => {
+    const text = (link.textContent || '').trim();
+    if (!text) return;
+
+    tooltip.textContent = text;
+    tooltip.classList.add('toc-tooltip-visible');
+
+    // 垂直定位到对应横条的中心（tooltip 绝对定位于 toc-container 内）
+    const containerRect = tocContainer.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    tooltip.style.top = `${linkRect.top - containerRect.top + linkRect.height / 2}px`;
+  };
+
+  const hide = () => {
+    tooltip.classList.remove('toc-tooltip-visible');
+  };
+
+  // 事件委托：悬停不同横条时切换文字，移到间隙时隐藏
+  nav.addEventListener('mouseover', (e) => {
+    const link = (e.target as HTMLElement).closest('.toc-link');
+    if (link) {
+      show(link as HTMLElement);
+    } else {
+      hide();
+    }
+  });
+
+  nav.addEventListener('mouseleave', hide);
+
+  // 键盘聚焦同样显示标题
+  nav.addEventListener('focusin', (e) => {
+    const link = (e.target as HTMLElement).closest('.toc-link');
+    if (link) show(link as HTMLElement);
+  });
+  nav.addEventListener('focusout', hide);
+
+  // 滚动时位置会失效，直接隐藏
+  window.addEventListener('scroll', hide, { passive: true });
 }
 
 function setupScrollSpy(items: TocItem[], container: Element) {

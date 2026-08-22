@@ -441,18 +441,53 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 
   /* ========== 目录样式 ========== */
 
+  /* 触发区（hitbox）：几何恒定，仅负责 hover 触发与 fixed 定位。
+     自身永远不承担视觉样式，避免 hover 引发尺寸变化导致的状态翻转抖动 */
   .toc-container {
     position: fixed;
     right: max(32px, calc((100vw - 900px) / 2 - 240px - 48px));
     top: 100px; /* 初始值，会被 JavaScript 动态调整 */
     width: 240px;
-    max-height: calc(100vh - 120px); /* 初始值，会被 JavaScript 动态调整 */
-    overflow-y: auto;
     z-index: 10;
   }
 
+  /* 面板（panel）：承载视觉与滚动 */
   .toc-wrapper {
-    padding: 0;
+    width: 100%;
+    max-height: calc(100vh - 120px); /* 初始值，会被 JavaScript 动态调整 */
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(55, 53, 47, 0.16) transparent;
+  }
+
+  .toc-wrapper::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  .toc-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(55, 53, 47, 0.16);
+    border-radius: 2px;
+  }
+
+  .toc-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(55, 53, 47, 0.24);
+  }
+
+  :root.dark .toc-wrapper {
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  }
+
+  :root.dark .toc-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  :root.dark .toc-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.22);
   }
 
   .toc-title {
@@ -483,6 +518,8 @@ const SITE_CONFIG = await getResolvedSiteConfig();
     margin: 2px 0;
     padding: 0;
     line-height: 1.5;
+    /* 层级缩进由 --toc-indent 变量控制（窄屏横条态会重置为 0） */
+    margin-left: var(--toc-indent, 0);
   }
 
   :global(.toc-link) {
@@ -516,175 +553,121 @@ const SITE_CONFIG = await getResolvedSiteConfig();
     color: rgb(82, 156, 202);
   }
 
-  /* 滚动条样式 */
-  .toc-container {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(55, 53, 47, 0.16) transparent;
-  }
-
-  .toc-container::-webkit-scrollbar {
-    width: 3px;
-  }
-
-  .toc-container::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .toc-container::-webkit-scrollbar-thumb {
-    background: rgba(55, 53, 47, 0.16);
-    border-radius: 2px;
-  }
-
-  .toc-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(55, 53, 47, 0.24);
-  }
-
-  :root.dark .toc-container {
-    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-  }
-
-  :root.dark .toc-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  :root.dark .toc-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.22);
-  }
-
   /* 空目录时隐藏 */
   .toc-empty {
     display: none;
   }
 
-  /* 响应式 */
+  /* 悬浮标题提示（JS 运行时创建，需全局样式；仅窄屏横条模式显示） */
+  :global(.toc-tooltip) {
+    display: none;
+  }
+
+  /* ===== 窄屏横条模式（Codex 风格）===== */
   @media (min-width: 769px) and (max-width: 1440px) {
-    /* 窄屏模式 - 显示为短横条 */
+    /* hitbox：固定小尺寸且永不变化，hover 状态因此绝对稳定 */
     .toc-container {
-      width: auto;
-      max-width: 60px;
-      right: 24px;
-      background: transparent;
+      right: 16px;
+      width: 64px;
+    }
+
+    .toc-wrapper {
+      width: 100%;
       padding: 0;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .toc-title {
       display: none;
-      opacity: 0;
-      transition: opacity 0.2s ease 0.15s;
     }
 
-    .toc-nav {
-      width: 100%;
-      overflow: hidden;
-    }
-
-    /* 短横条列表 */
-    :global(.toc-list) {
-      padding: 0;
-      margin: 0;
-      list-style: none;
-    }
-
-    /* 非 hover 时横条左对齐 */
-    .toc-container:not(:hover) :global(.toc-item) {
-      margin: 6px 0 !important;
+    /* 紧凑横条行距 */
+    :global(.toc-item) {
+      margin: 1px 0;
+      margin-left: 0;
       padding: 0;
       line-height: 1;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      width: auto;
     }
 
+    /* 链接占满整行高度（12px）保证易悬停，横条由 ::before 绘制 */
     :global(.toc-link) {
       display: flex;
       align-items: center;
-      width: var(--bar-width, 32px);
-      max-width: 240px;
-      height: 3px;
-      padding: 0;
-      background: rgba(55, 53, 47, 0.15);
-      border-radius: 2px;
+      width: 100%;
+      height: 12px;
       color: transparent;
       font-size: 0;
-      overflow: hidden;
       white-space: nowrap;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border-bottom: none !important;
     }
 
-    :root.dark :global(.toc-link) {
+    /* 横条本体：宽度按标题长度映射（--bar-width 由 JS 计算） */
+    :global(.toc-link)::before {
+      content: '';
+      display: block;
+      width: var(--bar-width, 32px);
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(55, 53, 47, 0.15);
+      transition:
+        width 0.18s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.18s ease;
+    }
+
+    :root.dark :global(.toc-link)::before {
       background: rgba(255, 255, 255, 0.15);
     }
 
-    /* Active 状态 */
-    :global(.toc-link.toc-active) {
+    /* hover：该横条加深并延伸，其余横条保持不动 */
+    :global(.toc-link:hover)::before {
+      width: calc(var(--bar-width, 32px) + 10px);
+      background: rgba(55, 53, 47, 0.35);
+    }
+
+    :root.dark :global(.toc-link:hover)::before {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    :global(.toc-link.toc-active)::before {
       background: rgba(55, 53, 47, 0.5);
     }
 
-    :root.dark :global(.toc-link.toc-active) {
+    :root.dark :global(.toc-link.toc-active)::before {
       background: rgba(255, 255, 255, 0.5);
     }
 
-    /* Hover 整个容器时展开 */
-    .toc-container:hover {
-      width: 240px;
-      max-width: 240px;
+    /* 悬浮显示 hover 条目对应的完整标题 */
+    :global(.toc-tooltip) {
+      display: block;
+      position: absolute;
+      right: calc(100% + 10px);
+      top: 0;
+      transform: translateY(-50%);
+      max-width: 280px;
+      padding: 5px 10px;
       background: var(--notion-bg-primary);
       border: 1px solid var(--notion-border);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: rgba(15, 15, 15, 0.03) 0px 0px 0px 1px,
-                  rgba(15, 15, 15, 0.05) 0px 5px 10px,
-                  rgba(15, 15, 15, 0.08) 0px 15px 40px;
-    }
-
-    :root.dark .toc-container:hover {
-      background: var(--notion-bg-primary);
-      box-shadow: rgba(255, 255, 255, 0.03) 0px 0px 0px 1px,
-                  rgba(0, 0, 0, 0.2) 0px 5px 10px,
-                  rgba(0, 0, 0, 0.3) 0px 15px 40px;
-    }
-
-    /* 容器hover时显示标题 */
-    .toc-container:hover .toc-title {
-      display: block;
-      opacity: 1;
-    }
-
-    /* 容器hover时显示完整文字 */
-    .toc-container:hover :global(.toc-link) {
-      width: auto;
-      height: auto;
-      min-height: auto;
-      padding: 0;
-      background: transparent;
-      color: rgba(55, 53, 47, 0.65);
-      font-size: 0.875rem;
-      border-radius: 0;
-    }
-
-    :root.dark .toc-container:hover :global(.toc-link) {
-      color: rgba(255, 255, 255, 0.45);
-    }
-
-    /* 容器hover时的链接hover效果 */
-    .toc-container:hover :global(.toc-link:hover) {
+      border-radius: 6px;
+      box-shadow: rgba(15, 15, 15, 0.05) 0px 2px 8px,
+                  rgba(15, 15, 15, 0.06) 0px 8px 24px;
+      font-size: 0.8125rem;
+      line-height: 1.4;
       color: rgba(55, 53, 47, 0.85);
-      background: transparent;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      z-index: 20;
     }
 
-    :root.dark .toc-container:hover :global(.toc-link:hover) {
-      color: rgba(255, 255, 255, 0.65);
+    :root.dark :global(.toc-tooltip) {
+      color: rgba(255, 255, 255, 0.75);
+      box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 8px,
+                  rgba(0, 0, 0, 0.3) 0px 8px 24px;
     }
 
-    /* 容器hover时的active状态 */
-    .toc-container:hover :global(.toc-link.toc-active) {
-      color: rgb(35, 131, 226);
-      background: transparent;
-    }
-
-    :root.dark .toc-container:hover :global(.toc-link.toc-active) {
-      color: rgb(82, 156, 202);
+    :global(.toc-tooltip.toc-tooltip-visible) {
+      opacity: 1;
     }
   }
 
