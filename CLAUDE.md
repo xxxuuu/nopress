@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**最后更新**: 2026-01-12
+**最后更新**: 2026-09-04
 
 ## Project Overview
 
@@ -462,6 +462,49 @@ applyBarWidths()        // 应用动态横条宽度
 - 样式使用 `:global()` 包裹（动态生成内容）
 - 横条宽度通过 `data-bar-width` 和 CSS 自定义属性实现
 - `.notion-main` 上添加了 `overflow-x: hidden` 防止横向滚动
+
+## Markdown for Agents（AI Agent 支持）
+
+构建时为每篇文章/页面生成面向 AI Agent 的 Markdown 版本，对齐 [llmstxt.org](https://llmstxt.org) 规范和 Cloudflare Markdown for Agents 的输出格式。
+
+**产物**：
+
+| 产物 | 路由 | 实现文件 |
+|------|------|----------|
+| 文章 Markdown | `/post/{slug}.md` | `src/pages/post/[slug].md.ts` |
+| 页面 Markdown（type=Page） | `/{slug}.md` | `src/pages/[slug].md.ts` |
+| 站点索引 | `/llms.txt` | `src/pages/llms.txt.ts` |
+
+**转换架构**：
+
+```
+post.content（缓存中的 HTML，零额外 Notion API 调用）
+    ↓
+htmlToMarkdown() (src/lib/markdown/index.ts)
+    ├── preprocessHtml()     To-do 复选框 → [x]/[ ] 预处理
+    ├── turndown + gfm       标准 HTML → Markdown（表格/删除线）
+    ├── applyNotionRules()   (src/lib/markdown/rules.ts)
+    │     ├── .notion-equation → $$...$$ / $...$
+    │     ├── 代码块 → 带语言围栏（mermaid 自然正确）
+    │     ├── callout → blockquote / toggle → 粗体标题
+    │     ├── 移除 UI 噪音（copy 按钮、灯箱包装、favicon）
+    │     └── iframe/video → 链接
+    ├── buildFrontmatter()   (src/lib/markdown/frontmatter.ts)
+    │     title/description/date/updated/tags/image/canonical
+    └── absolutizeUrls()     相对链接 → 绝对 URL（基于 SITE_URL）
+```
+
+**发现机制**（对 Agent 可见，对人类界面不可见）：
+
+1. `<head>` 中 `<link rel="alternate" type="text/markdown" href="/post/{slug}.md">`（`BaseLayout.astro`，通过 `markdownUrl` prop 传入）
+2. 正文顶部 HTML 注释 `<!-- This page is also available as Markdown: {绝对URL} -->`
+   - **重要**：该注释依赖 `astro.config.mjs` 中 compress 的 `ignoreCustomComments` 配置保留，修改 HTML 压缩配置时勿删
+   - **重要**：astro-compress v2 的 HTML 选项必须挂在 `HTML['html-minifier-terser']` 键下，写在 HTML 顶层会被静默忽略
+
+**注意事项**：
+- `isValidSlug` 定义在 `src/lib/utils/slug.ts`，md 端点与 `.astro` 页面共用
+- 静态托管下 `.md` 文件的 Content-Type 由主机决定，端点中设置的 header 仅 dev 模式生效
+- 同 URL 内容协商（`Accept: text/markdown`）需要边缘中间件（本期未实现），当前为独立 `.md` URL 方案
 
 ## Working with Notion Content
 

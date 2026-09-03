@@ -18,6 +18,7 @@
 - 🖼️ **图片永久化** - 自动转换临时链接为永久链接
 - 🎨 **图片 Gallery** - 点击图片全屏预览，支持左右切换和缩放
 - 🏷️ **标签和分类** - 灵活的内容组织
+- 🤖 **Markdown for Agents** - 为 AI Agent 自动生成每页 Markdown 版本（`/post/{slug}.md`）+ `llms.txt` 站点索引
 - 🌙 **深色模式** - 自动切换
 - 💬 **评论系统** - 支持 Giscus（基于 GitHub Discussions）
 - 📱 **响应式设计** - 完美适配所有设备
@@ -205,6 +206,28 @@ nopress/
 - 30+ 块类型支持
 - 自动语法高亮
 - 数学公式渲染
+
+### Markdown for Agents（AI Agent 支持）
+
+构建时自动为每篇文章/页面生成面向 AI Agent 的 Markdown 版本：
+
+| 产物 | URL | 说明 |
+|------|-----|------|
+| 文章 Markdown | `/post/{slug}.md` | YAML frontmatter（标题/日期/标签/canonical）+ 正文 |
+| 页面 Markdown | `/{slug}.md` | `type=Page` 的独立页面 |
+| 站点索引 | `/llms.txt` | 全站文章列表 + 摘要（[llmstxt.org](https://llmstxt.org) 规范） |
+
+**特性**：
+
+- 公式还原为 `$$...$$` / `$...$` 语法，代码块保留语言标识（含 mermaid）
+- Notion Database 表格转换为 Markdown 表格
+- 链接和图片自动转换为绝对 URL
+- HTML 页面 `<head>` 注入 `<link rel="alternate" type="text/markdown">`，正文注入发现提示注释，Agent 可自动发现 Markdown 版本
+- 转换直接消费缓存的 HTML（`turndown`），不产生额外 Notion API 调用
+
+**代码位置**：转换逻辑在 `src/lib/markdown/`，路由端点在 `src/pages/`（`post/[slug].md.ts`、`[slug].md.ts`、`llms.txt.ts`）。
+
+> 后续可选：如需同 URL 内容协商（Agent 发送 `Accept: text/markdown` 返回 Markdown），可部署边缘中间件（Cloudflare Pages Function / Vercel middleware）重写到 `.md` 文件；或使用 Cloudflare 的 Markdown for Agents 功能（需 Pro 套餐）。
 
 ### 导航菜单
 

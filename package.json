@@ -34,10 +34,13 @@
     "metascraper-url": "^5.49.15",
     "notion-client": "^7.7.3",
     "p-limit": "^7.2.0",
-    "prismjs": "^1.30.0"
+    "prismjs": "^1.30.0",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/turndown": "^5.0.6",
     "typescript": "^5.5.0"
   }
 }

@@ -2,6 +2,7 @@
 import BaseLayout from '@theme/layouts/BaseLayout.astro';
 import dataService from '@lib/notion/service';
 import { formatDate } from '@lib/utils/date';
+import { isValidSlug } from '@lib/utils/slug';
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import Comments from '@theme/components/Comments.astro';
 import '@theme/styles/notion.css';
@@ -12,30 +13,6 @@ export async function getStaticPaths() {
   const posts = await dataService.getAllPosts();
 
   console.log(`[getStaticPaths] Total posts: ${posts.length}`);
-
-  // 验证 slug 的有效性
-  function isValidSlug(slug: string): boolean {
-    if (!slug || typeof slug !== 'string' || slug.length === 0) {
-      return false;
-    }
-
-    // slug 不能包含斜杠（会破坏路由）
-    if (slug.includes('/')) {
-      return false;
-    }
-
-    // slug 不能是 URL（不能包含协议）
-    if (slug.includes('://') || slug.includes('http') || slug.includes('https')) {
-      return false;
-    }
-
-    // slug 不能包含特殊字符（只允许字母、数字、连字符、下划线、中文）
-    if (!/^[a-zA-Z0-9\-_\u4e00-\u9fa5]+$/.test(slug)) {
-      return false;
-    }
-
-    return true;
-  }
 
   // 检查并过滤无效的 slug
   const invalidPosts = posts.filter(post => !isValidSlug(post.slug));
@@ -68,9 +45,13 @@ const { post, prevPost, nextPost } = Astro.props;
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();
 
+// Markdown 版本信息（对 AI Agent 可见的发现提示）
+const markdownUrl = `/post/${post.slug}.md`;
+const markdownAbsUrl = Astro.site ? new URL(markdownUrl, Astro.site).href : markdownUrl;
+
 ---
 
-<BaseLayout title={post.title} description={post.description} image={post.coverUrl}>
+<BaseLayout title={post.title} description={post.description} image={post.coverUrl} markdownUrl={markdownUrl}>
   <article class="content">
     <!-- Notion 风格页面 -->
     <div class="notion-page">
@@ -133,6 +114,8 @@ const SITE_CONFIG = await getResolvedSiteConfig();
           <hr class="page-divider" />
 
           <!-- 页面内容 -->
+          {/* Markdown 版本提示：Agent 读源码可发现，浏览器不渲染 */}
+          <Fragment set:html={`<!-- This page is also available as Markdown: ${markdownAbsUrl} -->`} />
           <div class="notion-content" set:html={post.content} />
 
           <!-- 上一篇/下一篇导航 -->

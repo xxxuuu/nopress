@@ -11,6 +11,8 @@ interface Props {
   description?: string;
   image?: string;
   canonicalURL?: string;
+  /** 本页 Markdown 版本 URL（供 AI Agent 自动发现） */
+  markdownUrl?: string;
 }
 
 // 获取解析后的站点配置（合并用户配置和 Database 元数据）
@@ -20,6 +22,7 @@ const {
   title = SITE_CONFIG.title,
   description,
   canonicalURL,
+  markdownUrl,
 } = Astro.props;
 
 // 从 core 获取元信息配置
@@ -46,6 +49,10 @@ const metaTags = generateMetaTags(
     <!-- RSS Feed 自动发现 -->
     {metaConfig.enableRSS && (
       <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
+    )}
+    <!-- Markdown 版本自动发现（AI Agent） -->
+    {markdownUrl && (
+      <link rel="alternate" type="text/markdown" title={title} href={markdownUrl} />
     )}
     <link rel="sitemap" href="/sitemap-index.xml" />
 

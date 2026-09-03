@@ -14,29 +14,48 @@ export default defineConfig({
   site: SITE_URL,
   output: 'static',
 
+  server: {
+    host: true, // This makes the server listen on all IPs (0.0.0.0)
+    // port: 3000, // Optional: specify a custom port
+  },
+
   integrations: [
     nopressThemeIntegration(),
     sitemap(),
     // HTML/CSS/JS 压缩
     compress({
-      // HTML 压缩配置
+      // HTML 压缩配置（选项需挂在 html-minifier-terser 键下）
       HTML: {
-        // 移除注释
-        removeComments: true,
-        // 移除标签间空格
-        collapseWhitespace: true,
-        // 压缩内联 CSS
-        minifyCSS: true,
-        // 压缩内联 JS
-        minifyJS: true,
-        // 移除属性引号（如果安全）
-        removeAttributeQuotes: false,
-        // 移除可选标签
-        removeOptionalTags: false,
-        // 移除空属性
-        removeEmptyAttributes: true,
-        // 保留自定义属性（如 data-astro-cid）
-        ignoreCustomFragments: [/<data-astro[^>]*>/],
+        'html-minifier-terser': {
+          // 移除注释
+          removeComments: true,
+          // 保留的注释：astro 内部注释 + Markdown for Agents 发现提示
+          ignoreCustomComments: [
+            /^\s*#/,
+            /.*\$.*/,
+            /^\s*\[/,
+            /^\s*\]/,
+            /^\s*!/,
+            /^\s*\//,
+            /^\s*astro:.*/,
+            /^\s*astro:end/,
+            /This page is also available as Markdown/i,
+          ],
+          // 移除标签间空格
+          collapseWhitespace: true,
+          // 压缩内联 CSS
+          minifyCSS: true,
+          // 压缩内联 JS
+          minifyJS: true,
+          // 保留属性引号（如果安全）
+          removeAttributeQuotes: false,
+          // 移除可选标签
+          removeOptionalTags: false,
+          // 移除空属性
+          removeEmptyAttributes: true,
+          // 保留自定义属性（如 data-astro-cid）
+          ignoreCustomFragments: [/<data-astro[^>]*>/],
+        },
       },
       // CSS 压缩配置
       CSS: {
