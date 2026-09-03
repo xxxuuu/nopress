@@ -1,276 +1,199 @@
 # 系统架构
 
+NoPress 是静态博客生成器：Notion Database 是唯一数据源，Astro 在构建时拉取全部内容，生成纯静态站点（`output: 'static'`）。
+
 ## 整体架构
 
 ```
-用户访问页面
+页面 / 数据端点（构建时 getStaticPaths）
     ↓
-NotionDataService
-    ↓
-缓存检查 (MemoryCache / FileCache)
-    ↓ (缓存命中) → 返回
-    ↓ (缓存未命中)
-NotionClient (SDK 5.x)
-    ↓
-限流器 (RateLimiter: 最多3并发)
-    ↓
-重试助手 (RetryHelper: 指数退避)
+NotionDataService (src/lib/notion/service)      ← 所有取数的唯一入口
+    ↓ 检查 notionCache（命中 → 直接返回）
+NotionAPI (src/lib/notion/api)
+    ├── 官方 SDK：RateLimiter(5 并发, 50ms 间隔) + RetryHelper(指数退避)
+    └── 非官方 API (notion-client)：RateLimiter(2 并发, 350ms 间隔)
     ↓
 Notion API
     ↓
-BlockRenderer (渲染30+块类型)
+NotionPageRenderer / BlockRenderer（Notion blocks → HTML，30+ 块类型）
     ↓
-Cache 保存 (TTL: 5分钟/1小时)
+图片 URL 永久化 (map-image-url.ts)、Bookmark OG 抓取 (opengraph.ts)
     ↓
-返回页面
+写入缓存（dev 内存 5 分钟 / build 文件 1 小时）
+    ↓
+返回 Post 对象 → Astro SSG → dist/
 ```
 
 ## 核心组件
 
-### 1. NotionDataService (`src/lib/data/notion-service.ts`)
+### 1. NotionDataService（`src/lib/notion/service/index.ts`）
 
-数据获取的单一入口，处理缓存策略和错误处理。
+数据获取的单一入口，导出单例 `dataService`。每个公开方法对应一个缓存 key：
+
+| 方法 | 缓存 key | 说明 |
+|------|----------|------|
+| `getAllPosts()` | `all-posts` | 全部已发布文章（date 降序） |
+| `getAllPages()` | `all-pages` | 全部独立页面（type=Page） |
+| `getAllTags()` | `all-tags` | 标签及计数（由 posts 派生） |
+| `getMenuItems()` | `menu-items` | 导航菜单（date 升序） |
+| `getDatabaseInfo()` | `database-info` | Database 标题/描述/图标（用于站点元数据回填） |
+
+`getPostBySlug()` / `getPageBySlug()` / `getPostsByTag()` 不单独发请求，基于 `all-posts` / `all-pages` 内存过滤。
 
 ```typescript
-// 使用方式
-import dataService from '@lib/data';
+import dataService from '@lib/notion/service';
 
-// 获取所有发布的文章
 const posts = await dataService.getAllPosts();
-
-// 获取特定文章
 const post = await dataService.getPostBySlug('my-post');
 ```
 
-### 2. NotionClient (`src/lib/notion/client.ts`)
+### 2. NotionAPI（`src/lib/notion/api/index.ts`）
 
-Notion API 的封装，使用 SDK 5.x，关键变更：
-- 使用 `dataSources.query()` 而不是 `databases.query()`
-- 需要先获取 `data_source_id`
-- 处理分页和错误
+Notion API 封装，同时使用**官方 SDK 和非官方 API**：
 
-### 3. Notion Database 渲染 (`src/lib/notion/database/`)
+- **官方 SDK（@notionhq/client 5.x）**：
+  - 用 `dataSources.query()` 而非已弃用的 `databases.query()`；需先 `databases.retrieve()` 取 `data_sources[0].id`
+  - 三个查询方法：`queryPublishedPosts()`（type=Post + status=Published + date 降序）、`queryPages()`（type=Page）、`queryMenuItems()`（type=Menu + date 升序）
+  - 元数据提取（extractMetadata 逻辑）也在此文件
+- **非官方 API（notion-client）**：仅用于 child_database 视图配置和个别块类型。有 403/429 风险，配独立限流器 `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）；新增数据需求优先使用官方 SDK
+
+### 3. 块渲染器（`src/lib/notion/renderer/`）
+
+自研渲染器（不依赖 notion-to-md），将 Notion blocks 转换为 HTML：
+
+- `block-renderer.ts` — 核心渲染逻辑，按块类型 switch，支持 30+ 块类型（段落、标题、列表、代码、表格、callout、toggle、column、synced_block、embed 等），递归渲染子块
+- `rich-text.ts` — 富文本格式（粗体、斜体、颜色、公式内联）
+- `index.ts` — 页面级渲染入口，协调 OG 抓取、图片 URL 映射等后处理
+
+代码高亮（Prism.js）和数学公式（KaTeX）在客户端由 `src/scripts/` 渲染。
+
+### 4. Database 渲染（`src/lib/notion/database/`）
 
 支持在页面中嵌入 Notion Database，自动渲染为表格或画廊视图。
 
-**架构流程**:
 ```
-NotionPageRenderer (检测 child_database)
+NotionPageRenderer (检测 child_database block)
     ↓
-DatabaseRenderer (解析视图配置)
+DatabaseRenderer (index.ts，构建 ViewConfig)
     ↓
 DatabaseRepository (数据层)
     ├── getSchema() → 返回带 propertyOrder 的 schema
     └── queryRows() → 返回排序后的行数据
     ↓
 LayoutRenderer (渲染层)
-    ├── TableLayoutRenderer (表格布局)
-    └── GalleryLayoutRenderer (画廊布局)
+    ├── TableLayoutRenderer (table-layout.ts)
+    └── GalleryLayoutRenderer (gallery-layout.ts)
 ```
 
-**关键特性**:
-- 支持表格视图（table）和画廊视图（gallery）
-- 列顺序和可见性由 Notion 视图配置控制
-- 行排序完全在数据层实现
-- 支持多种属性类型（text, number, select, date, checkbox 等）
+- 列顺序、可见性、行排序均来自 Notion 视图配置（经非官方 API 获取）
+- 排序完全在数据层实现，渲染层不做排序
+- 支持属性类型：text、number、select、multi_select、date、checkbox 等；不支持的类型显示 `—`
 
-### 4. BlockRenderer (`src/lib/notion/renderer/block-renderer.ts`)
+### 5. 缓存系统（`src/lib/cache/`）
 
-将 Notion blocks 转换为 HTML，支持：
-- 30+ 块类型（段落、标题、列表、代码、表格等）
-- 富文本格式（粗体、斜体、颜色等）
-- 递归子块渲染
-- 语法高亮（Prism.js）
-- 数学公式（KaTeX）
-
-### 5. 缓存系统 (`src/lib/cache/`)
-
-双层缓存策略：
+双层缓存，`notionCache` 单例，按 `NODE_ENV` 自动选择策略：
 
 | 环境 | 实现 | TTL | 存储 |
 |------|------|-----|------|
-| 开发 | MemoryCache | 5 分钟 | 内存 |
-| 生产 | FileCache | 1 小时 | `.cache/notion/*.json` |
+| 开发 | MemoryCache | 5 分钟 | 进程内存 |
+| 生产（build） | FileCache | 1 小时 | `.cache/notion/*.json` |
 
-### 6. API 优化 (`src/lib/utils/api-helpers.ts`)
+缓存文件不随代码变更自动失效；改数据结构后建议删除 `.cache/` 再构建，确保拉取新数据。
 
-- **RateLimiter** - 限制并发请求数（最多3个）
-- **RetryHelper** - 自动重试失败请求（指数退避）
+### 6. API 优化（`src/lib/utils/api-helpers.ts`）
 
-### 7. 图片 URL 映射 (`src/lib/notion/map-image-url.ts`)
+- **RateLimiter** — 并发控制。两个实例：官方 API `notionRateLimiter`（5 并发, 50ms 最小间隔）；非官方 API `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）
+- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），不重试 401/403 等权限错误。最多 3 次，指数退避 1s → 2s → 4s，延迟上限 30s
 
-将 Notion 临时 URL 转换为永久 URL：
-```
-原始: https://prod-files-secure.s3.xxx/...?expires=3600
-转换后: https://www.notion.so/image/{encoded}?table=block&id=xxx
-```
+### 7. 图片 URL 映射（`src/lib/notion/map-image-url.ts`）
 
-## 数据流
-
-### 页面请求流程
+Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 URL：
 
 ```
-用户访问 /post/my-post
-    ↓
-Astro getStaticPaths() 调用 NotionDataService
-    ↓
-NotionDataService 检查缓存
-    ↓ (命中) → 直接返回
-    ↓ (未命中) → 请求 Notion API
-        ↓
-        RateLimiter 控制并发
-        ↓
-        RetryHelper 处理失败
-        ↓
-        Notion API 返回数据
-    ↓
-BlockRenderer 渲染 blocks
-    ↓
-URL 映射转换图片链接
-    ↓
-保存到缓存
-    ↓
-返回给 Astro 进行 SSG
-    ↓
-生成静态 HTML 文件
-    ↓
-用户获得完整页面
+原始:  https://prod-files-secure.s3.xxx/...?Expires=...&X-Amz-Signature=...
+转换:  https://www.notion.so/image/{encoded_url}?table=block&id={block_id}
 ```
 
-### 内容类型支持
+覆盖 `secure.notion-static.com`、`prod-files-secure`、Notion 内部相对路径及 Bookmark 外部图片。所有进入缓存的图片 URL 都需经过此转换，构建产物才能长期有效。
 
-```typescript
-// 三种内容类型，通过 type 字段区分
+### 8. 主题系统（`src/lib/theme/` + `src/themes/default/`）
 
-// 1. Post - 博客文章
-{
-  title: "从 Linux 内核看读写锁设计",
-  type: "Post",           // 关键
-  status: "Published",
-  slug: "kernel-rwlock",
-  date: "2024-01-04",
-  tags: ["Linux", "内核"],
-  summary: "..."
-}
+所有页面、布局、组件、样式都在主题目录，框架与 UI 解耦：
 
-// 2. Page - 独立页面
-{
-  title: "关于我",
-  type: "Page",          // 关键
-  status: "Published",
-  slug: "about",
-  date: "2024-01-01",
-  summary: "..."
-}
+- `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题的 `pages/` 目录并 `injectRoute` 注入路由
+- `manager.ts` / `loader.ts` — 主题注册、激活与加载；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
+- `schema.ts` — 主题清单的 zod 校验（`theme.config.mjs` 必填 id/name/version）
+- 最小约束原则：框架只注入路由和配置别名，不干涉主题内部结构
 
-// 3. Menu - 导航菜单
-{
-  title: "博客",
-  type: "Menu",          // 关键
-  status: "Published",
-  slug: "blog",          // 内部链接
-  date: "2024-01-01"
-}
-```
+注意：`src/pages/` 只放数据端点（`.md`、`llms.txt`、RSS、robots），页面 `.astro` 文件放主题的 `pages/` 下。
+
+### 9. Markdown 转换（`src/lib/markdown/`）
+
+`htmlToMarkdown()` 将已渲染的 `post.content`（HTML）转为 Markdown，用于 `/post/{slug}.md`、`/{slug}.md` 端点和 `llms.txt` 索引（Markdown for Agents 产物）。基于 turndown + GFM 插件，附加 Notion 专属规则（`rules.ts`：公式、callout、代码块、去 UI 噪音）和 frontmatter 生成（`frontmatter.ts`）。转换直接复用缓存 HTML，不重新请求 Notion API。
+
+### 10. 配置系统（`src/lib/config/loader.ts` + `src/config/`）
+
+优先级：环境变量 > `.env` > 代码默认值（经 vite `loadEnv` 读取）。命名规范：`SITE_*`、`AUTHOR_*`、`COMMENTS_GISCUS_*`。`SITE_TITLE` / `SITE_DESCRIPTION` / `SITE_ICON` 留空时自动回填 Notion Database 元数据（`resolved-site.ts`）。`SITE_URL` 影响 sitemap、RSS、canonical 和 `.md` 端点链接。完整变量表见 [CONFIGURATION.md](./CONFIGURATION.md)。
 
 ## 文件结构
 
 ```
 src/
+├── pages/                        # 只有数据端点：post/[slug].md.ts、[slug].md.ts、llms.txt.ts、rss/、robots.txt.ts
+├── themes/default/               # 默认主题：所有页面、布局、组件、样式
+│   ├── pages/                    # 首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive
+│   ├── layouts/                  # BaseLayout / PostLayout / PageLayout
+│   ├── components/               # Header、Footer、PostCard、Pagination、Comments 等
+│   ├── styles/                   # global.css、notion.css、theme.css
+│   └── theme.config.mjs          # 主题清单
 ├── lib/
-│   ├── data/
-│   │   ├── index.ts              # 数据层入口
-│   │   └── notion-service.ts     # Notion 服务
 │   ├── notion/
-│   │   ├── client.ts             # Notion API 客户端
-│   │   ├── queries.ts            # 查询方法
-│   │   ├── types.ts              # 类型定义
-│   │   ├── map-image-url.ts      # 图片 URL 映射
-│   │   ├── parser.ts             # Notion 内容解析
-│   │   └── database/             # Database 渲染
-│   │       ├── index.ts          # 数据库渲染器协调器
-│   │       ├── repository.ts     # 数据访问层
-│   │       ├── table-layout.ts   # 表格布局渲染器
-│   │       ├── gallery-layout.ts # 画廊布局渲染器
-│   │       └── types.ts          # 类型定义
-│   │   └── renderer/
-│   │       ├── block-renderer.ts # Block 渲染器 (709行)
-│   │       ├── rich-text.ts      # 富文本渲染
-│   │       └── index.ts          # 页面渲染器入口
-│   ├── cache/
-│   │   ├── index.ts              # 缓存管理器
-│   │   ├── memory-cache.ts       # 内存缓存
-│   │   ├── file-cache.ts         # 文件缓存
-│   │   └── types.ts              # 类型定义
-│   └── utils/
-│       ├── api-helpers.ts        # 限流、重试
-│       ├── date.ts               # 日期工具
-│       ├── format.ts             # 格式化工具
-│       └── slug.ts               # Slug 工具
-├── pages/
-│   ├── index.astro               # 首页
-│   ├── [slug].astro              # Page 动态路由
-│   ├── post/
-│   │   ├── index.astro           # 文章列表
-│   │   └── [slug].astro          # 文章详情
-│   ├── archive.astro             # 归档页面
-│   └── tag/
-│       └── [tag].astro           # 标签筛选
-├── components/
-│   └── layout/
-│       └── BaseLayout.astro      # 基础布局
-├── config/
-│   ├── site.ts                   # 站点配置
-│   └── theme.ts                  # 主题配置
-├── scripts/
-│   ├── syntax-highlight.ts       # Prism 高亮 (77行)
-│   ├── math-rendering.ts         # KaTeX 公式 (120行)
-│   └── mermaid-rendering.ts      # Mermaid 图表
-└── styles/
-    ├── global.css                # 全局样式
-    ├── notion.css                # Notion 块样式 (772行)
-    └── index.css                 # 组件样式
+│   │   ├── service/              # NotionDataService（数据层入口）
+│   │   ├── api/                  # NotionAPI（官方 SDK + 非官方 API）+ 类型
+│   │   ├── renderer/             # 块渲染器：block-renderer、rich-text、index
+│   │   ├── database/             # 嵌入式 Database 渲染（repository、table/gallery layout）
+│   │   ├── opengraph.ts          # Bookmark OG 元数据抓取（metascraper）
+│   │   └── map-image-url.ts      # 图片 URL 永久化
+│   ├── cache/                    # notionCache：MemoryCache / FileCache
+│   ├── markdown/                 # htmlToMarkdown（turndown + Notion 规则）
+│   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
+│   ├── config/loader.ts          # 环境变量配置加载
+│   └── utils/                    # api-helpers（限流/重试）、slug、date、format
+├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）
+├── core/                         # meta-helpers（<head> 生成）
+└── scripts/                      # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、灯箱、giscus
 ```
 
 ## 关键技术决策
 
-### 为什么选择 Notion API SDK 5.x？
+### 为什么用 SDK 5.x 的 `dataSources.query()`？
 
-- ✅ 最新的 API 版本
-- ✅ 更好的类型支持
-- ⚠️ `databases.query()` 已弃用，使用 `dataSources.query()`
+`databases.query()` 在 SDK 5.x 中已变更：Database 拆分为 data source 概念，需先 `databases.retrieve()` 拿到 `data_sources[0].id` 再查询。
 
 ### 为什么是双层缓存？
 
-- 开发环境用内存缓存 → 快速迭代
-- 生产环境用文件缓存 → 持久化数据，减少 API 调用
+- 开发用内存缓存 → 重启即失效，快速迭代
+- 构建用文件缓存 → 持久化，减少重复构建时的 API 调用（Notion API 有速率限制）
 
-### 为什么需要 RateLimiter？
+### 为什么需要两个 RateLimiter？
 
-Notion API 有速率限制（3 请求/秒），超出会被限流，所以：
-- 限制并发数为 3
-- 请求间隔 100ms
-- 自动排队管理
+Notion 官方 API 平均限制约 3 请求/秒，非官方 API 更严格且可能 429。因此官方 API 用 5 并发 + 50ms 间隔，非官方 API 用更保守的 2 并发 + 350ms 间隔，各自独立排队。
 
 ### 为什么需要 RetryHelper？
 
-网络波动导致偶尔失败，自动重试：
-- 最多重试 3 次
-- 指数退避（1s → 2s → 4s → 8s）
-- 只重试临时错误（不重试 401、403 等权限错误）
+网络波动导致偶发失败，自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）不重试、直接抛出。指数退避避免雪上加霜。
 
-## 性能指标
+### 为什么图片 URL 要映射？
 
-| 指标 | 数值 | 说明 |
-|------|------|------|
-| 首次加载 | ~52s | 从 Notion API 获取所有数据 |
-| 缓存命中 | ~15ms | 从缓存读取 |
-| 性能提升 | 3466x | 缓存效果 |
-| Block 类型 | 30+ | 支持的块类型数 |
-| 语法高亮 | 25+ | 支持的编程语言 |
+Notion 的 S3 签名 URL 通常 1 小时过期。静态站点产物长期存在，必须换成 `notion.so/image/` 代理 URL（Notion 服务端代理签名，长期有效）。
+
+### 为什么 HTML → Markdown 而不是 Notion → Markdown？
+
+`post.content` 在数据层已渲染为 HTML 并缓存，Markdown 端点复用它：零额外 API 调用、与页面渲染结果天然一致。
 
 ---
 
 **相关文档**:
-- [RFCs - 设计决策](./rfcs/) - 功能设计和讨论
-- [CLAUDE.md](../CLAUDE.md) - 开发者指南
+- [AGENTS.md](../AGENTS.md) - AI 代理开发指南（陷阱清单、任务入口）
+- [CONFIGURATION.md](./CONFIGURATION.md) - 环境变量全表
+- [RFCs](./rfcs/) - 主题系统、数据库渲染、RSS、评论系统的设计文档

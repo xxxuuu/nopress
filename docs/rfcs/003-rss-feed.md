@@ -373,7 +373,7 @@ dist/
 - **[RFC 001 - 主题系统](./001-theme-system.md)**: 了解主题架构
 - **[RFC 002 - Database 渲染](./002-database-rendering.md)**: 了解 Database 渲染
 - **[ARCHITECTURE.md](../ARCHITECTURE.md)**: 系统架构文档
-- **[CLAUDE.md](../../CLAUDE.md)**: 开发者指南
+- **[AGENTS.md](../../AGENTS.md)**: AI 代理开发指南
 
 ## 参考资料
 

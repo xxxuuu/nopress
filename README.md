@@ -194,7 +194,7 @@ nopress/
 │   ├── scripts/           # 客户端脚本
 │   ├── styles/            # 样式文件
 │   └── config/            # 配置文件
-├── CLAUDE.md              # 开发者指南
+├── AGENTS.md              # AI 代理开发指南
 └── package.json
 ```
 
@@ -310,7 +310,7 @@ A: 参考详细配置指南：**[评论功能配置](./docs/COMMENTS.md)**
 - **[站点配置系统](./docs/CONFIGURATION.md)** - 环境变量完整参考和部署配置指南 ⭐
 - **[评论功能配置](./docs/COMMENTS.md)** - Giscus 评论系统配置指南 ⭐
 - **[系统架构](./docs/ARCHITECTURE.md)** - 整体设计和数据流
-- **[开发者指南](./CLAUDE.md)** - 开发规范和最佳实践
+- **[开发指南](./AGENTS.md)** - AI 代理开发指南（含架构地图与陷阱清单）
 - **[RFCs](./docs/rfcs/)** - 功能设计和讨论
 
 ## 🤝 贡献

@@ -740,7 +740,7 @@ export async function initWaline(options: WalineInitOptions) {
 ### 阶段 6: 文档编写 (1 小时)
 
 - [ ] 编写 RFC 004 文档
-- [ ] 更新 CLAUDE.md 添加评论系统说明
+- [ ] 更新 AGENTS.md 添加评论系统说明
 - [ ] 添加配置示例和使用指南
 - [ ] 添加故障排查指南
 
@@ -839,7 +839,7 @@ export async function initWaline(options: WalineInitOptions) {
 
 - **[RFC 001 - 主题系统设计](./001-theme-system.md)**: 了解主题架构
 - **[RFC 003 - RSS Feed 功能](./003-rss-feed.md)**: 参考第三方功能集成模式
-- **[CLAUDE.md](../../CLAUDE.md)**: 开发者指南
+- **[AGENTS.md](../../AGENTS.md)**: AI 代理开发指南
 
 ### 相关技术
 
