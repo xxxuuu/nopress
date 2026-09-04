@@ -2,34 +2,33 @@
 
 **Notion + Astro = 极简博客生成器**
 
-一个简洁高效的静态博客生成器，以 Notion 为内容管理系统，基于 Astro 构建。
+以 Notion Database 为唯一内容源：在 Notion 中写作，Astro 在构建时拉取内容，生成纯静态站点。
 
 ![GitHub stars](https://img.shields.io/github/stars/xxxuuu/nopress?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
-## ✨ 核心特性
+技术栈：[Astro 4](https://astro.build/) · TypeScript · Notion API（官方 SDK 5.x）· Prism.js · KaTeX · Mermaid
 
-- 📝 **Notion 作为 CMS** - 直接在 Notion 中编辑，无需部署
-- ⚡️ **高性能** - 静态 HTML，支持智能缓存（3466x 性能提升）
-- 📊 **Database 渲染** - 支持嵌入 Notion Database（表格/画廊视图）
-- 🎯 **完整 Block 支持** - 30+ Notion 块类型，完整保留格式
-- 🔤 **代码和公式** - 语法高亮（25+ 语言）+ KaTeX 数学公式
-- 📊 **Mermaid 图表** - 流程图、时序图、甘特图等
-- 🖼️ **图片永久化** - 自动转换临时链接为永久链接
-- 🎨 **图片 Gallery** - 点击图片全屏预览，支持左右切换和缩放
-- 🏷️ **标签和分类** - 灵活的内容组织
-- 🤖 **Markdown for Agents** - 为 AI Agent 自动生成每页 Markdown 版本（`/post/{slug}.md`）+ `llms.txt` 站点索引
-- 🌙 **深色模式** - 自动切换
-- 💬 **评论系统** - 支持 Giscus（基于 GitHub Discussions）
-- 📱 **响应式设计** - 完美适配所有设备
-- 🚀 **一键部署** - Vercel/Netlify 零配置部署
+## ✨ 特性
+
+- 📝 **Notion 作为 CMS** — 在 Notion 中写作，构建时通过 API 拉取全部内容
+- ⚡️ **纯静态输出** — 多级缓存（dev 内存 / build 文件），产物可部署到任何静态托管
+- 🎯 **30+ Block 类型** — 完整保留 Notion 格式：代码高亮（25+ 语言）、KaTeX 公式、Mermaid 图表
+- 📊 **Database 渲染** — 嵌入 Notion Database，支持表格 / 画廊视图
+- 🎨 **图片 Gallery** — 点击全屏预览，支持切换和缩放
+- 🤖 **Markdown for Agents** — 每页自动生成 Markdown 版本 + `llms.txt` 站点索引
+- 🏷️ **标签、归档、分页**
+- 💬 **评论系统** — Giscus（基于 GitHub Discussions）
+- 🌙 **深色模式** — 跟随系统自动切换
+- 📱 **响应式布局**
+- 🚀 **一键部署** — Vercel / Netlify 零配置
 
 ## 🚀 快速开始
 
 ### 前置要求
 
-- Node.js >= 18
-- npm 或 pnpm
+- Node.js >= 24（见 [.nvmrc](.nvmrc)）
+- npm
 - Notion 账号
 
 ### 1️⃣ 安装项目
@@ -47,7 +46,7 @@ npm install
 1. 访问 [Notion Integrations](https://www.notion.so/my-integrations)
 2. 点击 "+ New integration"
 3. 名称：NoPress，类型：Internal integration
-4. Submit，复制 **Internal Integration Token**（以 `secret_` 开头）
+4. Submit，复制 **Internal Integration Token**（以 `secret_` 或 `ntn_` 开头）
 
 #### 创建 Database
 
@@ -112,7 +111,7 @@ npm run dev
 
 ### 5️⃣ 自定义配置
 
-NoPress 支持通过环境变量自定义配置，适用于 CI/CD 和多环境部署。
+支持通过环境变量自定义配置，适用于 CI/CD 和多环境部署。
 
 **快速配置**：编辑 `.env` 文件
 ```bash
@@ -120,10 +119,6 @@ NoPress 支持通过环境变量自定义配置，适用于 CI/CD 和多环境�
 SITE_URL=https://yourdomain.com
 SITE_TITLE=我的博客
 SITE_DESCRIPTION=基于 Notion 和 Astro 的博客
-
-# 作者信息
-AUTHOR_NAME=Your Name
-AUTHOR_EMAIL=your@email.com
 
 # 评论系统（可选）
 COMMENTS_ENABLED=true
@@ -148,6 +143,16 @@ COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
 | **Page** | 独立页面 | `/{slug}` | title, slug, date, summary (关于、友链等) |
 | **Menu** | 导航菜单 | 顶部导航 | title, slug, date |
 
+### 页面路由
+
+| 路由 | 内容 |
+|------|------|
+| `/` | 首页（分页 `/page/{page}`） |
+| `/post/{slug}` | 文章 |
+| `/{slug}` | 独立页面 |
+| `/tag/{tag}` | 标签筛选 |
+| `/archive` | 归档 |
+
 ### 必需字段（全部小写）
 
 ```
@@ -156,58 +161,7 @@ title, type, status, slug, summary, date
 
 ⚠️ **注意**: Notion 属性名必须全部小写，否则识别不了。
 
-## 📊 性能指标
-
-| 指标 | 数值 |
-|------|------|
-| 首页加载（缓存）| ~15ms |
-| 首次 API 调用 | ~52s |
-| 缓存命中率 | 95%+ |
-| 性能提升 | 3466x |
-
-## 🛠️ 技术栈
-
-- **框架**: [Astro 4.x](https://astro.build/) - 静态网站生成
-- **语言**: [TypeScript](https://www.typescriptlang.org/) - 类型安全
-- **内容**: [Notion API](https://developers.notion.com/) - SDK 5.x
-- **渲染**: 30+ Notion Block 类型直接支持
-- **代码**: [Prism.js](https://prismjs.com/) - 25+ 语言语法高亮
-- **公式**: [KaTeX](https://katex.org/) - 数学公式渲染
-- **图表**: [Mermaid](https://mermaid.js.org/) - 流程图等
-- **样式**: CSS 变量 + 深色模式支持
-
-## 📦 项目结构
-
-```
-nopress/
-├── docs/
-│   ├── ARCHITECTURE.md    # 系统架构
-│   └── rfcs/              # 设计决策 (RFCs)
-├── src/
-│   ├── lib/
-│   │   ├── data/          # 数据层
-│   │   ├── notion/        # Notion 集成
-│   │   ├── cache/         # 缓存系统
-│   │   └── utils/         # 工具函数
-│   ├── pages/             # Astro 路由
-│   ├── components/        # UI 组件
-│   ├── scripts/           # 客户端脚本
-│   ├── styles/            # 样式文件
-│   └── config/            # 配置文件
-├── AGENTS.md              # AI 代理开发指南
-└── package.json
-```
-
-## 🎨 功能演示
-
-### 博客文章页面
-
-- 完整保留 Notion 格式
-- 30+ 块类型支持
-- 自动语法高亮
-- 数学公式渲染
-
-### Markdown for Agents（AI Agent 支持）
+## 🤖 Markdown for Agents
 
 构建时自动为每篇文章/页面生成面向 AI Agent 的 Markdown 版本：
 
@@ -217,35 +171,10 @@ nopress/
 | 页面 Markdown | `/{slug}.md` | `type=Page` 的独立页面 |
 | 站点索引 | `/llms.txt` | 全站文章列表 + 摘要（[llmstxt.org](https://llmstxt.org) 规范） |
 
-**特性**：
-
 - 公式还原为 `$$...$$` / `$...$` 语法，代码块保留语言标识（含 mermaid）
-- Notion Database 表格转换为 Markdown 表格
-- 链接和图片自动转换为绝对 URL
-- HTML 页面 `<head>` 注入 `<link rel="alternate" type="text/markdown">`，正文注入发现提示注释，Agent 可自动发现 Markdown 版本
-- 转换直接消费缓存的 HTML（`turndown`），不产生额外 Notion API 调用
-
-**代码位置**：转换逻辑在 `src/lib/markdown/`，路由端点在 `src/pages/`（`post/[slug].md.ts`、`[slug].md.ts`、`llms.txt.ts`）。
-
-> 后续可选：如需同 URL 内容协商（Agent 发送 `Accept: text/markdown` 返回 Markdown），可部署边缘中间件（Cloudflare Pages Function / Vercel middleware）重写到 `.md` 文件；或使用 Cloudflare 的 Markdown for Agents 功能（需 Pro 套餐）。
-
-### 导航菜单
-
-在 Notion Database 中创建 `type=Menu` 的条目，自动显示在顶部：
-
-```
-Title: 博客
-Type: Menu
-Slug: blog
-Date: 2026-01-01
-```
-
-### 标签和分类
-
-文章自动按标签、分类分组，提供：
-- `/post` - 所有文章
-- `/archive` - 归档页面
-- `/tag/{tag}` - 标签筛选
+- Notion Database 表格转换为 Markdown 表格，链接和图片自动转为绝对 URL
+- HTML 页面 `<head>` 注入 `<link rel="alternate" type="text/markdown">`，Agent 可自动发现 Markdown 版本
+- 转换直接消费构建缓存的 HTML，不产生额外 Notion API 调用
 
 ## 🚀 部署
 
@@ -253,6 +182,7 @@ Date: 2026-01-01
 
 ```bash
 npm run build
+npm run preview   # 本地预览构建产物
 ```
 
 静态文件在 `dist/` 目录，可部署到任何静态站点托管服务。
@@ -298,13 +228,6 @@ A: 检查：
 
 A: 参考详细配置指南：**[评论功能配置](./docs/COMMENTS.md)**
 
-## 📈 项目统计
-
-- **代码行数**: ~10,800 行
-- **Block 类型**: 30+
-- **语法高亮**: 25+ 语言
-- **缓存效果**: 3466x 性能提升
-
 ## 📖 文档
 
 - **[站点配置系统](./docs/CONFIGURATION.md)** - 环境变量完整参考和部署配置指南 ⭐
@@ -319,14 +242,10 @@ A: 参考详细配置指南：**[评论功能配置](./docs/COMMENTS.md)**
 
 ## 📄 License
 
-MIT License - 详见 [LICENSE](./LICENSE)
+[MIT](./LICENSE)
 
 ## 致谢
 
 - [Notion](https://notion.so) - 灵感来源
 - [Astro](https://astro.build/) - 杰出的静态网站生成器
 - [NotionNext](https://github.com/xxxuuu/NotionNext) - 图片 URL 映射参考
-
----
-
-**最后更新**: 2026-01-12 | **版本**: v0.1.0

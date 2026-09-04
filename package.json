@@ -3,6 +3,23 @@
   "type": "module",
   "version": "0.1.0",
   "description": "NoPress - A powerful blog generator combining Notion and WordPress simplicity, powered by Astro",
+  "license": "MIT",
+  "author": "xxxuuu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xxxuuu/nopress.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xxxuuu/nopress/issues"
+  },
+  "homepage": "https://github.com/xxxuuu/nopress#readme",
+  "keywords": [
+    "astro",
+    "notion",
+    "blog",
+    "static-site-generator",
+    "notion-cms"
+  ],
   "engines": {
     "node": ">=24.0.0"
   },
