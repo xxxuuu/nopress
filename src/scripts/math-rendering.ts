@@ -5,7 +5,6 @@
  */
 
 let katex: any = null;
-let mutationObserver: MutationObserver | null = null;
 
 /**
  * 动态加载 KaTeX
@@ -85,32 +84,8 @@ export async function initMathRendering() {
     document.querySelector('code.notion-equation') !== null;
   if (!hasEquations) return;
 
-  // 初始渲染
+  // 初始渲染（静态站点内容不会动态变化，无需 MutationObserver 监听后续添加的公式）
   await renderMathEquations();
-
-  // 监听动态添加的公式
-  if (!mutationObserver) {
-    mutationObserver = new MutationObserver(async (mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            const element = node as Element;
-            const hasBlockEquation = element.querySelector('.notion-equation-block .notion-equation');
-            const hasInlineEquation = element.querySelector('code.notion-equation');
-
-            if (hasBlockEquation || hasInlineEquation || element.classList.contains('notion-equation')) {
-              renderMathEquations();
-            }
-          }
-        });
-      });
-    });
-
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
 }
 
 // 页面加载完成后延迟初始化（使用 requestIdleCallback 避免阻塞首屏渲染）

@@ -5,7 +5,6 @@
  */
 
 let mermaid: any = null;
-let observer: MutationObserver | null = null;
 
 /**
  * 动态加载 Mermaid
@@ -128,35 +127,8 @@ export async function initMermaidRendering() {
   if (document.querySelectorAll('pre code.language-mermaid').length === 0) return;
 
   await initMermaidConfig();
+  // 静态站点内容不会动态变化，无需 MutationObserver 监听后续添加的代码块
   await renderMermaidDiagrams();
-
-  // 监听动态添加的 Mermaid 代码块
-  if (!observer) {
-    observer = new MutationObserver(async (mutations) => {
-      let hasMermaid = false;
-
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            const element = node as Element;
-            const mermaidBlocks = element.querySelectorAll('pre code.language-mermaid');
-            if (mermaidBlocks.length > 0) {
-              hasMermaid = true;
-            }
-          }
-        });
-      });
-
-      if (hasMermaid) {
-        await renderMermaidDiagrams();
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
 }
 
 // 页面加载完成后延迟初始化（使用 requestIdleCallback 避免阻塞首屏渲染）

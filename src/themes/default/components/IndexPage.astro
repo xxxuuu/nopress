@@ -37,7 +37,7 @@ const {
   <!-- Database 封面图（如果有） -->
   {pageCover && (
     <div class="page-cover">
-      <img src={pageCover} alt={pageTitle} loading="eager" />
+      <img src={pageCover} alt={pageTitle} loading="eager" fetchpriority="high" />
     </div>
   )}
 

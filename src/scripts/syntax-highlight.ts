@@ -5,7 +5,6 @@
  * 按页面实际出现的语言按需加载组件，依赖组件分层并行加载
  */
 
-let mutationObserver: MutationObserver | null = null;
 let Prism: any = null;
 
 /**
@@ -124,35 +123,12 @@ export async function initSyntaxHighlight() {
   // 等待 Prism 加载完成
   const prism = await loadPrism(languages);
 
-  // 高亮现有代码块
+  // 高亮现有代码块（静态站点内容不会动态变化，无需 MutationObserver 监听后续添加的代码块）
   document.querySelectorAll('.notion-code > code').forEach((codeBlock: Element) => {
     if (codeBlock.className.includes('language-')) {
       prism.highlightElement(codeBlock);
     }
   });
-
-  // 监听动态添加的代码块
-  if (!mutationObserver) {
-    mutationObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.nodeType === 1) {
-            const codeBlocks = (node as Element).querySelectorAll('.notion-code > code');
-            codeBlocks.forEach((block: Element) => {
-              if (block.className.includes('language-')) {
-                prism.highlightElement(block);
-              }
-            });
-          }
-        });
-      });
-    });
-
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
 }
 
 // 页面加载完成后初始化（使用 requestIdleCallback 延迟执行）

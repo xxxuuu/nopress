@@ -29,35 +29,7 @@ export function initCodeCopy() {
     });
   });
 
-  // 监听动态添加的代码块
-  const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-      mutation.addedNodes.forEach((node) => {
-        if (node.nodeType === 1) {
-          const newCopyButtons = (node as Element).querySelectorAll('.notion-code-copy');
-          newCopyButtons.forEach((button) => {
-            button.addEventListener('click', async (event) => {
-              const codeBlock = (button as HTMLElement).closest('.notion-code-block');
-              if (!codeBlock) return;
-
-              const codeElement = codeBlock.querySelector('code');
-              if (!codeElement) return;
-
-              const code = codeElement.textContent || '';
-
-              await navigator.clipboard.writeText(code);
-              showCopySuccess(button as HTMLElement);
-            });
-          });
-        }
-      });
-    });
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
+  // 静态站点内容不会动态变化，无需 MutationObserver 监听后续添加的代码块
 }
 
 /**
