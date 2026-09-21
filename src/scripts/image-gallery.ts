@@ -12,6 +12,18 @@ export function initImageGallery() {
   }
 }
 
+/**
+ * 注入 PhotoSwipe 样式（幂等）
+ */
+function loadPhotoSwipeCss() {
+  if (document.querySelector('link[data-pswp-css]')) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css';
+  link.dataset.pswpCss = '';
+  document.head.appendChild(link);
+}
+
 async function setupGallery() {
   const galleryLinks = document.querySelectorAll('.glightbox[data-gallery="article-images"]');
 
@@ -19,6 +31,9 @@ async function setupGallery() {
     console.log('[ImageGallery] No images found');
     return;
   }
+
+  // 注入 PhotoSwipe 样式（仅在有图片的页面加载，替代 BaseLayout 的全站 preload）
+  loadPhotoSwipeCss();
 
   // 为每个链接准备数据
   const prepareLinks = () => {
@@ -58,19 +73,15 @@ async function setupGallery() {
   await new Promise(resolve => setTimeout(resolve, 100));
 
   try {
-    // 动态导入 PhotoSwipe 模块
-    const [PhotoSwipeLightboxModule, PhotoSwipeModule] = await Promise.all([
-      import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.esm.min.js'),
-      import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.min.js')
-    ]);
-
-    const PhotoSwipeLightbox = PhotoSwipeLightboxModule.default;
+    // 动态导入 PhotoSwipeLightbox（轻量）；
+    // photoswipe 核心通过 pswpModule 传入加载函数，推迟到首次点击打开灯箱时才下载
+    const { default: PhotoSwipeLightbox } = await import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe-lightbox.esm.min.js');
 
     // 初始化 PhotoSwipe Lightbox
     const lightbox = new PhotoSwipeLightbox({
       gallery: 'body',
       children: '.glightbox[data-gallery="article-images"]',
-      pswpModule: PhotoSwipeModule.default,
+      pswpModule: () => import('https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.esm.min.js').then(m => m.default),
       showHideAnimationType: 'zoom',
       // 其他配置
       padding: { top: 20, bottom: 60, left: 20, right: 20 },

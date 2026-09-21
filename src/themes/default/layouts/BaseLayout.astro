@@ -73,9 +73,7 @@ const metaTags = generateMetaTags(
     <meta name="twitter:description" content={metaTags.twitterDescription} />
     <meta name="twitter:image" content={metaTags.twitterImage} />
 
-    <!-- PhotoSwipe CSS 用于图片预览 (异步加载，避免阻塞首屏渲染) -->
-    <link rel="preload" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.3/dist/photoswipe.css" /></noscript>
+    <!-- PhotoSwipe 样式改为在有图片的页面临近使用时注入（见 scripts/image-gallery.ts），避免全站加载 -->
 
     <!-- 防止主题闪烁的脚本 (必须在 head 中 inline) -->
     <script is:inline define:vars={{ darkMode: metaConfig.darkMode }}>

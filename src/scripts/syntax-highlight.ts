@@ -2,51 +2,113 @@
  * 语法高亮初始化脚本
  * 使用 Prism.js 为代码块添加语法高亮
  * 异步加载，避免阻塞首屏渲染
+ * 按页面实际出现的语言按需加载组件，依赖组件分层并行加载
  */
 
 let mutationObserver: MutationObserver | null = null;
 let Prism: any = null;
 
 /**
- * 动态加载 Prism.js 及其语言包
+ * 语言 → 动态加载器
+ * markup / css / clike / javascript 由 prismjs 核心自带，无需在此注册
+ * 未列出的语言保持纯文本（如 plain、mermaid），静默跳过
  */
-async function loadPrism() {
+const LANG_LOADERS: Record<string, () => Promise<unknown>> = {
+  'markup-templating': () => import('prismjs/components/prism-markup-templating'),
+  typescript: () => import('prismjs/components/prism-typescript'),
+  jsx: () => import('prismjs/components/prism-jsx'),
+  scss: () => import('prismjs/components/prism-scss'),
+  c: () => import('prismjs/components/prism-c'),
+  cpp: () => import('prismjs/components/prism-cpp'),
+  json: () => import('prismjs/components/prism-json'),
+  yaml: () => import('prismjs/components/prism-yaml'),
+  markdown: () => import('prismjs/components/prism-markdown'),
+  bash: () => import('prismjs/components/prism-bash'),
+  python: () => import('prismjs/components/prism-python'),
+  java: () => import('prismjs/components/prism-java'),
+  csharp: () => import('prismjs/components/prism-csharp'),
+  go: () => import('prismjs/components/prism-go'),
+  rust: () => import('prismjs/components/prism-rust'),
+  sql: () => import('prismjs/components/prism-sql'),
+  graphql: () => import('prismjs/components/prism-graphql'),
+  docker: () => import('prismjs/components/prism-docker'),
+  nginx: () => import('prismjs/components/prism-nginx'),
+  php: () => import('prismjs/components/prism-php'),
+  ruby: () => import('prismjs/components/prism-ruby'),
+  swift: () => import('prismjs/components/prism-swift'),
+  kotlin: () => import('prismjs/components/prism-kotlin'),
+  protobuf: () => import('prismjs/components/prism-protobuf'),
+};
+
+/**
+ * Notion 语言名 → Prism 组件名的别名映射
+ */
+const LANG_ALIASES: Record<string, string> = {
+  'c++': 'cpp',
+  'c#': 'csharp',
+  shell: 'bash',
+  sh: 'bash',
+  py: 'python',
+  js: 'javascript',
+  ts: 'typescript',
+  yml: 'yaml',
+  golang: 'go',
+};
+
+/**
+ * 第二层语言：组件内部依赖其他组件先完成注册
+ * （值为依赖列表，依赖本身均为第一层或 prismjs 核心自带语言）
+ */
+const LANG_SECOND_LAYER: Record<string, string[]> = {
+  tsx: ['jsx', 'typescript'],
+  cpp: ['c'],
+  php: ['markup-templating'],
+};
+
+/**
+ * 收集页面代码块中出现的语言（经别名归一化）
+ */
+function collectLanguages(): string[] {
+  const langs = new Set<string>();
+  document.querySelectorAll('.notion-code > code[class*="language-"]').forEach((el) => {
+    const match = el.className.match(/language-([\w#+-]+)/);
+    if (match) {
+      langs.add(LANG_ALIASES[match[1]] || match[1]);
+    }
+  });
+  return Array.from(langs);
+}
+
+/**
+ * 按需加载 Prism 核心及指定语言的组件
+ * 组件依赖注册顺序，分两轮并行加载
+ */
+async function loadPrism(languages: string[]) {
   if (Prism) return Prism;
 
-  // 动态导入 Prism 核心库
+  // 动态导入 Prism 核心库（自带 markup/css/clike/javascript）
   const prismModule = await import('prismjs');
   Prism = prismModule.default;
 
-  // 导入基础语言和依赖
-  await import('prismjs/components/prism-markup');
-  await import('prismjs/components/prism-markup-templating');
-  await import('prismjs/components/prism-css');
+  // 展开第二层语言的依赖
+  const needed = new Set(languages);
+  for (const lang of languages) {
+    for (const dep of LANG_SECOND_LAYER[lang] || []) {
+      needed.add(dep);
+    }
+  }
 
-  // 导入常用编程语言
-  await import('prismjs/components/prism-javascript');
-  await import('prismjs/components/prism-typescript');
-  await import('prismjs/components/prism-jsx');
-  await import('prismjs/components/prism-tsx');
-  await import('prismjs/components/prism-scss');
-  await import('prismjs/components/prism-json');
-  await import('prismjs/components/prism-yaml');
-  await import('prismjs/components/prism-markdown');
-  await import('prismjs/components/prism-bash');
-  await import('prismjs/components/prism-python');
-  await import('prismjs/components/prism-java');
-  await import('prismjs/components/prism-c');
-  await import('prismjs/components/prism-cpp');
-  await import('prismjs/components/prism-csharp');
-  await import('prismjs/components/prism-go');
-  await import('prismjs/components/prism-rust');
-  await import('prismjs/components/prism-sql');
-  await import('prismjs/components/prism-graphql');
-  await import('prismjs/components/prism-docker');
-  await import('prismjs/components/prism-nginx');
-  await import('prismjs/components/prism-php');
-  await import('prismjs/components/prism-ruby');
-  await import('prismjs/components/prism-swift');
-  await import('prismjs/components/prism-kotlin');
+  const firstLayer: Promise<unknown>[] = [];
+  const secondLayer: Promise<unknown>[] = [];
+  for (const lang of needed) {
+    const loader = LANG_LOADERS[lang];
+    if (!loader) continue; // 不认识的语言保持纯文本
+    (LANG_SECOND_LAYER[lang] ? secondLayer : firstLayer).push(loader());
+  }
+
+  // 第一轮：无依赖组件；第二轮：依赖第一轮注册结果组件
+  await Promise.all(firstLayer);
+  await Promise.all(secondLayer);
 
   return Prism;
 }
@@ -55,8 +117,12 @@ async function loadPrism() {
  * 初始化语法高亮
  */
 export async function initSyntaxHighlight() {
+  // 先收集页面语言，无代码块时直接返回，避免加载 Prism
+  const languages = collectLanguages();
+  if (languages.length === 0) return;
+
   // 等待 Prism 加载完成
-  const prism = await loadPrism();
+  const prism = await loadPrism(languages);
 
   // 高亮现有代码块
   document.querySelectorAll('.notion-code > code').forEach((codeBlock: Element) => {
