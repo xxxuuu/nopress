@@ -22,7 +22,9 @@ export class NotionBlockRenderer {
     this.options = {
       enableToggle: true,
       lazyLoadImages: true,
-      imageMaxWidth: 0,
+      // 非 0 时通过 Notion 图片代理的 width 参数缩放图片（compressImage），
+      // 避免移动端下载 MB 级原图；正文容器 900px，1400 可覆盖 1.5x DPR
+      imageMaxWidth: 1400,
       ...options,
     };
 
@@ -425,9 +427,10 @@ export class NotionBlockRenderer {
     // 转换临时 URL 为永久 URL
     url = mapImageUrl(url, block);
 
-    // 可选：压缩图片
+    // 可选：压缩图片（正文显示用压缩版，灯箱 href 保留原图，点击后再渐进加载）
+    let displayUrl = url;
     if (this.options.imageMaxWidth > 0) {
-      url = compressImage(url, this.options.imageMaxWidth);
+      displayUrl = compressImage(url, this.options.imageMaxWidth);
     }
 
     const caption = image.caption && image.caption.length > 0
@@ -480,14 +483,15 @@ export class NotionBlockRenderer {
       wrapperDataAttr = ` data-aspect-ratio="${ratio.toFixed(6)}"`;
     }
 
-    const escapedUrl = escapeHtml(url);
+    const escapedUrl = escapeHtml(displayUrl);
+    const escapedFullUrl = escapeHtml(url);
     const escapedCaption = escapeHtml(caption);
 
     return `<figure class="${figureClass}" ${styleAttr}>
-      <a href="${escapedUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}"${wrapperStyleAttr}${wrapperDataAttr}>
+      <a href="${escapedFullUrl}" class="glightbox" data-gallery="article-images" data-description="${escapedCaption}" data-title="${escapeHtml(alt)}"${wrapperStyleAttr}${wrapperDataAttr}>
         <img src="${escapedUrl}" alt="${escapeHtml(alt)}" ${loading} onload="const ratio=this.naturalWidth/this.naturalHeight;this.parentElement.style.aspectRatio=ratio.toFixed(6);this.parentElement.setAttribute('data-aspect-ratio',ratio.toFixed(6));this.parentElement.classList.add('loaded')" />
       </a>
-      ${caption ? `<figcaption>${caption}</figcaption>` : ''}
+      ${caption ? `<figcaption>${escapedCaption}</figcaption>` : ''}
     </figure>`;
   }
 

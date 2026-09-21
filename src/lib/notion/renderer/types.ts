@@ -111,7 +111,8 @@ export interface RenderOptions {
 
   /**
    * 图片最大宽度（像素）
-   * 默认：0（无限制）
+   * 非 0 时通过 Notion 图片代理的 width 参数缩放图片，并作为 figure 的 max-width
+   * 默认：1400
    */
   imageMaxWidth?: number;
 }

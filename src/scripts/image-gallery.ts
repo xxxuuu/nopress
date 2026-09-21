@@ -204,6 +204,45 @@ async function setupGallery() {
       });
     });
 
+    // 渐进式加载：灯箱初始显示压缩图（a 内 img 的 src），原图（a 的 href）在后台预载后无缝替换
+    // 压缩图与原图等比缩放，替换时布局无跳动
+    lightbox.on('uiRegister', function() {
+      const pswp = lightbox.pswp;
+
+      // 打开/切换前将 slide 数据源换成压缩图（未升级过的 slide）
+      pswp.on('gettingData', (e: any) => {
+        const data = e.data;
+        if (!data || data.srcUpgraded) return;
+        const thumbSrc = data.element?.querySelector?.('img')?.getAttribute('src');
+        if (thumbSrc) data.src = thumbSrc;
+      });
+
+      // 压缩图显示完成后，后台预载原图并替换 slide
+      // 注意：loadComplete 触发时 pswp.currSlide 可能尚未赋值（打开流程早期），
+      // 且非当前 slide 的 img 不可见、图片等比，替换无布局副作用，无需区分当前与否
+      pswp.on('loadComplete', (e: any) => {
+        const slide = e.slide;
+        const content = e.content;
+        if (!slide || !content || slide.data?.fullProbeStarted) return;
+
+        const fullSrc = slide.data?.element?.getAttribute('href') || '';
+        const imgEl = content.element as HTMLImageElement | null;
+        if (!fullSrc || !imgEl || imgEl.src === fullSrc) return;
+
+        slide.data.fullProbeStarted = true;
+        const probe = new Image();
+        probe.onload = () => {
+          // 升级后同步 data.src，防止 gettingData 将数据源回退成压缩图
+          if (content.element) {
+            slide.data.src = fullSrc;
+            slide.data.srcUpgraded = true;
+            (content.element as HTMLImageElement).src = fullSrc;
+          }
+        };
+        probe.src = fullSrc;
+      });
+    });
+
     // 初始化
     lightbox.init();
 
