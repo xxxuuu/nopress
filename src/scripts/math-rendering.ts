@@ -16,7 +16,14 @@ async function loadKatex() {
   // 动态导入 KaTeX 及其样式
   const katexModule = await import('katex');
   katex = katexModule.default;
-  await import('katex/dist/katex.min.css');
+
+  // 样式用 ?inline 导入：若走普通 CSS import，Vite 会把 CSS 抽成独立 chunk
+  // 并被 Astro 静态注入到所有页面（无论是否包含公式）；
+  // ?inline 会把 CSS 字符串打进 JS chunk（内部字体 url() 已重写为本地路径），仅在真正加载 KaTeX 时注入
+  const { default: katexCss } = await import('katex/dist/katex.min.css?inline');
+  const style = document.createElement('style');
+  style.textContent = katexCss;
+  document.head.appendChild(style);
 
   return katex;
 }
@@ -72,6 +79,12 @@ async function renderMathEquations() {
  * 初始化数学公式渲染
  */
 export async function initMathRendering() {
+  // 先检查页面是否存在公式，避免无公式页面加载 KaTeX（JS + CSS 约 300KB）
+  const hasEquations =
+    document.querySelector('.notion-equation-block .notion-equation') !== null ||
+    document.querySelector('code.notion-equation') !== null;
+  if (!hasEquations) return;
+
   // 初始渲染
   await renderMathEquations();
 

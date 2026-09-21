@@ -124,6 +124,9 @@ async function renderMermaidDiagrams() {
  * 初始化 Mermaid 渲染
  */
 export async function initMermaidRendering() {
+  // 先检查页面是否存在 Mermaid 代码块，避免无图表页面加载 Mermaid（约 500KB）
+  if (document.querySelectorAll('pre code.language-mermaid').length === 0) return;
+
   await initMermaidConfig();
   await renderMermaidDiagrams();
 
