@@ -18,7 +18,7 @@ export function nopressThemeIntegration(): AstroIntegration {
   return {
     name: 'nopress-theme',
     hooks: {
-      'astro:config:setup': ({ config, updateConfig, injectRoute }) => {
+      'astro:config:setup': async ({ config, updateConfig, injectRoute }) => {
         // 获取项目根目录
         const projectRoot = fileURLToPath(new URL('.', config.root));
 
@@ -33,7 +33,7 @@ export function nopressThemeIntegration(): AstroIntegration {
 
         // 初始化主题系统
         try {
-          themeManager.initialize(themeConfig);
+          await themeManager.initialize(themeConfig);
         } catch (error) {
           console.error('[NoPress Theme] Failed to initialize theme:');
           console.error(error);

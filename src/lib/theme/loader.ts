@@ -6,7 +6,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { ThemeManifest, ThemeConfig, ThemePaths, ThemeValidationResult } from './types';
+import { pathToFileURL } from 'url';
+import type { ThemeManifest, ThemeConfig } from './types';
 import { validateThemeConfig } from './schema';
 
 export class ThemeLoader {
@@ -19,7 +20,7 @@ export class ThemeLoader {
   /**
    * 加载 in-tree 主题（src/themes/ 目录下的主题）
    */
-  loadInTreeTheme(themeId: string): ThemeManifest {
+  async loadInTreeTheme(themeId: string): Promise<ThemeManifest> {
     const themePath = path.join(this.projectRoot, 'src', 'themes', themeId);
 
     if (!fs.existsSync(themePath)) {
@@ -32,7 +33,7 @@ export class ThemeLoader {
   /**
    * 加载 out-tree 主题（npm 包或本地路径）
    */
-  loadOutTreeTheme(themeSpec: string): ThemeManifest {
+  async loadOutTreeTheme(themeSpec: string): Promise<ThemeManifest> {
     let themePath: string;
 
     // 判断是 npm 包还是本地路径
@@ -54,12 +55,12 @@ export class ThemeLoader {
   /**
    * 从指定路径加载主题
    */
-  private loadThemeFromPath(
+  private async loadThemeFromPath(
     themePath: string,
     type: 'in-tree' | 'out-tree'
-  ): ThemeManifest {
+  ): Promise<ThemeManifest> {
     // 1. 加载主题配置
-    const config = this.loadThemeConfig(themePath);
+    const config = await this.loadThemeConfig(themePath);
 
     // 2. 验证主题配置（只验证 id, name, version）
     const validation = validateThemeConfig(config);
@@ -85,8 +86,15 @@ export class ThemeLoader {
 
   /**
    * 加载主题配置文件
+   * 原生 ESM 动态导入，配置文件可用任意合法 ESM 写法（import、计算属性等）
+   *
+   * 注意：integration 代码经 Vite module runner 执行，源码级 import() 会被
+   * Vite 拦截并在 astro check/sync 场景下随 runner 关闭而失败。
+   * 用 Function 构造器取得 Node 原生 import（函数体为常量，参数是文件 URL）。
    */
-  private loadThemeConfig(themePath: string): ThemeConfig {
+  private nativeImport = new Function('url', 'return import(url)') as (url: string) => Promise<{ default?: unknown }>;
+
+  private async loadThemeConfig(themePath: string): Promise<ThemeConfig> {
     // 优先尝试 .mjs，然后是 .js
     const possiblePaths = [
       path.join(themePath, 'theme.config.mjs'),
@@ -106,25 +114,19 @@ export class ThemeLoader {
     }
 
     try {
-      // 使用 fs.readFileSync 读取文件内容，然后使用 eval 执行
-      // 这样可以避免 ESM 导入在 Astro/Vite 环境中的问题
-      const configContent = fs.readFileSync(configPath, 'utf-8');
+      const mod = await this.nativeImport(pathToFileURL(configPath).href);
+      const config = mod.default as ThemeConfig | undefined;
 
-      // 提取 export default 后的内容
-      const match = configContent.match(/export\s+default\s+(\{[\s\S]*\});?\s*$/);
-      if (!match) {
-        throw new Error('无法解析主题配置文件：找不到 export default 语句');
-      }
-
-      // 使用 eval 执行配置代码（在受控环境中是安全的）
-      const config = eval(`(${match[1]})`) as ThemeConfig;
-
-      if (!config) {
-        throw new Error('主题配置文件必须导出默认配置对象');
+      if (!config || typeof config !== 'object') {
+        throw new Error('主题配置文件必须默认导出配置对象');
       }
 
       return config;
     } catch (error) {
+      // loadThemeConfig 自身的校验错误直接抛出，其余包装为加载失败
+      if (error instanceof Error && error.message.includes('必须默认导出')) {
+        throw error;
+      }
       throw new Error(
         `加载主题配置文件失败: ${error instanceof Error ? error.message : String(error)}`
       );

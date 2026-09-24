@@ -21,20 +21,20 @@ export class ThemeManager {
   /**
    * 初始化主题系统
    */
-  initialize(config: ThemeLoadConfig): void {
+  async initialize(config: ThemeLoadConfig): Promise<void> {
     let manifest: ThemeManifest;
 
     try {
       // 1. 加载主题
       if (config.themePath) {
         // Out-tree 主题
-        manifest = this.loader.loadOutTreeTheme(config.themePath);
+        manifest = await this.loader.loadOutTreeTheme(config.themePath);
       } else if (config.theme) {
         // In-tree 主题
-        manifest = this.loader.loadInTreeTheme(config.theme);
+        manifest = await this.loader.loadInTreeTheme(config.theme);
       } else {
         // 默认主题
-        manifest = this.loader.loadInTreeTheme('default');
+        manifest = await this.loader.loadInTreeTheme('default');
       }
 
       // 2. 注册主题
