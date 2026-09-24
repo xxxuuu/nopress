@@ -9,11 +9,12 @@
  * @param pageIcon - 页面图标
  * @param pageCover - 页面封面图
  */
-import Pagination from '@theme/components/Pagination.astro';
-import PostList from '@theme/components/PostList.astro';
+import type { Post } from '@lib/types';
+import Pagination from './Pagination.astro';
+import PostList from './PostList.astro';
 
 interface Props {
-  posts: typeof import('@lib/types').Post[];
+  posts: Post[];
   currentPage: number;
   totalPages: number;
   pageTitle: string;

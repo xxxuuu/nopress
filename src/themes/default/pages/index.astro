@@ -1,8 +1,8 @@
 ---
-import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import dataService from '@lib/notion/service';
-import IndexPage from '@theme/components/IndexPage.astro';
+import IndexPage from '../components/IndexPage.astro';
 
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();

@@ -1,10 +1,10 @@
 ---
-import BaseLayout from '@theme/layouts/BaseLayout.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
 import dataService from '@lib/notion/service';
 import { isValidSlug } from '@lib/utils/slug';
 import { getResolvedSiteConfig } from '@config/resolved-site';
-import Comments from '@theme/components/Comments.astro';
-import '@theme/styles/notion.css';
+import Comments from '../components/Comments.astro';
+import '../styles/notion.css';
 
 export async function getStaticPaths() {
   const pages = await dataService.getAllPages();
