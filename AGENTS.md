@@ -63,7 +63,7 @@ src/
 
 2. **Notion Database 属性名必须全小写**（`title`、`status`、`date`…）。首字母大写会静默查不到数据。
 
-3. **页面 UI 写在主题目录**。`src/pages/` 只放数据端点，页面 `.astro` 文件放在主题的 `pages/` 下，由 `src/lib/theme/astro-integration.ts` 扫描 `src/themes/*/pages/` 注入路由；`NOPRESS_THEME` 环境变量切换主题（默认 `default`）。
+3. **页面与端点路由都写在主题目录**。`src/pages/` 只放内核数据端点（`.md`、`llms.txt`、RSS、robots），页面 `.astro` 和主题端点 `.ts` 都放在主题的 `pages/` 下，由 `src/lib/theme/astro-integration.ts` 扫描 `src/themes/*/pages/` 注入路由；`NOPRESS_THEME` 环境变量切换主题（默认 `default`）。主题路由撞内核保留路径（`/rss/feed.xml`、`/[slug].md` 等）会在构建期报错。
 
 4. **astro-compress 两个坑**（`astro.config.mjs`）：
    - HTML 选项必须挂在 `HTML['html-minifier-terser']` 键下，写在 `HTML` 顶层会被静默忽略

@@ -11,7 +11,7 @@
 ```
 my-theme/
 ├── theme.config.mjs    # 必需：主题清单（原生 ESM，默认导出配置对象）
-└── pages/              # 必需：页面路由（.astro 文件，结构见 §2）
+├── pages/              # 必需：页面（.astro）与数据端点（.ts），结构见下文
 ├── layouts/            # 可选，自由组织
 ├── components/         # 可选，自由组织
 └── styles/             # 可选，自由组织
@@ -36,7 +36,7 @@ my-theme/
 
 - 环境变量 `NOPRESS_THEME` 选择 in-tree 主题（`src/themes/` 下的目录名），默认 `default`
 - 环境变量 `NOPRESS_THEME_PATH` 指定 out-tree 主题（本地绝对/相对路径，或 node_modules 内的包名），优先级高于 `NOPRESS_THEME`
-- 框架在构建启动时扫描激活主题的 `pages/` 目录，把每个 `.astro` 文件注入为 Astro 路由：
+- 框架在构建启动时扫描激活主题的 `pages/` 目录，把 `.astro` 页面和 `.ts` 端点注入为 Astro 路由：
 
 | 文件 | 路由 pattern |
 |------|--------------|
@@ -44,13 +44,31 @@ my-theme/
 | `pages/about.astro` | `/about` |
 | `pages/post/[slug].astro` | `/post/[slug]` |
 | `pages/tag/[tag].astro` | `/tag/[tag]` |
+| `pages/search-index.json.ts` | `/search-index.json`（端点，见下节） |
 | 子目录递归同理 | `pages/foo/bar.astro` → `/foo/bar` |
 
-**主题的职责**：动态路由的 `getStaticPaths()` 由页面文件自己实现（见 §3.1 示例）。
+**主题端点**：`pages/` 下的 `.ts` 文件成为数据端点（与内核 `src/pages/` 的文件路由约定一致）——剥 `.ts` 后文件名即路由（副扩展名保留），导出 `GET` 返回 `Response`；动态端点（如 `[slug].json.ts`）自带 `getStaticPaths()`：
+
+```ts
+// pages/search-index.json.ts —— 构建期执行，产出静态 JSON
+import dataService from '@lib/notion/service';
+
+export async function GET() {
+  const posts = await dataService.getAllPosts();  // 复用 all-posts 缓存
+  return new Response(
+    JSON.stringify(posts.map(p => ({ title: p.title, slug: p.slug }))),
+    { headers: { 'Content-Type': 'application/json' } },
+  );
+}
+```
+
+`Content-Type` 等响应头由端点自行设置。端点没有目录索引语义（`index.json.ts` → `/index.json`）。
+
+**主题的职责**：动态路由的 `getStaticPaths()` 由页面/端点文件自己实现（见 §3.1 示例）。
 
 **主题自有页面**：路由名不限于数据模型——`pages/` 下任意 `.astro` 文件都会成为路由，且不要求使用 Notion 数据。搜索页、友链页、作品集等主题专属页面直接新增文件即可（如 `pages/search.astro` → `/search`）；需要数据时在同一页面构建期调用 `dataService` 并把结果内联（静态站点无运行时数据）。
 
-**保留路径**：框架在 `src/pages/` 下提供数据端点，主题路由不可占用：`/post/{slug}.md`、`/{slug}.md`、`/rss/feed.xml`、`/llms.txt`、`/robots.txt`、`/sitemap-index.xml`。
+**保留路径**：以下路由由内核提供，主题页面与端点都不可占用，撞名会在构建期直接失败：`/post/{slug}.md`、`/{slug}.md`、`/rss/feed.xml`、`/llms.txt`、`/robots.txt`、`/sitemap-index.xml`。
 
 ## 3. 数据访问
 

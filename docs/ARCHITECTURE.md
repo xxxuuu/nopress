@@ -120,12 +120,12 @@ Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 
 
 页面、布局、组件、样式都在主题目录，框架与 UI 解耦。`default` 为全功能主题（6 个路由 + TOC/灯箱/评论）；`minimal` 是契约参考实现——仅依据 `docs/THEMES.md` 编写的三路由极简主题，同时用作主题契约的回归验证（`NOPRESS_THEME=minimal`）：
 
-- `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题的 `pages/` 目录并 `injectRoute` 注入路由
+- `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题 `pages/` 下的页面（`.astro`）与端点（`.ts`）并 `injectRoute` 注入路由；对内核保留路由做构建期校验
 - `manager.ts` / `loader.ts` — 主题注册、激活与加载（`theme.config.mjs` 经原生 ESM 动态导入，支持任意合法 ESM 写法）；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
 - `schema.ts` — 主题清单的 zod 校验（`theme.config.mjs` 必填 id/name/version）
 - 最小约束原则：框架只注入路由和配置别名，不干涉主题内部结构
 
-注意：`src/pages/` 只放数据端点（`.md`、`llms.txt`、RSS、robots），页面 `.astro` 文件放主题的 `pages/` 下。
+注意：`src/pages/` 只放内核数据端点（`.md`、`llms.txt`、RSS、robots），主题页面 `.astro` 和端点 `.ts` 放主题的 `pages/` 下。
 
 ### 9. Markdown 转换（`src/lib/markdown/`）
 

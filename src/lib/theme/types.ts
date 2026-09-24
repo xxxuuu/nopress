@@ -91,10 +91,10 @@ export interface ThemeLoadConfig {
 }
 
 /**
- * 页面路由配置
+ * 路由配置（页面或端点）
  * 用于 Astro Integration 注入路由
  */
 export interface PageRoute {
-  pattern: string;      // 路由 pattern，如 '/', '/post/[slug]'
-  entrypoint: string;   // 页面文件的完整路径
+  pattern: string;      // 路由 pattern，如 '/', '/post/[slug]', '/search-index.json'
+  entrypoint: string;   // 页面（.astro）或端点（.ts）文件的完整路径
 }
