@@ -8,14 +8,15 @@ NoPress 是静态博客生成器：**Notion Database 是唯一数据源**，Astr
 
 - 技术栈：Astro 7（`output: 'static'`）、@notionhq/client 5.x、TypeScript strict
 - Node ≥ 24（`.nvmrc`、`package.json` engines）
-- 改动通过 `npm run build` 验证（项目未配置测试框架和 linter）；构建依赖 `.env` 和 Notion 网络访问，冷缓存时较慢属正常
+- 改动通过 `npm run build` 验证（内含 `astro check` 类型检查；项目未配置测试框架和 linter）；构建依赖 `.env` 和 Notion 网络访问，冷缓存时较慢属正常
 - dev/build 需要有效的 `.env`（`NOTION_TOKEN` + `NOTION_DATABASE_ID`）；内容全部来自 Notion API，无本地 mock
 
 ## 命令
 
 ```bash
 npm run dev       # 开发服务器（内存缓存，TTL 5 分钟）
-npm run build     # 构建到 dist/（文件缓存 .cache/，TTL 1 小时）
+npm run check     # astro 类型检查（build 前置执行）
+npm run build     # 构建到 dist/（类型检查 + 文件缓存 .cache/，TTL 1 小时）
 npm run preview   # 预览构建产物
 ```
 
@@ -26,9 +27,9 @@ src/
 ├── pages/                # 只有数据端点：post/[slug].md.ts、[slug].md.ts、llms.txt.ts、rss/、robots.txt.ts
 ├── themes/default/       # 默认主题——所有页面、布局、组件、样式都在这里
 │   ├── pages/            # 被注入为 Astro 路由（首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive）
-│   ├── layouts/          # BaseLayout / PostLayout / PageLayout
-│   ├── components/       # Header、Footer、PostCard、Pagination、Comments（giscus）等
-│   ├── styles/           # global.css（CSS 变量 + 深色模式）、notion.css、theme.css
+│   ├── layouts/          # BaseLayout
+│   ├── components/       # Header、Footer、PostList、Pagination、Comments（giscus）等
+│   ├── styles/           # global.css（CSS 变量 + 深色模式）、notion.css
 │   └── theme.config.mjs  # 主题清单（zod 验证：id/name/version 必填）
 ├── lib/
 │   ├── notion/
@@ -43,7 +44,7 @@ src/
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
 │   ├── config/loader.ts  # 环境变量配置加载（SITE_*、COMMENTS_*）
 │   └── utils/            # slug / date / format / api-helpers（RateLimiter + RetryHelper）
-├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）+ theme.ts
+├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）
 ├── core/                 # meta-helpers（<head> 标签生成）
 └── scripts/              # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、图片灯箱、giscus
 ```
@@ -64,7 +65,7 @@ src/
 
 5. **Notion 图片/附件 URL 会过期**。进入缓存的 URL 需经 `map-image-url.ts` 转成 `notion.so/image/` 代理格式，构建产物才能长期有效。
 
-6. **路径别名只有三个**：`@/*`、`@lib/*`、`@config/*`（tsconfig.json + astro.config.mjs）。不存在 `@components`、`@data`。
+6. **路径别名**：tsconfig.json 定义四个静态别名 `@/*`、`@lib/*`、`@config/*`、`@core/*`；主题集成另在运行时注入 `@theme`（指向激活主题根目录，因随 `NOPRESS_THEME` 变化不进 tsconfig，主题内部相互引用请用相对路径）。不存在 `@components`、`@data`。
 
 7. **缓存语义**：`getAllPosts()` 拉全量后缓存 key `all-posts`，`getPostBySlug()` / `getPostsByTag()` 等都基于它内存过滤，不会为单篇文章单独发请求。`getAllPages()`、`getAllTags()`、`getMenuItems()`、`getDatabaseInfo()` 各有独立缓存 key。缓存 namespace 掺有数据层代码版本 hash（`src/lib/cache/code-version.ts`，覆盖 notion/cache/utils/types.ts），这些代码变更后缓存自动失效，无需手动 `rm -rf .cache/`；其余目录（markdown/theme/config）变更不影响缓存。
 
@@ -113,7 +114,7 @@ src/
 
 ## 工作准则
 
-**验证**：完成改动后运行 `npm run build` 确认构建通过（这也是 CI 部署时执行的唯一检查）；数据层代码（notion/cache/utils/types.ts）改动会自动失效构建缓存，直接构建即可（见陷阱 7）。
+**验证**：完成改动后运行 `npm run build` 确认构建通过（内含 `astro check` 类型检查，也是 CI 部署时执行的唯一检查）；数据层代码（notion/cache/utils/types.ts）改动会自动失效构建缓存，直接构建即可（见陷阱 7）。
 
 **文档同步**：改动落地时同步更新对应文档，避免文档与代码漂移：
 

@@ -121,7 +121,7 @@ Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 
 所有页面、布局、组件、样式都在主题目录，框架与 UI 解耦：
 
 - `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题的 `pages/` 目录并 `injectRoute` 注入路由
-- `manager.ts` / `loader.ts` — 主题注册、激活与加载；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
+- `manager.ts` / `loader.ts` — 主题注册、激活与加载（`theme.config.mjs` 经原生 ESM 动态导入，支持任意合法 ESM 写法）；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
 - `schema.ts` — 主题清单的 zod 校验（`theme.config.mjs` 必填 id/name/version）
 - 最小约束原则：框架只注入路由和配置别名，不干涉主题内部结构
 
@@ -142,9 +142,9 @@ src/
 ├── pages/                        # 只有数据端点：post/[slug].md.ts、[slug].md.ts、llms.txt.ts、rss/、robots.txt.ts
 ├── themes/default/               # 默认主题：所有页面、布局、组件、样式
 │   ├── pages/                    # 首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive
-│   ├── layouts/                  # BaseLayout / PostLayout / PageLayout
-│   ├── components/               # Header、Footer、PostCard、Pagination、Comments 等
-│   ├── styles/                   # global.css、notion.css、theme.css
+│   ├── layouts/                  # BaseLayout
+│   ├── components/               # Header、Footer、PostList、Pagination、Comments 等
+│   ├── styles/                   # global.css、notion.css
 │   └── theme.config.mjs          # 主题清单
 ├── lib/
 │   ├── notion/
@@ -159,7 +159,7 @@ src/
 │   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
 │   ├── config/loader.ts          # 环境变量配置加载
 │   └── utils/                    # api-helpers（限流/重试）、slug、date、format
-├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）+ theme.ts
+├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）
 ├── core/                         # meta-helpers（<head> 生成）
 └── scripts/                      # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、灯箱、giscus
 ```
