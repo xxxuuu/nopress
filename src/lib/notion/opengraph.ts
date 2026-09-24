@@ -37,8 +37,9 @@ const scraper = metascraper([
   metascraperUrl(),
 ]);
 
-// 内存缓存
-const cache = new Map<string, OpenGraphData>();
+// 内存缓存：成功结果与失败结果（null）都记录，
+// 避免同一 URL 在一次构建内被反复抓取（403 类必然失败、超时类大概率复现）
+const cache = new Map<string, OpenGraphData | null>();
 
 // Open Graph 专用限流器
 const ogRateLimiter = new RateLimiter(20);
@@ -68,8 +69,7 @@ export async function fetchOpenGraphData(
           accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8',
         },
-        // 10秒超时
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(5000),
       });
 
       if (!response.ok) {
@@ -96,6 +96,8 @@ export async function fetchOpenGraphData(
       return ogData;
     } catch (error) {
       console.warn(`[OpenGraph] Failed to fetch ${url}:`, error);
+      // 失败同样记入缓存，构建内不再重试
+      cache.set(url, null);
       return null;
     }
   });
