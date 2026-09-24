@@ -4,6 +4,7 @@ import dataService from '@lib/notion/service';
 import { formatDate } from '@lib/utils/date';
 import { isValidSlug } from '@lib/utils/slug';
 import { getResolvedSiteConfig } from '@config/resolved-site';
+import { themeOptions } from '@lib/theme/options';
 import Comments from '../../components/Comments.astro';
 import '../../styles/notion.css';
 
@@ -45,6 +46,12 @@ const { post, prevPost, nextPost } = Astro.props;
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();
 
+// 主题选项（声明见 theme.config.mjs，宿主可经 NOPRESS_THEME_OPTIONS 覆盖）
+const { showPostCover = true, showReadingTime = true } = themeOptions as {
+  showPostCover?: boolean;
+  showReadingTime?: boolean;
+};
+
 // Markdown 版本信息（对 AI Agent 可见的发现提示）
 const markdownUrl = `/post/${post.slug}.md`;
 const markdownAbsUrl = Astro.site ? new URL(markdownUrl, Astro.site).href : markdownUrl;
@@ -55,8 +62,8 @@ const markdownAbsUrl = Astro.site ? new URL(markdownUrl, Astro.site).href : mark
   <article class="content">
     <!-- Notion 风格页面 -->
     <div class="notion-page">
-      <!-- 封面图 - Notion 风格全宽封面 -->
-      {post.coverUrl && (
+      <!-- 封面图 - Notion 风格全宽封面（showPostCover 选项，OG 图不受影响） -->
+      {showPostCover && post.coverUrl && (
         <div class="page-cover">
           <img src={post.coverUrl} alt={post.title} loading="eager" fetchpriority="high" />
         </div>
@@ -84,7 +91,7 @@ const markdownAbsUrl = Astro.site ? new URL(markdownUrl, Astro.site).href : mark
                 <span class="meta-icon">📅</span>
                 <time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
               </span>
-              {post.readingTime && (
+              {showReadingTime && post.readingTime && (
                 <span class="meta-item">
                   <span class="meta-icon">⏱️</span>
                   <span>{post.readingTime} 分钟阅读</span>

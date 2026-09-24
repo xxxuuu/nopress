@@ -2,6 +2,7 @@
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
+import { themeOptions } from '@lib/theme/options';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -30,6 +31,9 @@ const metaConfig = getMetaConfig(SITE_CONFIG);
 const canonical = canonicalURL
   ? new URL(canonicalURL, Astro.site)
   : new URL(Astro.url.pathname, Astro.site);
+
+// 主题选项（声明见 theme.config.mjs，宿主可经 NOPRESS_THEME_OPTIONS 覆盖）
+const { darkMode = true } = themeOptions as { darkMode?: boolean };
 
 // 使用 core 工具函数生成 meta 标签
 const metaTags = generateMetaTags(
@@ -78,7 +82,7 @@ const metaTags = generateMetaTags(
     <!-- PhotoSwipe 样式改为在有图片的页面临近使用时注入（见 scripts/image-gallery.ts），避免全站加载 -->
 
     <!-- 防止主题闪烁的脚本 (必须在 head 中 inline) -->
-    <script is:inline define:vars={{ darkMode: metaConfig.darkMode }}>
+    <script is:inline define:vars={{ darkMode }}>
       if (darkMode) {
         (function() {
           const theme = localStorage.getItem('theme') ||

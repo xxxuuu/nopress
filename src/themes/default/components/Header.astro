@@ -1,5 +1,6 @@
 ---
 import { getResolvedSiteConfig } from '@config/resolved-site';
+import { themeOptions } from '@lib/theme/options';
 import ThemeToggle from './ThemeToggle.astro';
 import dataService from '@lib/notion/service';
 
@@ -12,6 +13,9 @@ const menuItems = await dataService.getMenuItems();
 // 获取 Notion Database 的标题
 const dbInfo = await dataService.getDatabaseInfo();
 const siteTitle = dbInfo.title || SITE_CONFIG.title;
+
+// 深色模式关闭时不渲染切换按钮（防闪烁脚本同样受此选项控制，见 BaseLayout）
+const { darkMode = true } = themeOptions as { darkMode?: boolean };
 ---
 
 <header class="notion-header">
@@ -37,7 +41,7 @@ const siteTitle = dbInfo.title || SITE_CONFIG.title;
             </a>
           ))}
         </nav>
-        <ThemeToggle />
+        {darkMode && <ThemeToggle />}
       </div>
     </div>
   </div>

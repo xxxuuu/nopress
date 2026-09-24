@@ -142,7 +142,7 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 - **无声明即无选项**：主题未声明 `options` 时该机制不介入；宿主对未声明 key 的覆盖会构建失败（防拼写错误）
 - 修改 `NOPRESS_THEME_OPTIONS` 后需重启 dev server（值在构建启动时固化）
 
-完整可运行示例见 `src/themes/minimal/`（`footerText` + `showPostMeta` 两项）。
+完整可运行示例：`src/themes/minimal/`（`footerText` + `showPostMeta`）、`src/themes/default/`（`darkMode` + `showPostCover` + `showReadingTime`）。
 
 ## 4. 内容渲染契约（post.content / page.content）
 
