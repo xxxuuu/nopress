@@ -537,10 +537,6 @@ NOTION_DATABASE_ID=abc123...
 SITE_URL=https://johndoe.com
 SITE_TITLE=John's Blog
 SITE_DESCRIPTION=Web 开发技术和设计思考
-SITE_LANGUAGE=en
-AUTHOR_NAME=John Doe
-AUTHOR_EMAIL=john@example.com
-AUTHOR_BIO=Full-stack developer
 
 COMMENTS_ENABLED=true
 COMMENTS_GISCUS_REPO=johndoe/blog
@@ -560,53 +556,13 @@ NOTION_DATABASE_ID=abc123...
 SITE_URL=https://teamtech.io
 SITE_TITLE=Team Tech Blog
 SITE_DESCRIPTION=分享我们的技术实践和经验
-SITE_LANGUAGE=zh-CN
 SITE_POSTS_PER_PAGE=20
-
-AUTHOR_NAME=Team Tech
-AUTHOR_EMAIL=team@teamtech.io
-AUTHOR_BIO=一群热爱技术的工程师
-AUTHOR_SOCIAL={"github":"https://github.com/teamtech","twitter":"https://twitter.com/teamtech"}
 
 COMMENTS_ENABLED=true
 COMMENTS_GISCUS_REPO=teamtech/blog
 COMMENTS_GISCUS_REPO_ID=R_kgDOG...
 COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
 COMMENTS_GISCUS_LANG=zh-CN
-```
-
----
-
-### 示例 3：多语言博客（英文 + 中文）
-
-使用两个配置文件：
-
-**`.env.production`**（主站，英文）：
-
-```bash
-SITE_URL=https://myblog.com
-SITE_TITLE=My Blog
-SITE_LANGUAGE=en
-```
-
-**`.env.zh`**（中文站）：
-
-```bash
-SITE_URL=https://zh.myblog.com
-SITE_TITLE=我的博客
-SITE_LANGUAGE=zh-CN
-```
-
-部署时使用不同的配置文件：
-
-```bash
-# 英文站
-cp .env.production .env
-npm run build
-
-# 中文站
-cp .env.zh .env
-npm run build
 ```
 
 ---
@@ -673,8 +629,3 @@ export function loadSiteConfig() {
 
 - **[评论功能配置](./COMMENTS.md)** - Giscus 评论系统详细配置
 - **[系统架构](./ARCHITECTURE.md)** - 整体设计和数据流
-- **[RFC 004 - 评论系统](./rfcs/004-comments-system.md)** - 评论系统设计文档
-
----
-
-**最后更新**: 2026-01-14 | **版本**: v1.0.0

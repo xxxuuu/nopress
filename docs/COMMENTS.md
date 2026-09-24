@@ -346,8 +346,3 @@ script.setAttribute('data-theme', 'https://your-custom-theme.css');
 - **[Giscus 官网](https://giscus.app)** - 在线配置工具
 - **[Giscus GitHub](https://github.com/giscus/giscus)** - 源代码和文档
 - **[Giscus 高级用法](https://github.com/giscus/giscus/blob/main/ADVANCED-USAGE.md)** - 高级配置
-- **[RFC 004 - 评论系统功能](./rfcs/004-comments-system.md)** - 设计文档
-
----
-
-**最后更新**: 2026-01-13

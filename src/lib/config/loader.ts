@@ -8,7 +8,6 @@
  *
  * 环境变量命名规范：
  * - 站点配置：SITE_* (例如: SITE_URL, SITE_TITLE)
- * - 作者配置：AUTHOR_* (例如: AUTHOR_NAME, AUTHOR_EMAIL)
  * - 评论配置：COMMENTS_GISCUS_* (例如: COMMENTS_GISCUS_REPO)
  */
 

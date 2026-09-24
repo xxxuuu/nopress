@@ -133,7 +133,7 @@ Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 
 
 ### 10. 配置系统（`src/lib/config/loader.ts` + `src/config/`）
 
-优先级：环境变量 > `.env` > 代码默认值（经 vite `loadEnv` 读取）。命名规范：`SITE_*`、`AUTHOR_*`、`COMMENTS_GISCUS_*`。`SITE_TITLE` / `SITE_DESCRIPTION` / `SITE_ICON` 留空时自动回填 Notion Database 元数据（`resolved-site.ts`）。`SITE_URL` 影响 sitemap、RSS、canonical 和 `.md` 端点链接。完整变量表见 [CONFIGURATION.md](./CONFIGURATION.md)。
+优先级：环境变量 > `.env` > 代码默认值（经 vite `loadEnv` 读取）。命名规范：`SITE_*`、`COMMENTS_GISCUS_*`。`SITE_TITLE` / `SITE_DESCRIPTION` / `SITE_ICON` 留空时自动回填 Notion Database 元数据（`resolved-site.ts`）。`SITE_URL` 影响 sitemap、RSS、canonical 和 `.md` 端点链接。完整变量表见 [CONFIGURATION.md](./CONFIGURATION.md)。
 
 ## 文件结构
 
@@ -196,4 +196,3 @@ Notion 的 S3 签名 URL 通常 1 小时过期。静态站点产物长期存在�
 **相关文档**:
 - [AGENTS.md](../AGENTS.md) - AI 代理开发指南（陷阱清单、任务入口）
 - [CONFIGURATION.md](./CONFIGURATION.md) - 环境变量全表
-- [RFCs](./rfcs/) - 主题系统、数据库渲染、RSS、评论系统的设计文档

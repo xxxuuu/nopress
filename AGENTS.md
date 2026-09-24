@@ -41,7 +41,7 @@ src/
 │   ├── cache/            # notionCache 单例：dev=MemoryCache / build=FileCache；code-version.ts 让缓存随数据层代码自动失效
 │   ├── markdown/         # htmlToMarkdown()：HTML → Markdown（turndown + GFM + Notion 规则）
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
-│   ├── config/loader.ts  # 环境变量配置加载（SITE_*、AUTHOR_*、COMMENTS_*）
+│   ├── config/loader.ts  # 环境变量配置加载（SITE_*、COMMENTS_*）
 │   └── utils/            # slug / date / format / api-helpers（RateLimiter + RetryHelper）
 ├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）
 ├── core/                 # meta-helpers（<head> 标签生成）
@@ -122,7 +122,7 @@ src/
 | 目录结构、模块职责 | 本文件目录地图 + `docs/ARCHITECTURE.md` |
 | 环境变量 | `.env.example` + `docs/CONFIGURATION.md` + `.github/workflows/build.yaml`（部署时从 CI 变量注入，遗漏会导致线上配置缺失） |
 | Notion schema、查询逻辑 | 本文件 schema 表 + `docs/ARCHITECTURE.md` |
-| 新增子系统/功能 | 在 `docs/` 新建文档；重大设计先写 RFC（`docs/rfcs/`） |
+| 新增子系统/功能 | 在 `docs/` 新建文档 |
 
 **提交信息**：遵循 Conventional Commits（`feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `style:` / `ci:`，见 git log 现有风格），一句话说清改动。提交需签名：用 `git commit -s -S`（`-s` 附加 Signed-off-by 行，`-S` 签名提交；本仓库已配置 `commit.gpgsign=true`，签名会自动附加）。
 
@@ -137,4 +137,3 @@ src/
 - `docs/ARCHITECTURE.md` — 架构详解（数据流、各子系统、技术决策）
 - `docs/CONFIGURATION.md` — 环境变量全表
 - `docs/COMMENTS.md` — giscus 评论系统
-- `docs/rfcs/` — 主题系统、数据库渲染、RSS、评论系统的设计文档

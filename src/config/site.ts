@@ -8,7 +8,6 @@
  *
  * 环境变量命名规范：
  * - SITE_URL, SITE_TITLE, SITE_DESCRIPTION -> 站点基本信息
- * - AUTHOR_NAME, AUTHOR_EMAIL, AUTHOR_BIO -> 作者信息
  * - COMMENTS_ENABLED, COMMENTS_GISCUS_REPO -> 评论系统
  * - 详见文档：docs/CONFIGURATION.md
  */
