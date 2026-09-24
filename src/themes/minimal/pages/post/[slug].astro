@@ -1,0 +1,54 @@
+---
+/**
+ * 文章页：按契约 §3.1 的 getStaticPaths 模式
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import dataService from '@lib/notion/service';
+import { isValidSlug } from '@lib/utils/slug';
+import '../../styles/content.css';
+
+export async function getStaticPaths() {
+  const posts = await dataService.getAllPosts();
+  return posts
+    .filter(post => isValidSlug(post.slug))
+    .map(post => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props;
+---
+
+<BaseLayout title={post.title} description={post.description}>
+  <article>
+    <header class="post-header">
+      <h1>{post.title}</h1>
+      <p class="post-meta">
+        <time datetime={post.publishedAt}>{post.publishedAt.slice(0, 10)}</time>
+        {post.updatedAt && <span> · 更新于 {post.updatedAt.slice(0, 10)}</span>}
+        {post.readingTime && <span> · 约 {post.readingTime} 分钟</span>}
+        {post.tags.length > 0 && <span> · {post.tags.join(' / ')}</span>}
+      </p>
+    </header>
+
+    {post.coverUrl && <img class="post-cover" src={post.coverUrl} alt={post.title} />}
+
+    <div class="notion-content" set:html={post.content} />
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .post-meta {
+    color: var(--fg-secondary);
+    font-size: 0.875rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .post-cover {
+    width: 100%;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+</style>

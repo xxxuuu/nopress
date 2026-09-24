@@ -118,20 +118,25 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 | 内容 | 输出结构 |
 |------|----------|
 | 容器 | 由主题提供（`set:html` 的挂载点）；若需 TOC 功能必须含 `notion-content` 类，见 §5 |
-| 段落/标题/引用/分隔线 | `<p>` `<h1>`-`<h3>` `<blockquote class="notion-quote">` `<hr class="notion-divider">` |
-| Callout | `.notion-callout` > `.notion-callout-icon` + `.notion-callout-content` |
-| 代码块 | `.notion-code-block` > `.notion-code-header`（`.notion-code-language` + 复制按钮 `.notion-code-copy`）+ `pre.notion-code > code.language-{lang}`；Prism token 配色（`.token.*`）由主题 CSS 负责 |
+| 段落/标题/引用/分隔线 | `<p>` `<h1>`-`<h3>`（带 `id` 锚点） `<blockquote class="notion-quote">` `<hr class="notion-divider">` |
+| 嵌套块容器 | 嵌套列表/column 等的子块包在 `div.notion-children` 中 |
+| 富文本颜色 | 行内/块级 Notion 颜色：文字色 `notion-{color}`、背景色 `notion-{color}-background`，色域 `gray/brown/orange/yellow/green/blue/purple/pink/red`，挂在 `<span>` 或 `<p>` 上；主题应提供全部 9 色的双模式映射 |
+| Callout | `.notion-callout`(带 `notion-callout-{color}-background` 变体) > `.notion-callout-icon`(emoji 或 `img.notion-callout-icon-img`) + `.notion-callout-content` |
+| 代码块 | `.notion-code-block` > `.notion-code-header`（`.notion-code-language` + 复制按钮 `.notion-code-copy`）+ `pre.notion-code > code.language-{lang}`，可选 `.notion-code-caption`；Prism token 配色（`.token.*`）由主题 CSS 负责 |
 | Mermaid 图表 | 同代码块，`code.language-mermaid`，由脚本替换为 SVG |
 | 行内公式 | `<code class="notion-equation">{latex}</code>`（无 `$` 包裹） |
 | 块级公式 | `.notion-equation-block > .notion-equation`，文本为 `$$latex$$`；脚本用 KaTeX 替换内容并注入 KaTeX 样式，主题可覆盖布局（`.katex-display` 等） |
 | 表格 | `.notion-table-wrapper > table.notion-table` |
-| 图片 | `<a class="glightbox" data-gallery="article-images" data-title data-description><img …></a>`；封面图带 `onload` 内联脚本计算宽高比（容器需支持 `data-aspect-ratio` / `.loaded`） |
+| 图片 | `figure.notion-image.notion-image-{center\|left\|right}`（可选加 `notion-image-page-width`）> `<a class="glightbox" data-gallery="article-images" data-title data-description><img …></a>`；图片带 `onload` 内联脚本计算宽高比（`a` 元素接收 `data-aspect-ratio` / `.loaded`）；多图排布用 `.notion-column-list > .notion-column` |
 | 书签卡片 | `.notion-bookmark` > `.notion-bookmark-info`（title/description/url）+ `.notion-bookmark-cover` |
-| 嵌入 | `.notion-embed-wrapper > iframe.notion-embed`；降级为 `.notion-embed--fallback` 链接 |
-| Toggle | `.notion-toggle > .notion-toggle-title + .notion-toggle-content`（展开态加 `.notion-toggle-expanded`） |
+| 链接提及 | `.notion-mention` > `.notion-mention-icon`（`img.notion-mention-favicon`）+ `.notion-mention-text`，整体为 `<a>` 时可点击 |
+| 嵌入 | `figure.notion-embed-wrapper > iframe.notion-embed`（+ `figcaption`）；Twitter 变体 `notion-embed--twitter`；无法内嵌时降级为 `.notion-embed--fallback` 链接 |
+| 视频 | `figure.notion-video-wrapper > iframe.notion-video`（+ `figcaption`） |
+| PDF | `.notion-pdf` > `.notion-pdf-viewer`（iframe） |
+| Toggle | 原生 `<details class="notion-toggle">` > `<summary class="notion-toggle-title">` + `.notion-toggle-content`——原生元素交互，无需 JS |
 | Todo 列表 | `.notion-todo-list > .notion-todo-item`（勾选项带 `checked`） |
 | 子页面 | `.notion-child-page` 链接 |
-| 嵌入 Database | `.notion-database-wrapper` 内表格视图（`.notion-database-table-*`）或画廊视图（`.notion-database-gallery-*`、`.notion-database-card-*`），完整类名以渲染器输出为准 |
+| 嵌入 Database | `.notion-database-wrapper` 内表格视图（`.notion-database-table-*`）或画廊视图（`.notion-database-gallery-*`、`.notion-database-card-*`），select 值带颜色变体 `notion-database-select-{color}`，完整类名以渲染器输出为准 |
 | 不支持的块 | `.notion-unsupported`（不阻断渲染） |
 
 ## 5. 可选客户端脚本

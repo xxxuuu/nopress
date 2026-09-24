@@ -116,9 +116,9 @@ Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 
 
 覆盖 `secure.notion-static.com`、`prod-files-secure`、Notion 内部相对路径及 Bookmark 外部图片。所有进入缓存的图片 URL 都需经过此转换，构建产物才能长期有效。
 
-### 8. 主题系统（`src/lib/theme/` + `src/themes/default/`）
+### 8. 主题系统（`src/lib/theme/` + `src/themes/`）
 
-所有页面、布局、组件、样式都在主题目录，框架与 UI 解耦：
+页面、布局、组件、样式都在主题目录，框架与 UI 解耦。`default` 为全功能主题（6 个路由 + TOC/灯箱/评论）；`minimal` 是契约参考实现——仅依据 `docs/THEMES.md` 编写的三路由极简主题，同时用作主题契约的回归验证（`NOPRESS_THEME=minimal`）：
 
 - `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题的 `pages/` 目录并 `injectRoute` 注入路由
 - `manager.ts` / `loader.ts` — 主题注册、激活与加载（`theme.config.mjs` 经原生 ESM 动态导入，支持任意合法 ESM 写法）；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
@@ -140,12 +140,13 @@ Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 
 ```
 src/
 ├── pages/                        # 只有数据端点：post/[slug].md.ts、[slug].md.ts、llms.txt.ts、rss/、robots.txt.ts
-├── themes/default/               # 默认主题：所有页面、布局、组件、样式
-│   ├── pages/                    # 首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive
-│   ├── layouts/                  # BaseLayout
-│   ├── components/               # Header、Footer、PostList、Pagination、Comments 等
-│   ├── styles/                   # global.css、notion.css
-│   └── theme.config.mjs          # 主题清单
+├── themes/                       # 主题契约见 docs/THEMES.md
+│   ├── default/                  # 默认主题（全功能）：首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive
+│   │   ├── layouts/              # BaseLayout
+│   │   ├── components/           # Header、Footer、PostList、Pagination、Comments 等
+│   │   ├── styles/               # global.css、notion.css
+│   │   └── theme.config.mjs      # 主题清单
+│   └── minimal/                  # 契约参考实现（NOPRESS_THEME=minimal）：首页、/post/[slug]、/[slug] 三路由极简主题
 ├── lib/
 │   ├── notion/
 │   │   ├── service/              # NotionDataService（数据层入口）

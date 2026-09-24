@@ -1,0 +1,57 @@
+---
+/**
+ * 首页：全部文章的纯文字列表（不分页，无 tag 路由——标签在文章页以纯文本展示）
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import dataService from '@lib/notion/service';
+import type { Post } from '@lib/types';
+import { isValidSlug } from '@lib/utils/slug';
+
+const posts = (await dataService.getAllPosts()).filter(post => isValidSlug(post.slug));
+
+function formatDate(iso: string): string {
+  return iso.slice(0, 10);
+}
+---
+
+<BaseLayout>
+  <h1>文章</h1>
+  <ul class="post-index">
+    {posts.map((post: Post) => (
+      <li>
+        <a href={`/post/${post.slug}`}>{post.title}</a>
+        <time datetime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+        {post.description && <p>{post.description}</p>}
+      </li>
+    ))}
+  </ul>
+</BaseLayout>
+
+<style>
+  .post-index {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .post-index li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .post-index a {
+    font-weight: 600;
+  }
+
+  .post-index time {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--fg-secondary);
+  }
+
+  .post-index p {
+    margin: 0.25rem 0 0;
+    color: var(--fg-secondary);
+    font-size: 0.9375rem;
+  }
+</style>

@@ -1,0 +1,88 @@
+---
+/**
+ * Minimal 主题布局
+ * 只依赖契约（docs/THEMES.md）声明的稳定 API：
+ * @config/resolved-site、@core/config/meta、@core/lib/meta-helpers、@lib/notion/service
+ */
+import { getResolvedSiteConfig } from '@config/resolved-site';
+import { getMetaConfig } from '@core/config/meta';
+import { generateMetaTags } from '@core/lib/meta-helpers';
+import dataService from '@lib/notion/service';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const SITE_CONFIG = await getResolvedSiteConfig();
+const menuItems = await dataService.getMenuItems();
+
+const { title = SITE_CONFIG.title, description } = Astro.props;
+
+const metaConfig = getMetaConfig(SITE_CONFIG);
+const metaTags = generateMetaTags(
+  metaConfig,
+  title,
+  Astro.url.pathname,
+  description,
+);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={metaConfig.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href={SITE_CONFIG.icon} />
+    <link rel="canonical" href={canonical} />
+    {metaConfig.enableRSS && (
+      <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
+    )}
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <title>{metaTags.title}</title>
+    <meta name="description" content={metaTags.description} />
+    <meta property="og:type" content={metaTags.ogType} />
+    <meta property="og:title" content={metaTags.ogTitle} />
+    <meta property="og:description" content={metaTags.ogDescription} />
+    {metaTags.ogImage && <meta property="og:image" content={metaTags.ogImage} />}
+
+    <!-- 深色模式防闪烁（契约 §6） -->
+    <script is:inline>
+      (function() {
+        const theme = localStorage.getItem('theme') ||
+          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="site-title" href="/">{SITE_CONFIG.title}</a>
+      <nav>
+        {menuItems.map(item => (
+          <a
+            href={item.url}
+            target={item.isExternal ? '_blank' : undefined}
+            rel={item.isExternal ? 'noopener noreferrer' : undefined}
+          >{item.title}</a>
+        ))}
+      </nav>
+    </header>
+
+    <main class="site-main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; {new Date().getFullYear()} {SITE_CONFIG.title}</p>
+    </footer>
+
+    <!-- 可选脚本按需引入（契约 §5）：只引高亮与公式，验证其余标记的降级行为 -->
+    <script>
+      import '@/scripts/syntax-highlight';
+      import '@/scripts/math-rendering';
+    </script>
+  </body>
+</html>

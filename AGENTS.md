@@ -25,12 +25,18 @@ npm run preview   # 预览构建产物
 ```
 src/
 ├── pages/                # 只有数据端点：post/[slug].md.ts、[slug].md.ts、llms.txt.ts、rss/、robots.txt.ts
-├── themes/default/       # 默认主题——所有页面、布局、组件、样式都在这里
-│   ├── pages/            # 被注入为 Astro 路由（首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive）
-│   ├── layouts/          # BaseLayout
-│   ├── components/       # Header、Footer、PostList、Pagination、Comments（giscus）等
-│   ├── styles/           # global.css（CSS 变量 + 深色模式）、notion.css
-│   └── theme.config.mjs  # 主题清单（zod 验证：id/name/version 必填）
+├── themes/
+│   ├── default/          # 默认主题（全功能）：全部 6 个路由 + TOC/灯箱/评论
+│   │   ├── pages/        # 被注入为 Astro 路由（首页、/post/[slug]、/[slug]、/tag/[tag]、/page/[page]、archive）
+│   │   ├── layouts/      # BaseLayout
+│   │   ├── components/   # Header、Footer、PostList、Pagination、Comments（giscus）等
+│   │   ├── styles/       # global.css（CSS 变量 + 深色模式）、notion.css
+│   │   └── theme.config.mjs
+│   └── minimal/          # 契约参考实现（NOPRESS_THEME=minimal）：3 个路由的极简主题
+│       ├── pages/        # 首页、/post/[slug]、/[slug]
+│       ├── layouts/      # BaseLayout
+│       └── styles/       # global.css、content.css（仅依据 docs/THEMES.md 契约编写）
+│   # 主题契约见 docs/THEMES.md；清单经 zod 验证（id/name/version 必填）
 ├── lib/
 │   ├── notion/
 │   │   ├── service/      # NotionDataService 单例（import dataService from '@lib/notion/service'）
