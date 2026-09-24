@@ -43,7 +43,7 @@ src/
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
 │   ├── config/loader.ts  # 环境变量配置加载（SITE_*、COMMENTS_*）
 │   └── utils/            # slug / date / format / api-helpers（RateLimiter + RetryHelper）
-├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）
+├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）+ theme.ts
 ├── core/                 # meta-helpers（<head> 标签生成）
 └── scripts/              # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、图片灯箱、giscus
 ```
@@ -113,7 +113,7 @@ src/
 
 ## 工作准则
 
-**验证**：完成改动后运行 `npm run build` 确认构建通过（这也是 CI 部署时执行的唯一检查）；涉及数据结构的改动先 `rm -rf .cache/`（见陷阱 7）。
+**验证**：完成改动后运行 `npm run build` 确认构建通过（这也是 CI 部署时执行的唯一检查）；数据层代码（notion/cache/utils/types.ts）改动会自动失效构建缓存，直接构建即可（见陷阱 7）。
 
 **文档同步**：改动落地时同步更新对应文档，避免文档与代码漂移：
 

@@ -127,7 +127,7 @@ COMMENTS_GISCUS_REPO_ID=R_kgDOG...
 COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
 ```
 
-**修改主题颜色**: 编辑 `src/config/theme.ts`
+**修改主题颜色**: 编辑 `src/themes/default/styles/global.css` 中的 CSS 变量
 
 📖 **详细配置指南**: **[站点配置系统](./docs/CONFIGURATION.md)** - 完整的环境变量参考和部署配置
 

@@ -159,7 +159,7 @@ src/
 │   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
 │   ├── config/loader.ts          # 环境变量配置加载
 │   └── utils/                    # api-helpers（限流/重试）、slug、date、format
-├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）
+├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）+ theme.ts
 ├── core/                         # meta-helpers（<head> 生成）
 └── scripts/                      # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、灯箱、giscus
 ```

@@ -144,7 +144,7 @@ SITE_SOCIAL={"github":"https://github.com/username","twitter":"https://twitter.c
 | 变量名 | 说明 | 默认值 | 可选值 |
 |--------|------|--------|--------|
 | `COMMENTS_ENABLED` | 启用评论功能 | `false` | `true`, `false` |
-| `COMMENTS_PROVIDER` | 评论提供商 | `giscus` | `giscus`, `waline`, `utterances`, `twikoo` |
+| `COMMENTS_PROVIDER` | 评论提供商 | `giscus` | 当前仅实现 `giscus` |
 
 #### Giscus 配置
 
@@ -155,8 +155,11 @@ SITE_SOCIAL={"github":"https://github.com/username","twitter":"https://twitter.c
 | `COMMENTS_GISCUS_CATEGORY` | 讨论分类 | `Announcements` |
 | `COMMENTS_GISCUS_CATEGORY_ID` | 分类 ID | `DIC_kwDOG...` |
 | `COMMENTS_GISCUS_MAPPING` | 页面映射方式 | `pathname` |
-| `COMMENTS_GISCUS_LANG` | 界面语言 | `zh-CN` |
+| `COMMENTS_GISCUS_STRICT` | 严格模式 | `0` |
+| `COMMENTS_GISCUS_REACTIONS_ENABLED` | 表情反应 | `1` |
+| `COMMENTS_GISCUS_EMIT_METADATA` | 发送元数据 | `0` |
 | `COMMENTS_GISCUS_INPUT_POSITION` | 输入框位置 | `bottom` |
+| `COMMENTS_GISCUS_LANG` | 界面语言 | `zh-CN` |
 | `COMMENTS_GISCUS_LAZY` | 懒加载 | `true` |
 
 **完整示例**：
@@ -186,23 +189,6 @@ COMMENTS_GISCUS_LAZY=true
 详细配置指南：**[评论功能配置](./COMMENTS.md)**
 
 ---
-
-### SEO 设置
-
-| 变量名 | 说明 | 默认值 | 示例 |
-|--------|------|--------|------|
-| `SEO_OG_IMAGE` | Open Graph 图片 | `/og-image.jpg` | `/images/og.png` |
-| `SEO_TWITTER_CARD` | Twitter 卡片类型 | `summary_large_image` | `summary`, `card` |
-| `SEO_TWITTER_SITE` | Twitter 账号 | `@yourusername` | `@johndoe` |
-
-**使用示例**：
-
-```bash
-# .env
-SEO_OG_IMAGE=/images/og.png
-SEO_TWITTER_CARD=summary_large_image
-SEO_TWITTER_SITE=@myblog
-```
 
 ## 部署配置
 
@@ -445,12 +431,7 @@ npm run build
 
 **解决方法**：
 
-1. 清空缓存重新构建：
-
-```bash
-rm -rf .cache
-npm run dev
-```
+1. 重新运行 `npm run dev`（配置在页面渲染时注入，无需清缓存）
 
 2. 检查环境变量是否正确设置：
 
