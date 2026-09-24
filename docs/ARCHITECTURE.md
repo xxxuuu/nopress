@@ -98,7 +98,7 @@ LayoutRenderer (渲染层)
 | 开发 | MemoryCache | 5 分钟 | 进程内存 |
 | 生产（build） | FileCache | 1 小时 | `.cache/notion/*.json` |
 
-缓存文件不随代码变更自动失效；改数据结构后建议删除 `.cache/` 再构建，确保拉取新数据。
+缓存 key 的 namespace 掺入了数据层代码版本（`code-version.ts` 对 `src/lib/notion/`、`src/lib/cache/`、`src/lib/utils/`、`src/lib/types.ts` 的内容 hash）：这些代码变更后缓存 key 自动变化、自动失效，旧缓存文件由 TTL 过期后的 `cleanup()` 回收，无需手动删除 `.cache/`。
 
 ### 6. API 优化（`src/lib/utils/api-helpers.ts`）
 
@@ -154,7 +154,7 @@ src/
 │   │   ├── database/             # 嵌入式 Database 渲染（repository、table/gallery layout）
 │   │   ├── opengraph.ts          # Bookmark OG 元数据抓取（metascraper）
 │   │   └── map-image-url.ts      # 图片 URL 永久化
-│   ├── cache/                    # notionCache：MemoryCache / FileCache
+│   ├── cache/                    # notionCache：MemoryCache / FileCache + 数据层代码版本（自动失效）
 │   ├── markdown/                 # htmlToMarkdown（turndown + Notion 规则）
 │   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
 │   ├── config/loader.ts          # 环境变量配置加载

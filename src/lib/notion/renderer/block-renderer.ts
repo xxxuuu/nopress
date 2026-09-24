@@ -407,8 +407,9 @@ export class NotionBlockRenderer {
    */
   private renderEquation(block: BlockObjectResponse, context: RenderContext): string {
     const equation = (block as any).equation;
-    // 注意：公式内容不需要 HTML 转义，KaTeX 会自行处理
-    const expression = equation.expression;
+    // 公式源码需要 HTML 转义：LaTeX 中的字面 <、& 等会被 HTML 解析器当作标记，
+    // 转义后浏览器 textContent 仍是原始字符，KaTeX（math-rendering.ts）读取不受影响
+    const expression = escapeHtml(equation.expression);
 
     return `<div class="notion-equation-block">
       <span class="notion-equation">$$${expression}$$</span>

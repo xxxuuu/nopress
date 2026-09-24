@@ -48,8 +48,9 @@ async function renderSingleRichText(richText: RichTextItemResponse): Promise<str
     text = await renderMention(richText as any);
   } else if (richText.type === 'equation') {
     // 处理行内公式
-    // 注意：公式内容不需要 HTML 转义，KaTeX 会自行处理
-    text = `<code class="notion-equation">${richText.equation.expression}</code>`;
+    // 需要 HTML 转义：LaTeX 字面 <、& 会破坏 HTML 结构；
+    // 浏览器 textContent 解码后仍是原始字符，KaTeX 渲染不受影响
+    text = `<code class="notion-equation">${escapeHtml(richText.equation.expression)}</code>`;
   }
 
   // 应用注释（annotations）

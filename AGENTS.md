@@ -38,7 +38,7 @@ src/
 │   │   ├── database/     # 嵌入式 child_database 渲染（表格/画廊视图）
 │   │   ├── opengraph.ts  # metascraper 抓取 bookmark 链接的 OG 元数据
 │   │   └── map-image-url.ts
-│   ├── cache/            # notionCache 单例：dev=MemoryCache / build=FileCache
+│   ├── cache/            # notionCache 单例：dev=MemoryCache / build=FileCache；code-version.ts 让缓存随数据层代码自动失效
 │   ├── markdown/         # htmlToMarkdown()：HTML → Markdown（turndown + GFM + Notion 规则）
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
 │   ├── config/loader.ts  # 环境变量配置加载（SITE_*、AUTHOR_*、COMMENTS_*）
@@ -66,7 +66,7 @@ src/
 
 6. **路径别名只有三个**：`@/*`、`@lib/*`、`@config/*`（tsconfig.json + astro.config.mjs）。不存在 `@components`、`@data`。
 
-7. **缓存语义**：`getAllPosts()` 拉全量后缓存 key `all-posts`，`getPostBySlug()` / `getPostsByTag()` 等都基于它内存过滤，不会为单篇文章单独发请求。`getAllPages()`、`getAllTags()`、`getMenuItems()`、`getDatabaseInfo()` 各有独立缓存 key。改数据结构后建议 `rm -rf .cache/` 再构建（缓存文件不随代码变更自动失效）。
+7. **缓存语义**：`getAllPosts()` 拉全量后缓存 key `all-posts`，`getPostBySlug()` / `getPostsByTag()` 等都基于它内存过滤，不会为单篇文章单独发请求。`getAllPages()`、`getAllTags()`、`getMenuItems()`、`getDatabaseInfo()` 各有独立缓存 key。缓存 namespace 掺有数据层代码版本 hash（`src/lib/cache/code-version.ts`，覆盖 notion/cache/utils/types.ts），这些代码变更后缓存自动失效，无需手动 `rm -rf .cache/`；其余目录（markdown/theme/config）变更不影响缓存。
 
 8. **slug 校验失败的 Post/Page 会被静默跳过**（仅控制台警告），路由匹配用 `slugMatch()` 容忍编码差异。规则在 `src/lib/utils/slug.ts`。
 

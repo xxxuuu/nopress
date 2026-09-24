@@ -1,5 +1,6 @@
 import { MemoryCache } from './memory-cache';
 import { FileCache } from './file-cache';
+import { getDataLayerVersion } from './code-version';
 import type { Cache, CacheConfig, FileCacheConfig } from './types';
 
 /**
@@ -113,17 +114,21 @@ export class CacheManager {
 
 /**
  * 创建 Notion 专用缓存实例
+ * namespace 掺入数据层代码版本：notion/ cache/ utils/ types.ts 变更后
+ * 缓存 key 自动变化（自动失效），旧缓存文件由 TTL 过期后 cleanup() 回收
  */
 export function createNotionCache(config: CacheManagerConfig = {}): CacheManager {
+  const notionNamespace = `notion:v${getDataLayerVersion()}`;
+
   return new CacheManager({
     ...config,
     memoryConfig: {
-      namespace: 'notion',
+      namespace: notionNamespace,
       defaultTTL: 5 * 60 * 1000, // 开发环境：5 分钟
       ...config.memoryConfig,
     },
     fileConfig: {
-      namespace: 'notion',
+      namespace: notionNamespace,
       defaultTTL: 60 * 60 * 1000, // 生产环境：1 小时
       compress: true,
       ...config.fileConfig,
