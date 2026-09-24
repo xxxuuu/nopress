@@ -136,5 +136,6 @@ src/
 ## 文档索引
 
 - `docs/ARCHITECTURE.md` — 架构详解（数据流、各子系统、技术决策）
+- `docs/THEMES.md` — 主题开发契约（数据 API、内容 HTML 结构、可选脚本、别名稳定性、分发）
 - `docs/CONFIGURATION.md` — 环境变量全表
 - `docs/COMMENTS.md` — giscus 评论系统
