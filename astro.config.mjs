@@ -14,6 +14,10 @@ export default defineConfig({
   site: SITE_URL,
   output: 'static',
 
+  // Astro 7 默认改为 'jsx'（按 JSX 规则剥离空白），会去掉内联元素之间的空格。
+  // 显式保留 HTML 感知压缩的旧行为，避免博客排版回归。
+  compressHTML: true,
+
   server: {
     host: true, // This makes the server listen on all IPs (0.0.0.0)
     // port: 3000, // Optional: specify a custom port
@@ -83,12 +87,5 @@ export default defineConfig({
         '@config': '/src/config',
       }
     }
-  },
-
-  markdown: {
-    shikiConfig: {
-      theme: 'github-dark',
-      wrap: true,
-    },
   },
 });

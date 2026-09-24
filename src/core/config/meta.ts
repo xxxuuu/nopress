@@ -7,7 +7,7 @@ export const MetaConfigSchema = z.object({
   // SEO 基础信息
   title: z.string(),
   description: z.string(),
-  siteUrl: z.string().url(),
+  siteUrl: z.url(),
   language: z.string().default('zh-CN'),
 
   // Open Graph

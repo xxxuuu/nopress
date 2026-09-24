@@ -41,8 +41,8 @@ export const themeConfigSchema = z.object({
   // ===== 可选字段 =====
   author: z.string().optional(),
   description: z.string().optional(),
-  homepage: z.string().url().optional(),
-  repository: z.string().url().optional(),
+  homepage: z.url().optional(),
+  repository: z.url().optional(),
   license: z.string().optional(),
   compatibleVersion: z.string().optional(),
 
@@ -92,7 +92,7 @@ export function validateThemeConfig(config: unknown): {
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map(err =>
+  const errors = result.error.issues.map(err =>
     `${err.path.join('.')}: ${err.message}`
   );
 
@@ -113,7 +113,7 @@ export function validateThemeManifest(manifest: unknown): {
     return { success: true, data: result.data };
   }
 
-  const errors = result.error.errors.map(err =>
+  const errors = result.error.issues.map(err =>
     `${err.path.join('.')}: ${err.message}`
   );
 
