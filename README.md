@@ -7,7 +7,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/xxxuuu/nopress?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
-技术栈：[Astro 4](https://astro.build/) · TypeScript · Notion API（官方 SDK 5.x）· Prism.js · KaTeX · Mermaid
+技术栈：[Astro 7](https://astro.build/) · TypeScript · Notion API（官方 SDK 5.x）· Prism.js · KaTeX · Mermaid
 
 ## ✨ 特性
 

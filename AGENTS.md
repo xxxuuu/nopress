@@ -6,7 +6,7 @@
 
 NoPress 是静态博客生成器：**Notion Database 是唯一数据源**，Astro 在构建时拉取全部内容生成纯静态站点。
 
-- 技术栈：Astro 4（`output: 'static'`）、@notionhq/client 5.x、TypeScript strict
+- 技术栈：Astro 7（`output: 'static'`）、@notionhq/client 5.x、TypeScript strict
 - Node ≥ 24（`.nvmrc`、`package.json` engines）
 - 改动通过 `npm run build` 验证（项目未配置测试框架和 linter）；构建依赖 `.env` 和 Notion 网络访问，冷缓存时较慢属正常
 - dev/build 需要有效的 `.env`（`NOTION_TOKEN` + `NOTION_DATABASE_ID`）；内容全部来自 Notion API，无本地 mock
