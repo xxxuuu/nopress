@@ -1224,7 +1224,7 @@ code.notion-equation .katex {
   transition: background-color var(--transition-fast);
 }
 
-:global(.dark) .notion-bookmark {
+.dark .notion-bookmark {
   border-color: rgba(255, 255, 255, 0.16);
 }
 
@@ -1232,7 +1232,7 @@ code.notion-equation .katex {
   background-color: rgba(55, 53, 47, 0.04);
 }
 
-:global(.dark) .notion-bookmark:hover {
+.dark .notion-bookmark:hover {
   background-color: rgba(255, 255, 255, 0.04);
 }
 
