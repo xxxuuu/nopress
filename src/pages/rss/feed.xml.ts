@@ -1,8 +1,9 @@
 import rss from '@astrojs/rss';
+import type { APIContext } from 'astro';
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import dataService from '@lib/notion/service';
 
-export async function GET(context) {
+export async function GET(context: APIContext) {
   // 获取解析后的站点配置
   const SITE_CONFIG = await getResolvedSiteConfig();
 
@@ -17,7 +18,7 @@ export async function GET(context) {
     // Feed 基本信息
     title: SITE_CONFIG.title,
     description: SITE_CONFIG.description,
-    site: context.site,
+    site: context.site ?? new URL('http://localhost:4321'),
 
     // 转换 Post 数据为 RSS item
     items: recentPosts.map((post) => ({

@@ -27,7 +27,9 @@ const {
 
 // 从 core 获取元信息配置
 const metaConfig = getMetaConfig(SITE_CONFIG);
-const canonical = canonicalURL || new URL(Astro.url.pathname, Astro.site);
+const canonical = canonicalURL
+  ? new URL(canonicalURL, Astro.site)
+  : new URL(Astro.url.pathname, Astro.site);
 
 // 使用 core 工具函数生成 meta 标签
 const metaTags = generateMetaTags(

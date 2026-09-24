@@ -148,6 +148,3 @@ function showErrorMessage(container: HTMLElement, message: string): void {
     </div>
   `;
 }
-
-// 导出类型
-export type { GiscusInitOptions };

@@ -11,9 +11,28 @@
  */
 
 import { SITE_CONFIG } from './site';
+import type { SiteConfig } from './site';
 import dataService from '@lib/notion/service';
 
-let resolvedConfig: typeof SITE_CONFIG | null = null;
+/**
+ * 解析后的站点配置
+ *
+ * 相比原始 SiteConfig：
+ * - title/description/icon 经 Database 元数据回填后必有值
+ * - 追加 seo（OG 图、Twitter Card 等派生信息）
+ */
+export type ResolvedSiteConfig = Omit<SiteConfig, 'title' | 'description' | 'icon'> & {
+  title: string;
+  description: string;
+  icon: string;
+  seo: {
+    ogImage: string;
+    twitterCard: string;
+    twitterSite: string | undefined;
+  };
+};
+
+let resolvedConfig: ResolvedSiteConfig | null = null;
 
 /**
  * 处理站点图标
@@ -21,7 +40,7 @@ let resolvedConfig: typeof SITE_CONFIG | null = null;
  * - Emoji：转换为 SVG data URI
  * - 空值：返回默认值
  */
-function processFavicon(icon: string): string {
+function processFavicon(icon: string | undefined): string {
   if (!icon) {
     return '/favicon.svg';
   }
@@ -38,7 +57,7 @@ function processFavicon(icon: string): string {
 /**
  * 格式化配置输出
  */
-function formatConfigOutput(config: typeof SITE_CONFIG, seo: any) {
+function formatConfigOutput(config: ResolvedSiteConfig, seo: ResolvedSiteConfig['seo']) {
   const output: string[] = [];
 
   output.push('[ResolvedConfig] ✅ Configuration resolved:');
@@ -61,7 +80,7 @@ function formatConfigOutput(config: typeof SITE_CONFIG, seo: any) {
  * extractTwitterUsername('https://twitter.com/username') => '@username'
  * extractTwitterUsername('https://x.com/username') => '@username'
  */
-function extractTwitterUsername(twitterUrl: string): string | undefined {
+function extractTwitterUsername(twitterUrl: string | undefined): string | undefined {
   if (!twitterUrl) return undefined;
 
   try {
@@ -82,7 +101,7 @@ function extractTwitterUsername(twitterUrl: string): string | undefined {
  * - description: 用户配置 || Database 描述 || ''
  * - icon: 用户配置 || Database 图标 || ''
  */
-export async function getResolvedSiteConfig() {
+export async function getResolvedSiteConfig(): Promise<ResolvedSiteConfig> {
   // 返回缓存的配置
   if (resolvedConfig) {
     return resolvedConfig;

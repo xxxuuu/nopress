@@ -63,7 +63,7 @@ const showNext = currentPage < totalPages;
       {pages.map((page, index) => {
         if (page < 0) {
           return (
-            <li key={`dots-${index}`} class="pagination-item">
+            <li class="pagination-item">
               <span class="pagination-dots">...</span>
             </li>
           );

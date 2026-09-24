@@ -388,7 +388,7 @@ export class DatabaseRepository implements IDatabaseRepository {
   private normalizeRow(rawPage: any, databaseId: string): DatabaseRow {
     const properties: Record<string, PropertyValue> = {};
 
-    for (const [key, value] of Object.entries(rawPage.properties)) {
+    for (const [key, value] of Object.entries(rawPage.properties as Record<string, any>)) {
       // 使用 Notion 内部的 property ID 作为 key（与 schema.properties.id 对应）
       // 注意：value.id 可能是 URL 编码的，需要解码
       let propertyId = value?.id || key;

@@ -77,7 +77,7 @@ export async function fetchOpenGraphData(
       }
 
       const html = await response.text();
-      const data = await scraper({ url, html, ...response });
+      const data = await scraper({ url, html });
 
       const ogData: OpenGraphData = {
         title: data.title || '',

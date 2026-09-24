@@ -18,7 +18,8 @@ export type PropertyType =
   | 'email'           // 邮箱
   | 'phone'           // 电话
   | 'person'          // 人员
-  | 'file'            // 文件
+  | 'file'            // 文件（Notion 'files' 属性，schema 推断时统一映射为 'file'）
+  | 'files'           // Notion 原始属性类型名
   | 'relation'        // 关联
   | 'formula';        // 公式
 
@@ -84,6 +85,7 @@ export type PropertyValue =
   | MultiSelectPropertyValue
   | DatePropertyValue
   | CheckboxPropertyValue
+  | FilesPropertyValue
   | UnsupportedPropertyValue;
 
 export interface TextPropertyValue {
@@ -124,6 +126,12 @@ export interface CheckboxPropertyValue {
 export interface UnsupportedPropertyValue {
   type: 'unsupported';
   originalType: string;
+}
+
+export interface FilesPropertyValue {
+  /** Notion 'files' 属性（封面图等附件），schema 推断时类型名映射为 'file' */
+  type: 'file';
+  value: string[];
 }
 
 /**

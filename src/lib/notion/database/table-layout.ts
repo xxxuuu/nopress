@@ -142,8 +142,10 @@ export class TableLayoutRenderer {
       case 'date':
         return this.renderDate(value.value);
 
-      default:
-        return `<span class="notion-database-unsupported" title="不支持类型: ${value.originalType}">—</span>`;
+      default: {
+        const label = value.type === 'unsupported' ? value.originalType : value.type;
+        return `<span class="notion-database-unsupported" title="不支持类型: ${label}">—</span>`;
+      }
     }
   }
 
@@ -287,6 +289,7 @@ export class TableLayoutRenderer {
       phone: '📞',
       person: '👤',
       file: '📎',
+      files: '📎',
       relation: '🔗',
       formula: '𝑓',
     };
