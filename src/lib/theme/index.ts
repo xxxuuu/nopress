@@ -7,11 +7,17 @@ export { nopressThemeIntegration } from './astro-integration';
 export { ThemeLoader, createThemeLoader } from './loader';
 export { ThemeManager, createThemeManager } from './manager';
 export { validateThemeConfig, themeConfigSchema } from './schema';
+export { themeOptions, getThemeOption } from './options';
+export type { ThemeOptionValue } from './options';
+export { mergeThemeOptions, parseRawOverrides } from './options-merge';
 
 // 导出类型
 export type {
   ThemeConfig,
   ThemeManifest,
+  ThemeOption,
+  ThemeOptionType,
+  ThemeOptions,
   ThemePaths,
   ThemeType,
   ThemeLoadConfig,

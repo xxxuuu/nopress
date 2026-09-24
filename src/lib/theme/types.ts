@@ -24,6 +24,40 @@ export interface ThemeConfig {
   repository?: string;
   license?: string;
   compatibleVersion?: string;  // 兼容的 NoPress 版本（semver 格式，当前仅作文档标注，不做校验）
+
+  /**
+   * 主题配置选项（可选）
+   * 声明主题支持的自定义配置项；宿主通过 NOPRESS_THEME_OPTIONS 环境变量覆盖默认值，
+   * 主题代码经 @lib/theme/options 读取合并结果（构建期常量）
+   */
+  options?: ThemeOptions;
+}
+
+/**
+ * 主题配置选项类型
+ */
+export type ThemeOptionType = 'string' | 'number' | 'boolean' | 'select' | 'color';
+
+/**
+ * 单个配置选项定义
+ */
+export interface ThemeOption {
+  type: ThemeOptionType;
+  default: string | number | boolean;
+  label: string;
+  description?: string;
+  /** select 类型专用：允许的取值 */
+  choices?: string[];
+  /** number 类型专用 */
+  min?: number;
+  max?: number;
+}
+
+/**
+ * 主题配置选项集合
+ */
+export interface ThemeOptions {
+  [key: string]: ThemeOption;
 }
 
 /**

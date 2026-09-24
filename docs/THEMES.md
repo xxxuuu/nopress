@@ -28,6 +28,7 @@ my-theme/
 | `version` | ✅ | semver 格式（如 `1.0.0`） |
 | `author` / `description` / `homepage` / `repository` / `license` | - | 元信息 |
 | `compatibleVersion` | - | 声明兼容的 NoPress 版本范围。**当前仅作文档标注，框架不校验** |
+| `options` | - | 主题配置选项声明：key → `{ type, default, label, description?, choices?, min?, max? }`，type 为 `string/number/boolean/select/color`。宿主可覆盖默认值，主题经 `@lib/theme/options` 读取（见 §3.3） |
 
 清单经 zod 校验，缺必需字段或格式错误会在构建启动时失败。
 
@@ -110,6 +111,38 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 返回 `ResolvedSiteConfig`：用户环境变量与 Notion Database 元数据合并后的配置。`title` / `description` / `icon` 必有值（自动回填 Database 标题/描述/图标），另有 `url`、`social`（Record）、`postsPerPage`、`enableRSS`、`enableSitemap`、`comments`（giscus 配置）、`seo`（`ogImage` / `twitterCard` / `twitterSite`）。
 
 `<head>` 元标签可复用 core 工具：`getMetaConfig()`（`@core/config/meta`）+ `generateMetaTags()`（`@core/lib/meta-helpers`）。
+
+### 3.3 主题选项
+
+主题可在 `theme.config.mjs` 声明配置项，宿主通过环境变量 `NOPRESS_THEME_OPTIONS`（JSON 对象）覆盖默认值，主题代码读取合并结果：
+
+```js
+// theme.config.mjs —— 声明
+export default {
+  id: 'my-theme', name: 'My Theme', version: '1.0.0',
+  options: {
+    accentColor: { type: 'color', default: '#0066cc', label: '主题色' },
+    showMeta:    { type: 'boolean', default: true, label: '显示元信息' },
+    layout:      { type: 'select', default: 'list', choices: ['list', 'grid'], label: '布局' },
+  },
+};
+```
+
+```ts
+// 主题代码 —— 读取（构建期常量，frontmatter 与客户端脚本均可导入）
+import { themeOptions } from '@lib/theme/options';
+const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
+```
+
+规则：
+
+- **覆盖来源**：`NOPRESS_THEME_OPTIONS='{"accentColor":"#f00"}'`，key 与声明一致（建议 camelCase）
+- **类型转换**：`number`/`boolean` 接受字符串形态（`"42"`、`"true"`）；`select` 校验 `choices`；`number` 校验 `min`/`max`
+- **fail fast**：未知 key、类型不匹配、越界均在构建期报错，不会静默丢弃
+- **无声明即无选项**：主题未声明 `options` 时该机制不介入；宿主对未声明 key 的覆盖会构建失败（防拼写错误）
+- 修改 `NOPRESS_THEME_OPTIONS` 后需重启 dev server（值在构建启动时固化）
+
+完整可运行示例见 `src/themes/minimal/`（`footerText` + `showPostMeta` 两项）。
 
 ## 4. 内容渲染契约（post.content / page.content）
 
@@ -208,6 +241,7 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
 | `@lib/types` | 数据契约类型 | **稳定**（本契约 §3） |
 | `@lib/utils/date`、`@lib/utils/slug`、`@lib/utils/format` | 通用工具 | **稳定** |
 | `@config/resolved-site`、`@config/site` | 站点配置 | **稳定**（本契约 §3.2） |
+| `@lib/theme/options` | 主题选项合并结果（构建期常量） | **稳定**（本契约 §3.3） |
 | `@core/config/meta`、`@core/lib/meta-helpers` | `<head>` 元标签工具 | **稳定** |
 | `@/scripts/*` | 客户端脚本 | **稳定**（本契约 §5，含各自的 DOM 约定） |
 | `@theme` | 激活主题根目录（运行时注入） | 稳定；主题内部互引请用相对路径（tsconfig 无法解析动态别名，`astro check` 会报错） |
@@ -231,5 +265,6 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
 - §5 各脚本的 DOM 约定与引入路径
 - §3 数据服务的返回结构与 `@lib/types` 字段
 - §6 深色模式约定、§8 稳定别名
+- §3.3 主题选项机制的语义（声明、覆盖来源、类型转换、fail-fast 行为）
 
 新增能力（新的可选脚本、新的数据字段）不破坏兼容，主题应做好未知块类型（`.notion-unsupported`）与未知字段的容错。

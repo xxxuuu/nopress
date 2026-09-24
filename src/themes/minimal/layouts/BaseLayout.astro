@@ -8,6 +8,7 @@ import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
 import dataService from '@lib/notion/service';
+import { themeOptions } from '@lib/theme/options';
 import '../styles/global.css';
 
 interface Props {
@@ -17,6 +18,9 @@ interface Props {
 
 const SITE_CONFIG = await getResolvedSiteConfig();
 const menuItems = await dataService.getMenuItems();
+
+// 主题选项（契约 §3.3）：声明见 theme.config.mjs，宿主可经 NOPRESS_THEME_OPTIONS 覆盖
+const { footerText = '' } = themeOptions as { footerText?: string };
 
 const { title = SITE_CONFIG.title, description } = Astro.props;
 
@@ -77,6 +81,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
 
     <footer class="site-footer">
       <p>&copy; {new Date().getFullYear()} {SITE_CONFIG.title}</p>
+      {footerText && <p>{footerText}</p>}
     </footer>
 
     <!-- 可选脚本按需引入（契约 §5）：只引高亮与公式，验证其余标记的降级行为 -->

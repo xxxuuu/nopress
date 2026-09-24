@@ -9,3 +9,12 @@ declare module 'prismjs/components/*';
  * TS 无法解析远程模块，统一声明为任意模块。
  */
 declare module 'https://*';
+
+/**
+ * 主题选项虚拟模块：实际值由主题集成在构建期注入
+ * （声明默认值 + NOPRESS_THEME_OPTIONS 覆盖值合并），见 src/lib/theme/astro-integration.ts。
+ * 主题代码请通过 @lib/theme/options 读取。
+ */
+declare module 'virtual:nopress/theme-options' {
+  export const themeOptions: Record<string, string | number | boolean>;
+}

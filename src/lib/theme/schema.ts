@@ -8,6 +8,21 @@ import { z } from 'zod';
 import type { ThemeConfig } from './types';
 
 /**
+ * 主题配置选项验证模式
+ */
+const themeOptionSchema = z.object({
+  type: z.enum(['string', 'number', 'boolean', 'select', 'color']),
+  default: z.union([z.string(), z.number(), z.boolean()]),
+  label: z.string(),
+  description: z.string().optional(),
+  // select 类型专用
+  choices: z.array(z.string()).optional(),
+  // number 类型专用
+  min: z.number().optional(),
+  max: z.number().optional(),
+});
+
+/**
  * 主题配置验证模式
  * 只验证 3 个必需字段：id, name, version
  * 其他字段都是可选的
@@ -31,6 +46,9 @@ export const themeConfigSchema = z.object({
   repository: z.url().optional(),
   license: z.string().optional(),
   compatibleVersion: z.string().optional(),
+
+  // 主题配置选项（可选）
+  options: z.record(z.string(), themeOptionSchema).optional(),
 });
 
 /**

@@ -12,4 +12,20 @@ export default {
   author: 'NoPress Team',
   description: '极简纯文字主题，NoPress 主题契约的参考实现',
   compatibleVersion: '^0.1.0',
+
+  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
+  options: {
+    footerText: {
+      type: 'string',
+      default: '',
+      label: '页脚附加文字',
+      description: '显示在页脚版权行下方，留空则不显示',
+    },
+    showPostMeta: {
+      type: 'boolean',
+      default: true,
+      label: '显示文章元信息',
+      description: '文章页的日期/阅读时长/标签行',
+    },
+  },
 };
