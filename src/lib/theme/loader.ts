@@ -31,22 +31,28 @@ export class ThemeLoader {
   }
 
   /**
-   * 加载 out-tree 主题（npm 包或本地路径）
+   * 加载 out-tree 主题（本地路径或 npm 包）
+   *
+   * 判定顺序：绝对路径/显式相对路径 → 本地路径；裸 specifier 先按项目相对路径
+   * 探测（如 node_modules/my-theme），不存在才当作 npm 包名。
    */
   async loadOutTreeTheme(themeSpec: string): Promise<ThemeManifest> {
-    let themePath: string;
+    const isExplicitPath = themeSpec.startsWith('.') || themeSpec.startsWith('/');
+    const localPath = path.resolve(this.projectRoot, themeSpec);
+    const npmPath = path.join(this.projectRoot, 'node_modules', themeSpec);
 
-    // 判断是 npm 包还是本地路径
-    if (themeSpec.startsWith('.') || themeSpec.startsWith('/')) {
-      // 本地路径
-      themePath = path.resolve(this.projectRoot, themeSpec);
+    let themePath: string;
+    if (isExplicitPath) {
+      themePath = localPath;
+    } else if (fs.existsSync(localPath)) {
+      // 裸相对路径（如 node_modules/nopress-theme-xxx）按项目相对路径处理
+      themePath = localPath;
     } else {
-      // npm 包 - 从 node_modules 查找
-      themePath = path.join(this.projectRoot, 'node_modules', themeSpec);
+      themePath = npmPath;
     }
 
     if (!fs.existsSync(themePath)) {
-      throw new Error(`Out-tree 主题不存在: ${themeSpec}`);
+      throw new Error(`Out-tree 主题不存在: ${themeSpec}（尝试过: ${themePath}）`);
     }
 
     return this.loadThemeFromPath(themePath, 'out-tree');

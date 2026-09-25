@@ -268,12 +268,26 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
 
 ## 9. 分发与兼容
 
-当前支持的两种方式：
+当前支持的接入方式：
 
 1. **in-tree**：把主题目录放进 `src/themes/`，设 `NOPRESS_THEME={目录名}`
-2. **本地路径**：设 `NOPRESS_THEME_PATH=../my-theme`（开发期友好，改动即时生效）
+2. **项目内路径**：主题放在项目内任意目录，设 `NOPRESS_THEME_PATH=themes-dev/my-theme`（开发期友好，改动即时生效）
+3. **npm 包安装**：主题目录内提供 `package.json`（`files` 覆盖 `pages`/`layouts`/`styles`/`theme.config.mjs`），发布到 registry 或本地打包安装均可：
 
-以 npm 包形式分发主题需要 NoPress 内核先完成包化（框架模块当前直接从宿主项目 `src/` 解析），属于远期路线。在此之前请勿假设 out-tree 主题可以引用未列在 §8 中的模块。
+   ```bash
+   # 已发布到 registry
+   npm install nopress-theme-my-theme
+
+   # 本地验证
+   cd /path/to/my-theme && npm pack
+   npm install --no-save ./nopress-theme-my-theme-1.0.0.tgz
+   ```
+
+   安装后设 `NOPRESS_THEME_PATH=node_modules/nopress-theme-my-theme`（裸包名 `nopress-theme-my-theme` 也可）。主题声明的 `dependencies` 会随安装进入宿主。
+
+**限制**：`npm install <目录>` 形式（node_modules 内为 symlink）在 Astro 7 下不可用——符号链接被解析为真实路径后触发 Astro 对项目外 `.astro` 文件的路径解析错误。开发期请使用方式 2 或 3，或直接放 `src/themes/`。
+
+主题代码引用的 `@lib/*`、`@core/*` 等别名仍解析自宿主项目的 `src/`，因此宿主必须是 NoPress 项目。「独立安装 NoPress 内核 + 任意目录装主题」这类内核包化能力属于远期路线；在此之前请勿假设 out-tree 主题可以引用未列在 §8 中的模块。
 
 ## 10. 变更政策
 

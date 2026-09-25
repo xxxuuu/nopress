@@ -83,7 +83,7 @@ SITE_TITLE=My Custom Blog  # ← 使用自定义标题，不使用 Database 名�
 | 变量名 | 说明 | 默认值 | 示例 |
 |--------|------|--------|------|
 | `NOPRESS_THEME` | 使用的 in-tree 主题（`src/themes/` 下的目录名） | `default` | `minimal` |
-| `NOPRESS_THEME_PATH` | out-tree 主题路径（本地路径或 node_modules 包名），优先于 `NOPRESS_THEME` | - | `../my-theme` |
+| `NOPRESS_THEME_PATH` | out-tree 主题路径（项目内相对/绝对路径，或 node_modules 内的包名），优先于 `NOPRESS_THEME` | - | `node_modules/my-theme` |
 | `NOPRESS_THEME_OPTIONS` | 主题选项覆盖值，JSON 对象（key 须在主题 `theme.config.mjs` 的 `options` 中声明） | - | `{"footerText":"Hello"}` |
 
 `NOPRESS_THEME_OPTIONS` 的值是构建期常量：类型按主题声明自动转换（number/boolean 支持字符串形态），未知 key 或类型不匹配会在构建时报错。可用选项取决于激活主题的声明，详见 [THEMES.md](./THEMES.md) §3.3。
