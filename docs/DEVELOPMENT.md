@@ -2,7 +2,7 @@
 
 面向想参与 NoPress 开发的贡献者。使用 Notion 搭博客请看 [用户指南](./USER-GUIDE.md)；制作主题请看 [主题开发契约](./THEMES.md)。
 
-AI 编码代理的工作约定集中在 [AGENTS.md](../AGENTS.md)，本文件与之互补：这里讲"怎么跑起来、怎么改、怎么提交"，AGENTS.md 讲项目约定与陷阱清单。
+AI 编码代理的工作约定集中在 [AGENTS.md](../AGENTS.md)，本文件与之互补：这里讲"怎么跑起来、怎么改、怎么提交"，AGENTS.md 讲项目关键约定。
 
 ## 环境准备
 

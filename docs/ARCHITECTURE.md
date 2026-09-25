@@ -196,5 +196,5 @@ Notion 的 S3 签名 URL 通常 1 小时过期。静态站点产物长期存在�
 ---
 
 **相关文档**:
-- [AGENTS.md](../AGENTS.md) - AI 代理开发指南（陷阱清单、任务入口）
+- [AGENTS.md](../AGENTS.md) - AI 代理开发指南（关键约定、任务入口）
 - [CONFIGURATION.md](./CONFIGURATION.md) - 环境变量全表

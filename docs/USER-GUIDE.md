@@ -1,10 +1,6 @@
 # NoPress 用户指南
 
-写给想用 NoPress 搭博客的人——你只需要会使用 Notion 和一个浏览器。开发与主题制作请看 [开发者文档](#进阶文档)。
-
 ## 一、搭好你的博客
-
-前提：一个 Notion 账号、一个 GitHub 账号。
 
 ### 第 1 步：准备 Notion
 
@@ -48,11 +44,11 @@
 
 4. 点 **Deploy**，几十秒后你的博客就上线了
 
-Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。也可以先在自己电脑上跑起来看看效果（需要安装 [Node.js](https://nodejs.org)，见 [README 快速开始](../README.md#-快速开始)）。
+Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。
 
 ## 二、日常写作
 
-**写博客 = 在 Notion Database 里加一行 + 写页面内容**，然后等博客自动更新（或手动触发一次部署）。
+**写博客 = 在 Notion Database 里加一行 + 写页面内容**，然后执行部署。
 
 | 我想…… | 在 Notion 里怎么做 |
 |---------|-------------------|
@@ -61,8 +57,6 @@ Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。也可
 | 改文章 | 直接改 Notion 页面内容，改完触发一次部署 |
 | 加"关于"页 | 加一行 `type` 选 `Page`，`slug` 填 `about`——访问地址就是 `/about` |
 | 加导航菜单 | 加一行 `type` 选 `Menu`：`slug` 填站内地址（如 `/about`）或完整网址（如 `https://github.com/你`） |
-
-部署方式取决于你的平台：Vercel/Netlify 在每次向 GitHub 推送（或手动点 Redeploy）时自动重建。
 
 ## 三、站点设置
 
@@ -100,9 +94,4 @@ NOPRESS_THEME_OPTIONS = {"footerText": "欢迎留言", "showReadingTime": false}
 - **terminal**：`promptSymbol`（终端提示符符号）、`showScanlines`（扫描线质感）
 
 完整的选项机制说明见 [主题文档](./THEMES.md)。
-
-## 五、常见问题
-
-**评论怎么配置？**
-见 [评论配置指南](./COMMENTS.md)。
 

@@ -31,7 +31,7 @@
 2. **部署**：Fork 本仓库后在 [Vercel](https://vercel.com)（免费）导入，设置 `NOTION_TOKEN` 和 `NOTION_DATABASE_ID` 两个环境变量
 3. **写作**：在 Notion Database 里写文章，博客自动呈现
 
-完整分步说明见 **[用户指南](./docs/USER-GUIDE.md)** ⭐。想在本地运行或参与开发见 [本地运行](./docs/USER-GUIDE.md#六本地运行可选)。
+完整分步说明见 **[用户指南](./docs/USER-GUIDE.md)** ⭐
 
 ## 📖 文档
 
@@ -41,7 +41,7 @@
 - **[评论功能配置](./docs/COMMENTS.md)** - Giscus 评论系统配置指南
 - **[主题开发契约](./docs/THEMES.md)** - 主题开发与分发（开发者向）
 - **[系统架构](./docs/ARCHITECTURE.md)** - 整体设计和数据流
-- **[AGENTS.md](./AGENTS.md)** - AI 代理开发指南（含架构地图与陷阱清单）
+- **[AGENTS.md](./AGENTS.md)** - AI 代理开发指南（含架构地图与关键约定）
 
 ## 🤝 贡献
 

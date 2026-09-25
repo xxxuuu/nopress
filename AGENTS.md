@@ -61,7 +61,7 @@ src/
 
 **数据流**：页面/端点 → `dataService`（查缓存）→ `notionAPI`（官方 API 限流 5 并发，非官方 2 并发 + 指数退避重试）→ Notion API → `renderer`（blocks → HTML）→ 结果写入缓存 → 返回 `Post` 对象。详见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
-## 硬性约定与陷阱
+## 关键约定
 
 1. **SDK 5.x 用 `dataSources.query()`**，不是 `databases.query()`。需先 `databases.retrieve()` 取 `data_sources[0].id`。实现见 `src/lib/notion/api/index.ts`。
 
@@ -69,7 +69,7 @@ src/
 
 3. **页面与端点路由都写在主题目录**。`src/pages/` 只放内核数据端点（`.md`、`llms.txt`、RSS、robots），页面 `.astro` 和主题端点 `.ts` 都放在主题的 `pages/` 下，由 `src/lib/theme/astro-integration.ts` 扫描 `src/themes/*/pages/` 注入路由；`NOPRESS_THEME` 环境变量切换主题（默认 `default`）。主题路由撞内核保留路径（`/rss/feed.xml`、`/[slug].md` 等）会在构建期报错。
 
-4. **astro-compress 两个坑**（`astro.config.mjs`）：
+4. **astro-compress 的配置要求**（`astro.config.mjs`）：
    - HTML 选项必须挂在 `HTML['html-minifier-terser']` 键下，写在 `HTML` 顶层会被静默忽略
    - `ignoreCustomComments` 里的 "This page is also available as Markdown" 规则用于保留 Markdown 发现注释，需保持不变
 
@@ -86,6 +86,8 @@ src/
 10. **`notion-client`（非官方 API）** 只用于 child_database 视图配置和个别块类型，有 403/429 风险，已配独立限流。新增数据需求优先使用官方 SDK。
 
 11. **配置优先级**：环境变量 > `.env` > 代码默认值（`src/lib/config/loader.ts`，用 vite 的 `loadEnv`）。`SITE_URL` 影响 sitemap、RSS、canonical 和 `.md` 端点的绝对链接。
+
+12. **主题选项与保留 key**：宿主经 `NOPRESS_THEME_OPTIONS`（JSON）覆盖主题清单声明的 `options`；`darkMode` 为保留 key——声明且为 true 时内核自动注入深色模式初始化。机制与保留清单见 `docs/THEMES.md` §3.3/§6。
 
 ## Notion Database Schema（领域知识）
 
@@ -117,6 +119,7 @@ src/
 |------|--------|
 | 新增/修改 Notion 字段 | `src/lib/types.ts`（Post 接口）→ `src/lib/notion/api/index.ts`（提取）→ 上表 schema |
 | 改页面样式/布局 | `src/themes/default/`（styles/、layouts/） |
+| 新增/修改主题 | `src/themes/<id>/`，遵循 `docs/THEMES.md` 契约（minimal 为参考实现） |
 | 新增客户端功能 | `src/scripts/` 新建脚本 + `BaseLayout.astro` 引入 |
 | 自定义 Notion 块渲染 | `src/lib/notion/renderer/block-renderer.ts`（按块类型 switch） |
 | 改 Markdown 产物格式 | `src/lib/markdown/rules.ts`（Notion 规则）、`frontmatter.ts` |
@@ -124,7 +127,7 @@ src/
 
 ## 工作准则
 
-**验证**：完成改动后运行 `npm run build` 确认构建通过（内含 `astro check` 类型检查，也是 CI 部署时执行的唯一检查）；数据层代码（notion/cache/utils/types.ts）改动会自动失效构建缓存，直接构建即可（见陷阱 7）。
+**验证**：完成改动后运行 `npm run build` 确认构建通过（内含 `astro check` 类型检查，也是 CI 部署时执行的唯一检查）；数据层代码（notion/cache/utils/types.ts）改动会自动失效构建缓存，直接构建即可（见「缓存语义」）。
 
 **文档同步**：改动落地时同步更新对应文档，避免文档与代码漂移：
 
