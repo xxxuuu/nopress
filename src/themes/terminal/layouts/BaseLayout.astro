@@ -1,0 +1,89 @@
+---
+/**
+ * Terminal 主题布局
+ *
+ * 依赖契约稳定 API（docs/THEMES.md）：
+ * @config/resolved-site、@core/config/meta、@core/lib/meta-helpers、
+ * @lib/notion/service、@lib/theme/options
+ *
+ * 单深色形态：不提供明暗切换，也不注入防闪烁脚本（契约 §6 面向双模式主题）。
+ */
+import { getResolvedSiteConfig } from '@config/resolved-site';
+import { getMetaConfig } from '@core/config/meta';
+import { generateMetaTags } from '@core/lib/meta-helpers';
+import dataService from '@lib/notion/service';
+import { themeOptions } from '@lib/theme/options';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const SITE_CONFIG = await getResolvedSiteConfig();
+const menuItems = await dataService.getMenuItems();
+
+const { title = SITE_CONFIG.title, description } = Astro.props;
+
+// 主题选项（声明见 theme.config.mjs）
+const { promptSymbol = '$', showScanlines = true } = themeOptions as {
+  promptSymbol?: string;
+  showScanlines?: boolean;
+};
+
+const metaConfig = getMetaConfig(SITE_CONFIG);
+const metaTags = generateMetaTags(
+  metaConfig,
+  title,
+  Astro.url.pathname,
+  description,
+);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={metaConfig.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href={SITE_CONFIG.icon} />
+    <link rel="canonical" href={canonical} />
+    {metaConfig.enableRSS && (
+      <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
+    )}
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <title>{metaTags.title}</title>
+    <meta name="description" content={metaTags.description} />
+    <meta property="og:type" content={metaTags.ogType} />
+    <meta property="og:title" content={metaTags.ogTitle} />
+    <meta property="og:description" content={metaTags.ogDescription} />
+    {metaTags.ogImage && <meta property="og:image" content={metaTags.ogImage} />}
+  </head>
+  <body class={showScanlines ? undefined : 'no-scanlines'}>
+    <header class="term-header">
+      <a class="term-prompt" href="/">{promptSymbol} <span class="term-user">{SITE_CONFIG.title}</span></a>
+      <nav>
+        {menuItems.map(item => (
+          <a
+            href={item.url}
+            target={item.isExternal ? '_blank' : undefined}
+            rel={item.isExternal ? 'noopener noreferrer' : undefined}
+          >{item.title}{item.isExternal && ' ^'}</a>
+        ))}
+      </nav>
+    </header>
+
+    <main class="term-main">
+      <slot />
+    </main>
+
+    <footer class="term-footer">
+      <p>[process exited with code 0] &mdash; &copy; {new Date().getFullYear()} {SITE_CONFIG.title}</p>
+    </footer>
+
+    <script>
+      import '@/scripts/syntax-highlight';
+      import '@/scripts/math-rendering';
+    </script>
+  </body>
+</html>

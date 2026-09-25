@@ -1,0 +1,130 @@
+/* Terminal 主题全局样式：绿磷光 CRT，单深色形态 */
+
+:root {
+  --bg: #041006;
+  --bg-raised: #07180c;
+  --bg-code: #020a04;
+  --fg: #2ee85c;
+  --fg-dim: #1d9943;
+  --fg-bright: #b8ffd0;
+  --fg-error: #ff6b6b;
+  --glow: rgba(46, 232, 92, 0.35);
+  --border: rgba(46, 232, 92, 0.28);
+  --border-dim: rgba(46, 232, 92, 0.14);
+
+  font-family: ui-monospace, 'Cascadia Mono', 'JetBrains Mono', 'Fira Code', Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--fg);
+  background-color: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* CRT 扫描线：fixed 覆盖层，不拦截交互 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.16) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+body.no-scanlines::before {
+  display: none;
+}
+
+::selection {
+  color: var(--bg);
+  background-color: var(--fg);
+}
+
+a {
+  color: var(--fg-bright);
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: var(--fg-bright);
+  text-shadow: 0 0 6px var(--glow);
+}
+
+h1, h2, h3 {
+  color: var(--fg-bright);
+  text-shadow: 0 0 8px var(--glow);
+}
+
+/* ===== 页头：prompt 行 ===== */
+
+.term-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.term-prompt {
+  color: var(--fg-dim);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.term-prompt:hover {
+  text-shadow: none;
+}
+
+.term-user {
+  color: var(--fg-bright);
+}
+
+.term-header nav {
+  display: flex;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.term-header nav a {
+  text-decoration: none;
+}
+
+.term-header nav a::before {
+  content: '~/';
+  color: var(--fg-dim);
+}
+
+/* ===== 主区 ===== */
+
+.term-main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1rem 4rem;
+}
+
+/* ===== 页脚 ===== */
+
+.term-footer {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem;
+  border-top: 1px solid var(--border-dim);
+  color: var(--fg-dim);
+  font-size: 0.8125rem;
+}

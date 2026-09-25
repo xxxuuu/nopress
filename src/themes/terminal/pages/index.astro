@@ -1,0 +1,89 @@
+---
+/**
+ * 首页：ls 风格的文章索引（不分页）
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import dataService from '@lib/notion/service';
+import type { Post } from '@lib/types';
+import { isValidSlug } from '@lib/utils/slug';
+import { themeOptions } from '@lib/theme/options';
+
+const posts = (await dataService.getAllPosts()).filter(post => isValidSlug(post.slug));
+const { promptSymbol = '$' } = themeOptions as { promptSymbol?: string };
+
+function formatDate(iso: string): string {
+  return iso.slice(0, 10).replace(/-/g, '.');
+}
+---
+
+<BaseLayout>
+  <h1 class="ls-title">{promptSymbol} ls ~/posts</h1>
+  <ul class="ls-list">
+    {posts.map((post: Post) => (
+      <li>
+        <span class="ls-date">{formatDate(post.publishedAt)}</span>
+        <a href={`/post/${post.slug}`}>{post.slug}</a>
+        <span class="ls-desc">{post.description}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="ls-count">total {posts.length}</p>
+</BaseLayout>
+
+<style>
+  .ls-title {
+    font-size: 1.125rem;
+    margin: 0 0 1.25rem;
+  }
+
+  .ls-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ls-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.4rem 0.6rem;
+    border-left: 2px solid transparent;
+  }
+
+  .ls-list li:hover {
+    background-color: var(--bg-raised);
+    border-left-color: var(--fg);
+  }
+
+  .ls-date {
+    flex-shrink: 0;
+    color: var(--fg-dim);
+    font-size: 0.875rem;
+  }
+
+  .ls-list a {
+    font-weight: 700;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .ls-desc {
+    color: var(--fg-dim);
+    font-size: 0.875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ls-count {
+    margin-top: 1.5rem;
+    color: var(--fg-dim);
+    font-size: 0.8125rem;
+  }
+
+  @media (max-width: 640px) {
+    .ls-desc {
+      display: none;
+    }
+  }
+</style>

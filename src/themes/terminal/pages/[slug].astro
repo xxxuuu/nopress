@@ -1,0 +1,25 @@
+---
+/**
+ * 独立页面（type=Page），按契约 §3 的 getAllPages()
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import dataService from '@lib/notion/service';
+import { isValidSlug } from '@lib/utils/slug';
+import '../styles/content.css';
+
+export async function getStaticPaths() {
+  const pages = await dataService.getAllPages();
+  return pages
+    .filter(page => isValidSlug(page.slug))
+    .map(page => ({ params: { slug: page.slug }, props: { page } }));
+}
+
+const { page } = Astro.props;
+---
+
+<BaseLayout title={page.title} description={page.description}>
+  <article>
+    <h1>{page.title}</h1>
+    <div class="notion-content" set:html={page.content} />
+  </article>
+</BaseLayout>

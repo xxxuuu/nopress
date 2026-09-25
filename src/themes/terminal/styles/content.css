@@ -1,0 +1,492 @@
+/*
+ * Terminal 主题内容样式
+ * 依据主题契约 §4（docs/THEMES.md）编写的绿磷光 CRT 风格。
+ * Notion 9 色映射为绿色亮度分级；red/pink 保留功能红以维持警示语义。
+ */
+
+/* ===== 基础文本 ===== */
+
+.notion-content > *:first-child { margin-top: 0; }
+
+.notion-content h1,
+.notion-content h2,
+.notion-content h3 {
+  line-height: 1.35;
+  margin: 2rem 0 0.75rem;
+}
+
+.notion-content h1::before { content: '# '; color: var(--fg-dim); }
+.notion-content h2::before { content: '## '; color: var(--fg-dim); }
+.notion-content h3::before { content: '### '; color: var(--fg-dim); }
+
+.notion-content h1 { font-size: 1.25rem; }
+.notion-content h2 { font-size: 1.125rem; }
+.notion-content h3 { font-size: 1rem; }
+
+.notion-content p { margin: 0.75rem 0; }
+
+.notion-content ul,
+.notion-content ol {
+  padding-left: 1.5rem;
+}
+
+.notion-content li::marker {
+  color: var(--fg-dim);
+}
+
+.notion-content blockquote.notion-quote {
+  margin: 1rem 0;
+  padding: 0.25rem 1rem;
+  border-left: 2px solid var(--fg-dim);
+  color: var(--fg-dim);
+}
+
+.notion-content blockquote.notion-quote::before {
+  content: '| ';
+  color: var(--fg);
+}
+
+.notion-content hr.notion-divider {
+  border: none;
+  margin: 1.5rem 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border) 20%, var(--border) 80%, transparent);
+}
+
+.notion-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===== 图片排布（契约 §4） ===== */
+
+figure.notion-image {
+  margin: 1.25rem 0;
+}
+
+figure.notion-image.notion-image-center {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+figure.notion-image.notion-image-left { margin-right: auto; text-align: left; }
+figure.notion-image.notion-image-right { margin-left: auto; text-align: right; }
+figure.notion-image.notion-image-page-width { width: 100%; }
+
+figure.notion-image figcaption {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+
+figure.notion-image figcaption::before { content: 'fig: '; }
+
+.notion-column-list {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.notion-column { flex: 1; min-width: 0; }
+
+/* ===== 富文本颜色（9 色绿色映射 + 功能红） ===== */
+
+.notion-gray, .notion-brown { color: var(--fg-dim); }
+.notion-yellow, .notion-orange, .notion-green, .notion-blue, .notion-purple { color: var(--fg); }
+.notion-pink, .notion-red { color: var(--fg-error); }
+
+.notion-gray-background, .notion-brown-background,
+.notion-yellow-background, .notion-orange-background,
+.notion-green-background, .notion-blue-background,
+.notion-purple-background {
+  background-color: var(--bg-raised);
+}
+
+.notion-pink-background, .notion-red-background {
+  background-color: rgba(255, 107, 107, 0.12);
+}
+
+/* ===== Callout ===== */
+
+.notion-callout {
+  display: flex;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  background-color: var(--bg-raised);
+}
+
+.notion-callout-icon { flex-shrink: 0; }
+.notion-callout-icon-img { width: 1.25rem; height: 1.25rem; }
+.notion-callout-content { min-width: 0; }
+
+/* Callout 颜色变体（契约 §4） */
+.notion-callout-gray-background, .notion-callout-brown-background,
+.notion-callout-yellow-background, .notion-callout-orange-background,
+.notion-callout-blue-background, .notion-callout-purple-background {
+  background-color: var(--bg-raised);
+}
+
+.notion-callout-pink-background, .notion-callout-red-background {
+  background-color: rgba(255, 107, 107, 0.10);
+  border-color: rgba(255, 107, 107, 0.35);
+}
+
+/* ===== 代码块 ===== */
+
+.notion-code-block {
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  background-color: var(--bg-code);
+}
+
+.notion-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--fg-dim);
+  font-size: 0.8125rem;
+}
+
+.notion-code-language::before { content: '['; }
+.notion-code-language::after { content: ']'; }
+
+.notion-code-copy {
+  border: 1px solid var(--border-dim);
+  background: none;
+  color: var(--fg-dim);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.notion-code-copy:hover {
+  color: var(--fg-bright);
+  border-color: var(--border);
+}
+
+.notion-code-copy.copied {
+  color: var(--bg);
+  background-color: var(--fg);
+}
+
+.notion-code {
+  margin: 0;
+  padding: 0.85rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.notion-code code {
+  font-family: inherit;
+}
+
+.notion-code-caption {
+  padding: 0.375rem 0.75rem;
+  border-top: 1px solid var(--border-dim);
+  font-size: 0.8125rem;
+  color: var(--fg-dim);
+}
+
+/* Prism token 配色归主题（契约 §5）：绿色亮度分级 */
+.token.comment, .token.prolog, .token.cdata { color: var(--fg-dim); font-style: italic; }
+.token.keyword, .token.tag, .token.boolean, .token.constant { color: var(--fg-bright); }
+.token.string, .token.char, .token.attr-value { color: var(--fg); }
+.token.function, .token.class-name { color: var(--fg-bright); text-decoration: underline; text-decoration-color: var(--border); }
+.token.number, .token.regex, .token.variable { color: var(--fg-bright); }
+.token.operator, .token.punctuation { color: var(--fg-dim); }
+.token.property, .token.attr-name { color: var(--fg); }
+
+/* ===== 公式（KaTeX 核心样式由脚本注入，主题覆盖配色） ===== */
+
+code.notion-equation {
+  font-family: inherit;
+  font-size: 0.9em;
+  background-color: var(--bg-raised);
+  padding: 0.1em 0.35em;
+  border: 1px solid var(--border-dim);
+}
+
+.notion-equation-block {
+  margin: 1rem 0;
+  padding: 0.75rem 0;
+  text-align: center;
+  overflow-x: auto;
+}
+
+.notion-equation-block .katex-display { margin: 0; }
+
+.notion-content .katex { color: var(--fg-bright); }
+.notion-content .katex-error { color: var(--fg-error); }
+
+/* ===== 表格 ===== */
+
+.notion-table-wrapper {
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+table.notion-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.notion-table th,
+.notion-table td {
+  border: 1px solid var(--border-dim);
+  padding: 0.4rem 0.7rem;
+  text-align: left;
+}
+
+.notion-table th {
+  color: var(--fg-bright);
+  background-color: var(--bg-raised);
+}
+
+/* ===== 图片链接（未引入灯箱脚本，退化为普通图片） ===== */
+
+a.glightbox {
+  display: inline-block;
+  text-decoration: none;
+}
+
+a.glightbox img {
+  border: 1px solid var(--border);
+}
+
+a.glightbox:hover img {
+  box-shadow: 0 0 12px var(--glow);
+}
+
+/* ===== 书签卡片 ===== */
+
+.notion-bookmark {
+  display: flex;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+  background-color: var(--bg-raised);
+  overflow: hidden;
+  color: inherit;
+}
+
+.notion-bookmark:hover { text-decoration: none; border-color: var(--fg); }
+
+.notion-bookmark-info {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+}
+
+.notion-bookmark-title { font-weight: 700; color: var(--fg-bright); }
+.notion-bookmark-title::before { content: '=> '; color: var(--fg-dim); }
+
+.notion-bookmark-description {
+  font-size: 0.875rem;
+  color: var(--fg-dim);
+  margin: 0.25rem 0;
+}
+
+.notion-bookmark-url {
+  font-size: 0.8125rem;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notion-bookmark-cover {
+  flex-shrink: 0;
+  width: 30%;
+  min-width: 8rem;
+  border-left: 1px solid var(--border-dim);
+}
+
+.notion-bookmark-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: sepia(100%) hue-rotate(90deg) saturate(2.4) brightness(0.85);
+}
+
+/* ===== 链接提及 ===== */
+
+.notion-mention {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.notion-mention-favicon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+.notion-mention-text {
+  border-bottom: 1px dashed var(--border);
+}
+
+/* ===== 嵌入 / 视频 / PDF ===== */
+
+.notion-embed-wrapper {
+  margin: 1rem 0;
+  aspect-ratio: 16 / 9;
+}
+
+iframe.notion-embed {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border);
+  background-color: var(--bg-code);
+}
+
+.notion-embed--fallback {
+  display: block;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--border);
+}
+
+figure.notion-video-wrapper { margin: 1rem 0; }
+
+figure.notion-video-wrapper iframe,
+.notion-video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--border);
+}
+
+figure.notion-video-wrapper figcaption {
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--fg-dim);
+  text-align: center;
+}
+
+.notion-pdf-viewer {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--border);
+}
+
+/* ===== Toggle（原生 details/summary） ===== */
+
+details.notion-toggle { margin: 0.75rem 0; }
+
+.notion-toggle-title {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--fg-bright);
+}
+
+.notion-toggle-title::before { content: '> '; color: var(--fg-dim); }
+details[open] .notion-toggle-title::before { content: 'v '; }
+
+.notion-toggle-content {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--border-dim);
+}
+
+/* ===== Todo 列表 ===== */
+
+.notion-todo-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.notion-todo-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin: 0.25rem 0;
+}
+
+.notion-todo-item input[type='checkbox'] {
+  appearance: none;
+  width: 0.9em;
+  height: 0.9em;
+  border: 1px solid var(--fg-dim);
+  vertical-align: middle;
+}
+
+.notion-todo-item input[type='checkbox']:checked {
+  background-color: var(--fg);
+  box-shadow: inset 0 0 0 2px var(--bg);
+}
+
+/* ===== 子页面 / 不支持的块 ===== */
+
+.notion-child-page {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--border-dim);
+  text-decoration: none;
+}
+
+.notion-child-page::before { content: '> '; color: var(--fg-dim); }
+
+.notion-unsupported {
+  display: block;
+  padding: 0.4rem 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px dashed var(--border-dim);
+  color: var(--fg-dim);
+  font-size: 0.875rem;
+}
+
+.notion-unsupported::before { content: '[unsupported] '; }
+
+/* ===== 嵌入 Database ===== */
+
+.notion-database-wrapper {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.notion-database-title { font-weight: 700; color: var(--fg-bright); }
+.notion-database-title::before { content: 'db: '; color: var(--fg-dim); }
+
+table.notion-database-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.notion-database-th,
+.notion-database-td {
+  border: 1px solid var(--border-dim);
+  padding: 0.35rem 0.65rem;
+  text-align: left;
+}
+
+.notion-database-th {
+  color: var(--fg-bright);
+  background-color: var(--bg-raised);
+}
+
+.notion-database-gallery-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.notion-database-card {
+  border: 1px solid var(--border-dim);
+  background-color: var(--bg-raised);
+}
+
+.notion-database-card-cover img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.notion-database-card-content { padding: 0.5rem 0.75rem; }
+.notion-database-card-title { font-weight: 700; color: var(--fg-bright); }

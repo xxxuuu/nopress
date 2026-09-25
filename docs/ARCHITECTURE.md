@@ -146,7 +146,8 @@ src/
 │   │   ├── components/           # Header、Footer、PostList、Pagination、Comments 等
 │   │   ├── styles/               # global.css、notion.css
 │   │   └── theme.config.mjs      # 主题清单
-│   └── minimal/                  # 契约参考实现（NOPRESS_THEME=minimal）：首页、/post/[slug]、/[slug] 三路由极简主题
+│   ├── minimal/                  # 契约参考实现（NOPRESS_THEME=minimal）：首页、/post/[slug]、/[slug] 三路由极简主题
+│   └── terminal/                 # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：三路由，单深色形态
 ├── lib/
 │   ├── notion/
 │   │   ├── service/              # NotionDataService（数据层入口）

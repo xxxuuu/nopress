@@ -32,10 +32,14 @@ src/
 │   │   ├── components/   # Header、Footer、PostList、Pagination、Comments（giscus）等
 │   │   ├── styles/       # global.css（CSS 变量 + 深色模式）、notion.css
 │   │   └── theme.config.mjs
-│   └── minimal/          # 契约参考实现（NOPRESS_THEME=minimal）：3 个路由的极简主题
+│   ├── minimal/          # 契约参考实现（NOPRESS_THEME=minimal）：3 个路由的极简主题
+│   │   ├── pages/        # 首页、/post/[slug]、/[slug]
+│   │   ├── layouts/      # BaseLayout
+│   │   └── styles/       # global.css、content.css（仅依据 docs/THEMES.md 契约编写）
+│   └── terminal/         # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：3 路由，单深色形态
 │       ├── pages/        # 首页、/post/[slug]、/[slug]
 │       ├── layouts/      # BaseLayout
-│       └── styles/       # global.css、content.css（仅依据 docs/THEMES.md 契约编写）
+│       └── styles/       # global.css、content.css
 │   # 主题契约见 docs/THEMES.md；清单经 zod 验证（id/name/version 必填）
 ├── lib/
 │   ├── notion/
