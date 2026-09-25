@@ -135,7 +135,7 @@ src/
 | Notion schema、查询逻辑 | 本文件 schema 表 + `docs/ARCHITECTURE.md` |
 | 新增子系统/功能 | 在 `docs/` 新建文档 |
 
-**提交信息**：遵循 Conventional Commits（`feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `style:` / `ci:`，见 git log 现有风格），一句话说清改动。提交需签名：用 `git commit -s -S`（`-s` 附加 Signed-off-by 行，`-S` 签名提交；本仓库已配置 `commit.gpgsign=true`，签名会自动附加）。
+**提交信息**：遵循 Conventional Commits（`feat:` / `fix:` / `chore:` / `docs:` / `refactor:` / `style:` / `ci:`，见 git log 现有风格），一句话说清改动。提交需签名：用 `git commit -s -S`（`-s` 附加 Signed-off-by 行，`-S` 签名提交）。
 
 **代码风格**：跟随现有代码——注释与文档用中文，TypeScript strict（避免引入 any），命名与邻近代码一致。
 
@@ -145,6 +145,7 @@ src/
 
 ## 文档索引
 
+- `docs/USER-GUIDE.md` — 用户指南（非开发者：搭站、写作、换主题）
 - `docs/ARCHITECTURE.md` — 架构详解（数据流、各子系统、技术决策）
 - `docs/THEMES.md` — 主题开发契约（数据 API、内容 HTML 结构、可选脚本、别名稳定性、分发）
 - `docs/CONFIGURATION.md` — 环境变量全表
