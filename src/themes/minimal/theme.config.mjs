@@ -15,6 +15,14 @@ export default {
 
   // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
   options: {
+    // darkMode 为保留选项（契约 §6）：声明即声明为双模式主题，框架负责模式初始化，
+    // global.css 中现成的 html.dark 变量由此生效
+    darkMode: {
+      type: 'boolean',
+      default: true,
+      label: '深色模式',
+      description: '自动跟随系统偏好的浅色/深色配色',
+    },
     footerText: {
       type: 'string',
       default: '',

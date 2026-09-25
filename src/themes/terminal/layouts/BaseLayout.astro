@@ -6,7 +6,7 @@
  * @config/resolved-site、@core/config/meta、@core/lib/meta-helpers、
  * @lib/notion/service、@lib/theme/options
  *
- * 单深色形态：不提供明暗切换，也不注入防闪烁脚本（契约 §6 面向双模式主题）。
+ * 单深色形态：未声明 darkMode 选项（契约 §6），框架不做深色处理。
  */
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';

@@ -14,7 +14,7 @@ const menuItems = await dataService.getMenuItems();
 const dbInfo = await dataService.getDatabaseInfo();
 const siteTitle = dbInfo.title || SITE_CONFIG.title;
 
-// 深色模式关闭时不渲染切换按钮（防闪烁脚本同样受此选项控制，见 BaseLayout）
+// 深色模式关闭时不渲染切换按钮
 const { darkMode = true } = themeOptions as { darkMode?: boolean };
 ---
 

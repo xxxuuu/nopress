@@ -14,13 +14,14 @@ export default {
   description: 'NoPress 官方默认主题，简洁优雅的博客主题',
   compatibleVersion: '^0.1.0',
 
-  // 主题配置选项
+  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
   options: {
+    // darkMode 为保留选项（契约 §6）：声明即声明为双模式主题，框架负责模式初始化
     darkMode: {
       type: 'boolean',
       default: true,
       label: '深色模式',
-      description: '关闭后站点恒为浅色：不输出防闪烁脚本与切换按钮',
+      description: '关闭后站点恒为浅色并隐藏切换按钮',
     },
     showPostCover: {
       type: 'boolean',

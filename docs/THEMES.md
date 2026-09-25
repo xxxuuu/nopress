@@ -156,8 +156,8 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 
 - **覆盖来源**：`NOPRESS_THEME_OPTIONS='{"accentColor":"#f00"}'`，key 与声明一致（建议 camelCase）
 - **类型转换**：`number`/`boolean` 接受字符串形态（`"42"`、`"true"`）；`select` 校验 `choices`；`number` 校验 `min`/`max`
-- **fail fast**：未知 key、类型不匹配、越界均在构建期报错，不会静默丢弃
-- **无声明即无选项**：主题未声明 `options` 时该机制不介入；宿主对未声明 key 的覆盖会构建失败（防拼写错误）
+- **fail fast**：未知 key、类型不匹配、越界均在构建期报错，不会静默丢弃；宿主对未声明 key 的覆盖会构建失败（防拼写错误）
+- **保留选项 key**：`darkMode`（boolean）具有框架级行为（见 §6）；其余选项纯粹供主题自身消费
 - 修改 `NOPRESS_THEME_OPTIONS` 后需重启 dev server（值在构建启动时固化）
 
 完整可运行示例：`src/themes/minimal/`（`footerText` + `showPostMeta`）、`src/themes/default/`（`darkMode` + `showPostCover` + `showReadingTime`）、`src/themes/terminal/`（`promptSymbol` + `showScanlines`）。
@@ -213,23 +213,12 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 
 不引入对应脚本时，上述标记仍是合法 HTML（公式/代码以原文显示，灯箱退化为普通图片链接），不会报错。
 
-## 6. 深色模式约定
+## 6. 深色模式
 
-- 当前主题写在 `<html>` 的 class 上：`light` 或 `dark`
-- 持久化 key：`localStorage.theme`（值为 `'light' | 'dark'`）
-- 主题应在 `<head>` 内联防闪烁脚本（必须在首帧前执行）：
-
-```html
-<script is:inline>
-  (function() {
-    const theme = localStorage.getItem('theme') ||
-      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    document.documentElement.classList.add(theme);
-  })();
-</script>
-```
-
-CSS 侧用 `html.dark …` / `:root …` 区分两套变量。
+- 主题在清单 `options` 中声明 `darkMode`（boolean，保留 key）即声明为双模式主题，框架负责模式初始化，主题只管样式与切换 UI
+- 配色钩子：`<html>` 的 class——`light` 或 `dark`，CSS 用 `:root …` / `html.dark …` 两套变量
+- 切换 UI（如 ThemeToggle）由主题提供：toggle `html` 的 class 并写 `localStorage.theme`（值为 `'light' | 'dark'`）
+- 未声明或值为 false：单形态主题，框架不做任何深色处理
 
 ## 7. 评论系统
 

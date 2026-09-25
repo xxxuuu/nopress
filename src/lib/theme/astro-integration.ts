@@ -65,7 +65,7 @@ export function nopressThemeIntegration(): AstroIntegration {
   return {
     name: 'nopress-theme',
     hooks: {
-      'astro:config:setup': async ({ config, updateConfig, injectRoute, command }) => {
+      'astro:config:setup': async ({ config, updateConfig, injectRoute, injectScript, command }) => {
         // 获取项目根目录
         const projectRoot = fileURLToPath(new URL('.', config.root));
 
@@ -107,6 +107,15 @@ export function nopressThemeIntegration(): AstroIntegration {
           .filter(key => activeTheme.config.options?.[key] !== undefined && themeOptions[key] !== activeTheme.config.options[key].default);
         if (overridden.length > 0) {
           console.log(`[NoPress Theme] Options overridden: ${overridden.join(', ')}`);
+        }
+
+        // 契约 §6 保留选项：声明 darkMode 且开启时，内核为每页注入深色模式防闪烁脚本
+        // （head-inline：同步内联进 <head>，先于首帧渲染执行）
+        if (themeOptions.darkMode === true) {
+          injectScript(
+            'head-inline',
+            "(function(){try{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.add(t);}catch(e){}})();"
+          );
         }
 
         // 扫描主题的 pages/ 目录（页面 .astro 与端点 .ts）

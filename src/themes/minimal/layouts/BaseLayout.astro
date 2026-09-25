@@ -51,15 +51,6 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta property="og:title" content={metaTags.ogTitle} />
     <meta property="og:description" content={metaTags.ogDescription} />
     {metaTags.ogImage && <meta property="og:image" content={metaTags.ogImage} />}
-
-    <!-- 深色模式防闪烁（契约 §6） -->
-    <script is:inline>
-      (function() {
-        const theme = localStorage.getItem('theme') ||
-          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        document.documentElement.classList.add(theme);
-      })();
-    </script>
   </head>
   <body>
     <header class="site-header">
