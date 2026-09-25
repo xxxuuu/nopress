@@ -70,6 +70,3 @@ src/
 - 改动落地时同步对应文档（对应关系表见 [AGENTS.md 工作准则](../AGENTS.md#工作准则)）——例如改环境变量需同时更新 `.env.example`、`docs/CONFIGURATION.md` 和 CI workflow
 - 代码注释与文档使用中文，TypeScript strict（避免 `any`）
 
-## CI 与部署
-
-[`.github/workflows/build.yaml`](../.github/workflows/build.yaml) 为手动触发（`workflow_dispatch`）：执行 `npm run build` 后把 `dist/` 推送到部署仓库。环境变量（`NOTION_*` 从 Secrets、`SITE_*` / `COMMENTS_*` / `NOPRESS_*` 从 Variables）在 workflow 中显式注入——新增环境变量时需同步该文件。
