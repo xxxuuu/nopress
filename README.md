@@ -36,11 +36,12 @@
 ## 📖 文档
 
 - **[用户指南](./docs/USER-GUIDE.md)** - 不写代码搭好博客：Notion 配置、部署、写作、换主题 ⭐
-- **[站点配置系统](./docs/CONFIGURATION.md)** - 环境变量完整参考和部署配置指南 ⭐
+- **[开发指南](./docs/DEVELOPMENT.md)** - 参与开发：环境、命令、调试、提交规范 ⭐
+- **[站点配置系统](./docs/CONFIGURATION.md)** - 环境变量完整参考和部署配置指南
 - **[评论功能配置](./docs/COMMENTS.md)** - Giscus 评论系统配置指南
 - **[主题开发契约](./docs/THEMES.md)** - 主题开发与分发（开发者向）
 - **[系统架构](./docs/ARCHITECTURE.md)** - 整体设计和数据流
-- **[开发指南](./AGENTS.md)** - AI 代理开发指南（含架构地图与陷阱清单）
+- **[AGENTS.md](./AGENTS.md)** - AI 代理开发指南（含架构地图与陷阱清单）
 
 ## 🤝 贡献
 
