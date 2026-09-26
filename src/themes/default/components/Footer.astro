@@ -4,8 +4,6 @@ import { getResolvedSiteConfig } from '@config/resolved-site';
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();
 
-const currentYear = new Date().getFullYear();
-
 // 社交图标 SVG
 const icons: Record<string, string> = {
   github: `<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -27,7 +25,7 @@ const icons: Record<string, string> = {
   <div class="container">
     <div class="footer-content">
       <div class="copyright">
-        <p>&copy; {currentYear} {SITE_CONFIG.title}. All rights reserved.</p>
+        <p>&copy; {SITE_CONFIG.copyrightYearText} {SITE_CONFIG.title}. All rights reserved.</p>
         <p class="powered-by">Powered by <a href="https://github.com/xxxuuu/nopress" target="_blank" rel="noopener noreferrer">Nopress</a></p>
       </div>
       <div class="social-links">

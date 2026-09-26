@@ -19,12 +19,14 @@ import dataService from '@lib/notion/service';
  *
  * 相比原始 SiteConfig：
  * - title/description/icon 经 Database 元数据回填后必有值
+ * - 追加 copyrightYearText（统一的版权年份文本）
  * - 追加 seo（OG 图、Twitter Card 等派生信息）
  */
 export type ResolvedSiteConfig = Omit<SiteConfig, 'title' | 'description' | 'icon'> & {
   title: string;
   description: string;
   icon: string;
+  copyrightYearText: string;
   seo: {
     ogImage: string;
     twitterCard: string;
@@ -107,6 +109,12 @@ export async function getResolvedSiteConfig(): Promise<ResolvedSiteConfig> {
     return resolvedConfig;
   }
 
+  // 生成版权年份文本。
+  const currentYear = new Date().getFullYear();
+  const copyrightYearText = SITE_CONFIG.startYear !== undefined && SITE_CONFIG.startYear < currentYear
+    ? `${SITE_CONFIG.startYear}–${currentYear}`
+    : String(currentYear);
+
   try {
     // 获取 Database 元数据
     const dbInfo = await dataService.getDatabaseInfo();
@@ -120,6 +128,7 @@ export async function getResolvedSiteConfig(): Promise<ResolvedSiteConfig> {
 
     resolvedConfig = {
       ...SITE_CONFIG,
+      copyrightYearText,
       title: SITE_CONFIG.title || dbInfo.title || '',
       description: SITE_CONFIG.description || dbInfo.description || '',
       icon: processFavicon(rawIcon),  // 处理图标格式
@@ -144,6 +153,7 @@ export async function getResolvedSiteConfig(): Promise<ResolvedSiteConfig> {
     // 降级：使用用户配置或默认值
     resolvedConfig = {
       ...SITE_CONFIG,
+      copyrightYearText,
       title: SITE_CONFIG.title || '',
       description: SITE_CONFIG.description || '',
       icon: processFavicon(SITE_CONFIG.icon),  // 处理图标格式
