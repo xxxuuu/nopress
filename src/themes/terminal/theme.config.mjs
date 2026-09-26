@@ -13,7 +13,7 @@ export default {
   description: '绿磷光 CRT 终端风格主题',
   compatibleVersion: '^0.1.0',
 
-  // 主题选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
+  // 主题选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md）
   options: {
     promptSymbol: {
       type: 'string',

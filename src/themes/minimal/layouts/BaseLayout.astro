@@ -9,6 +9,7 @@ import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
 import dataService from '@lib/notion/service';
 import { themeOptions } from '@lib/theme/options';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 
 interface Props {
@@ -19,7 +20,7 @@ interface Props {
 const SITE_CONFIG = await getResolvedSiteConfig();
 const menuItems = await dataService.getMenuItems();
 
-// 主题选项（契约 §3.3）：声明见 theme.config.mjs，宿主可经 NOPRESS_THEME_OPTIONS 覆盖
+// 主题选项：声明见 theme.config.mjs，宿主可经 NOPRESS_THEME_OPTIONS 覆盖
 const { footerText = '' } = themeOptions as { footerText?: string };
 
 const { title = SITE_CONFIG.title, description } = Astro.props;
@@ -39,6 +40,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <ClientRouter />
     <link rel="icon" href={SITE_CONFIG.icon} />
     <link rel="canonical" href={canonical} />
     {metaConfig.enableRSS && (
@@ -75,7 +77,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       {footerText && <p>{footerText}</p>}
     </footer>
 
-    <!-- 可选脚本按需引入（契约 §5）：只引高亮与公式，验证其余标记的降级行为 -->
+    <!-- 可选脚本按需引入：只引高亮与公式，验证其余标记的降级行为 -->
     <script>
       import '@/scripts/syntax-highlight';
       import '@/scripts/math-rendering';

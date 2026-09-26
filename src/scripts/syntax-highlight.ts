@@ -131,21 +131,14 @@ export async function initSyntaxHighlight() {
   });
 }
 
-// 页面加载完成后初始化（使用 requestIdleCallback 延迟执行）
+// astro:page-load 在首次加载与每次客户端导航后都会触发（依赖布局中的 <ClientRouter />）；
+// requestIdleCallback 延迟执行避免阻塞渲染
 if (typeof window !== 'undefined') {
-  const initWhenIdle = () => {
-    // 使用 requestIdleCallback 在浏览器空闲时加载
+  document.addEventListener('astro:page-load', () => {
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => initSyntaxHighlight(), { timeout: 2000 });
     } else {
-      // 降级方案：使用 setTimeout
       setTimeout(() => initSyntaxHighlight(), 100);
     }
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWhenIdle);
-  } else {
-    initWhenIdle();
-  }
+  });
 }

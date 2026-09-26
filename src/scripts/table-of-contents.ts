@@ -13,14 +13,16 @@ interface TocItem {
 }
 
 export function initTableOfContents() {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupToc);
-  } else {
-    setupToc();
-  }
+  document.addEventListener('astro:page-load', setupToc);
 }
 
+// 客户端导航会重复进入 setupToc，用 AbortController 撤销上一轮的 window 级监听
+let tocLifecycle: AbortController | null = null;
+
 function setupToc() {
+  tocLifecycle?.abort();
+  tocLifecycle = new AbortController();
+
   const tocContainer = document.querySelector('.toc-container');
   const contentContainer = document.querySelector('.notion-content');
 
@@ -184,6 +186,8 @@ function setupTocPosition(tocContainer: Element) {
     }
   };
 
+  const tocSignal = tocLifecycle!.signal;
+
   // 滚动时更新位置
   let ticking = false;
   window.addEventListener('scroll', () => {
@@ -194,7 +198,7 @@ function setupTocPosition(tocContainer: Element) {
       });
       ticking = true;
     }
-  }, { passive: true });
+  }, { passive: true, signal: tocSignal });
 
   // 窗口大小改变时也更新
   window.addEventListener('resize', () => {
@@ -205,7 +209,7 @@ function setupTocPosition(tocContainer: Element) {
       });
       ticking = true;
     }
-  }, { passive: true });
+  }, { passive: true, signal: tocSignal });
 
   // 初始化位置
   requestAnimationFrame(() => {
@@ -293,7 +297,7 @@ function setupTocTooltip(tocContainer: Element) {
   nav.addEventListener('focusout', hide);
 
   // 滚动时位置会失效，直接隐藏
-  window.addEventListener('scroll', hide, { passive: true });
+  window.addEventListener('scroll', hide, { passive: true, signal: tocLifecycle!.signal });
 }
 
 function setupScrollSpy(items: TocItem[], container: Element) {
@@ -372,7 +376,7 @@ function setupScrollSpy(items: TocItem[], container: Element) {
       });
       ticking = true;
     }
-  }, { passive: true });
+  }, { passive: true, signal: tocLifecycle!.signal });
 
   // 初始化 - 确保在下一个事件循环中执行
   requestAnimationFrame(() => {

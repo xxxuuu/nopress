@@ -4,12 +4,8 @@
  */
 
 export function initImageGallery() {
-  // 等待 DOM 准备好
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupGallery);
-  } else {
-    setupGallery();
-  }
+  // astro:page-load 在首次加载与每次客户端导航后都会触发（依赖布局中的 <ClientRouter />）
+  document.addEventListener('astro:page-load', () => { void setupGallery(); });
 }
 
 /**
@@ -24,6 +20,9 @@ function loadPhotoSwipeCss() {
   document.head.appendChild(link);
 }
 
+// 客户端导航会重复进入 setupGallery，销毁上一轮的 lightbox（其内部绑定旧 DOM）
+let activeLightbox: { destroy?: () => void } | null = null;
+
 async function setupGallery() {
   const galleryLinks = document.querySelectorAll('.glightbox[data-gallery="article-images"]');
 
@@ -31,6 +30,9 @@ async function setupGallery() {
     console.log('[ImageGallery] No images found');
     return;
   }
+
+  activeLightbox?.destroy?.();
+  activeLightbox = null;
 
   // 注入 PhotoSwipe 样式（仅在有图片的页面加载，替代 BaseLayout 的全站 preload）
   loadPhotoSwipeCss();
@@ -256,6 +258,7 @@ async function setupGallery() {
 
     // 初始化
     lightbox.init();
+    activeLightbox = lightbox as { destroy?: () => void };
 
     console.log(`[ImageGallery] ✅ PhotoSwipe initialized with ${galleryLinks.length} images`);
   } catch (error) {
@@ -265,19 +268,11 @@ async function setupGallery() {
 
 // 页面加载完成后延迟初始化（使用 requestIdleCallback 避免阻塞首屏渲染）
 if (typeof window !== 'undefined') {
-  const initWhenIdle = () => {
-    // 使用 requestIdleCallback 在浏览器空闲时加载
+  document.addEventListener('astro:page-load', () => {
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => initImageGallery(), { timeout: 3000 });
     } else {
-      // 降级方案：使用 setTimeout
       setTimeout(() => initImageGallery(), 200);
     }
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWhenIdle);
-  } else {
-    initWhenIdle();
-  }
+  });
 }

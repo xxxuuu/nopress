@@ -2,6 +2,7 @@
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -45,6 +46,7 @@ const metaTags = generateMetaTags(
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <ClientRouter />
     <link rel="icon" href={SITE_CONFIG.icon} />
     <link rel="canonical" href={canonical} />
 

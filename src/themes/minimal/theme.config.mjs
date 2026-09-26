@@ -13,9 +13,9 @@ export default {
   description: '极简纯文字主题，NoPress 主题契约的参考实现',
   compatibleVersion: '^0.1.0',
 
-  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
+  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md）
   options: {
-    // darkMode 为保留选项（契约 §6）：声明即声明为双模式主题，框架负责模式初始化，
+    // darkMode 为保留选项：声明即声明为双模式主题，框架负责模式初始化，
     // global.css 中现成的 html.dark 变量由此生效
     darkMode: {
       type: 'boolean',

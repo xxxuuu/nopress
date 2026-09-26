@@ -131,21 +131,14 @@ export async function initMermaidRendering() {
   await renderMermaidDiagrams();
 }
 
-// 页面加载完成后延迟初始化（使用 requestIdleCallback 避免阻塞首屏渲染）
+// astro:page-load 在首次加载与每次客户端导航后都会触发（依赖布局中的 <ClientRouter />）；
+// requestIdleCallback 延迟执行避免阻塞首屏渲染
 if (typeof window !== 'undefined') {
-  const initWhenIdle = () => {
-    // 使用 requestIdleCallback 在浏览器空闲时加载
+  document.addEventListener('astro:page-load', () => {
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => initMermaidRendering(), { timeout: 3000 });
     } else {
-      // 降级方案：使用 setTimeout
       setTimeout(() => initMermaidRendering(), 200);
     }
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWhenIdle);
-  } else {
-    initWhenIdle();
-  }
+  });
 }

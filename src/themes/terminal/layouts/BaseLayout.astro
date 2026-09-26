@@ -6,13 +6,14 @@
  * @config/resolved-site、@core/config/meta、@core/lib/meta-helpers、
  * @lib/notion/service、@lib/theme/options
  *
- * 单深色形态：未声明 darkMode 选项（契约 §6），框架不做深色处理。
+ * 单深色形态：未声明 darkMode 选项，框架不做深色处理。
  */
 import { getResolvedSiteConfig } from '@config/resolved-site';
 import { getMetaConfig } from '@core/config/meta';
 import { generateMetaTags } from '@core/lib/meta-helpers';
 import dataService from '@lib/notion/service';
 import { themeOptions } from '@lib/theme/options';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 
 interface Props {
@@ -46,6 +47,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <ClientRouter />
     <link rel="icon" href={SITE_CONFIG.icon} />
     <link rel="canonical" href={canonical} />
     {metaConfig.enableRSS && (

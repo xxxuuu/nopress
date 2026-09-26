@@ -17,7 +17,10 @@ export interface GiscusInitOptions {
   config: GiscusConfig;
 }
 
-let giscusInitialized = false;
+/** 容器内是否已挂载 giscus（客户端导航会带来全新容器，不受模块级状态影响） */
+function containerHasGiscus(container: HTMLElement): boolean {
+  return !!container.querySelector('iframe.giscus-frame, #giscus-script');
+}
 
 /**
  * 初始化 Giscus 评论系统
@@ -27,9 +30,7 @@ let giscusInitialized = false;
  * @param options.config - Giscus 配置
  */
 export async function initGiscus(options: GiscusInitOptions): Promise<void> {
-  // 防止重复初始化
-  if (giscusInitialized) {
-    console.log('[Giscus] Already initialized');
+  if (containerHasGiscus(options.container)) {
     return;
   }
 
@@ -50,7 +51,6 @@ export async function initGiscus(options: GiscusInitOptions): Promise<void> {
     // 动态加载 Giscus 脚本
     await loadGiscusScript(container, config, slug);
 
-    giscusInitialized = true;
     console.log('[Giscus] ✅ Initialized successfully');
   } catch (error) {
     console.error('[Giscus] ❌ Failed to initialize:', error);

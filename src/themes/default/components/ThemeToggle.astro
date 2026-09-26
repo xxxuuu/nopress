@@ -20,16 +20,19 @@
 </button>
 
 <script>
-  const toggle = document.getElementById('theme-toggle');
-  const html = document.documentElement;
+  // astro:page-load：客户端导航后 DOM 重建，需重新绑定（依赖 <ClientRouter />）
+  document.addEventListener('astro:page-load', () => {
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
 
-  toggle?.addEventListener('click', () => {
-    const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    toggle?.addEventListener('click', () => {
+      const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    html.classList.remove(currentTheme);
-    html.classList.add(newTheme);
-    localStorage.setItem('theme', newTheme);
+      html.classList.remove(currentTheme);
+      html.classList.add(newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
   });
 </script>
 

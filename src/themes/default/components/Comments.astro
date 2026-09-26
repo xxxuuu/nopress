@@ -46,9 +46,12 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
 <script>
   import { initGiscus } from '@/scripts/comments/giscus';
 
-  // 检查评论容器是否存在（由服务端条件渲染控制）
-  const container = document.querySelector<HTMLElement>('.comments-container');
-  if (container) {
+  // astro:page-load：客户端导航后 DOM 重建，需重新挂载（依赖 <ClientRouter />）
+  document.addEventListener('astro:page-load', () => {
+    // 检查评论容器是否存在（由服务端条件渲染控制）
+    const container = document.querySelector<HTMLElement>('.comments-container');
+    if (!container) return;
+
     const provider = container.dataset.provider;
     const configData = container.dataset.giscusConfig;
 
@@ -64,7 +67,7 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
     } else if (provider === 'utterances') {
       console.warn('Utterances 评论系统暂未实现');
     }
-  }
+  });
 </script>
 
 <style>

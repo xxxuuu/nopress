@@ -7,14 +7,15 @@
 let katex: any = null;
 
 /**
- * 动态加载 KaTeX
+ * 确保 KaTeX 样式存在于 head（幂等）
+ *
+ * 客户端导航（<ClientRouter />）swap 时会移除 head 中 JS 注入的 <style>，
+ * 而下方的 katex 模块缓存使 loadKatex 只执行一次——因此样式检查必须
+ * 脱离模块缓存，在每次页面加载时独立执行。
  */
-async function loadKatex() {
-  if (katex) return katex;
-
-  // 动态导入 KaTeX 及其样式
-  const katexModule = await import('katex');
-  katex = katexModule.default;
+async function ensureKatexCss() {
+  const KATEX_STYLE_FLAG = 'data-katex-css';
+  if (document.head.querySelector(`style[${KATEX_STYLE_FLAG}]`)) return;
 
   // 样式用 ?inline 导入：若走普通 CSS import，Vite 会把 CSS 抽成独立 chunk
   // 并被 Astro 静态注入到所有页面（无论是否包含公式）；
@@ -22,7 +23,18 @@ async function loadKatex() {
   const { default: katexCss } = await import('katex/dist/katex.min.css?inline');
   const style = document.createElement('style');
   style.textContent = katexCss;
+  style.setAttribute(KATEX_STYLE_FLAG, '');
   document.head.appendChild(style);
+}
+
+/**
+ * 动态加载 KaTeX
+ */
+async function loadKatex() {
+  if (katex) return katex;
+
+  const katexModule = await import('katex');
+  katex = katexModule.default;
 
   return katex;
 }
@@ -31,10 +43,16 @@ async function loadKatex() {
  * 渲染所有数学公式
  */
 async function renderMathEquations() {
-  const katexLib = await loadKatex();
-
   // 渲染块级公式 ($$...$$)
   const blockEquations = document.querySelectorAll('.notion-equation-block .notion-equation');
+  // 渲染行内公式 ($...$)
+  const inlineEquations = document.querySelectorAll('code.notion-equation');
+  // 无公式页面不加载 KaTeX 及其样式（保持惰性）
+  if (blockEquations.length === 0 && inlineEquations.length === 0) return;
+
+  await ensureKatexCss();
+  const katexLib = await loadKatex();
+
   blockEquations.forEach((element) => {
     const text = element.textContent;
     if (text) {
@@ -54,7 +72,6 @@ async function renderMathEquations() {
   });
 
   // 渲染行内公式 ($...$)
-  const inlineEquations = document.querySelectorAll('code.notion-equation');
   inlineEquations.forEach((element) => {
     const text = element.textContent;
     if (text) {
@@ -88,21 +105,14 @@ export async function initMathRendering() {
   await renderMathEquations();
 }
 
-// 页面加载完成后延迟初始化（使用 requestIdleCallback 避免阻塞首屏渲染）
+// astro:page-load 在首次加载与每次客户端导航后都会触发（依赖布局中的 <ClientRouter />）；
+// requestIdleCallback 延迟执行避免阻塞首屏渲染
 if (typeof window !== 'undefined') {
-  const initWhenIdle = () => {
-    // 使用 requestIdleCallback 在浏览器空闲时加载
+  document.addEventListener('astro:page-load', () => {
     if ('requestIdleCallback' in window) {
       (window as any).requestIdleCallback(() => initMathRendering(), { timeout: 3000 });
     } else {
-      // 降级方案：使用 setTimeout
       setTimeout(() => initMathRendering(), 200);
     }
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWhenIdle);
-  } else {
-    initWhenIdle();
-  }
+  });
 }

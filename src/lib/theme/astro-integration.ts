@@ -109,12 +109,14 @@ export function nopressThemeIntegration(): AstroIntegration {
           console.log(`[NoPress Theme] Options overridden: ${overridden.join(', ')}`);
         }
 
-        // 契约 §6 保留选项：声明 darkMode 且开启时，内核为每页注入深色模式防闪烁脚本
+        // darkMode 为保留选项：声明且开启时，内核为每页注入深色模式初始化
         // （head-inline：同步内联进 <head>，先于首帧渲染执行）
+        // astro:after-swap：客户端导航时 <html> 属性会被替换为目标文档的初始状态，
+        // 必须在 DOM 替换后重新应用当前模式，否则软导航会丢失深色并闪烁
         if (themeOptions.darkMode === true) {
           injectScript(
             'head-inline',
-            "(function(){try{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.add(t);}catch(e){}})();"
+            "(function(){function a(){try{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.classList.remove('light','dark');document.documentElement.classList.add(t);}catch(e){}}a();document.addEventListener('astro:after-swap',a);})();"
           );
         }
 

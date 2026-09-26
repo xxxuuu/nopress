@@ -87,7 +87,9 @@ src/
 
 11. **配置优先级**：环境变量 > `.env` > 代码默认值（`src/lib/config/loader.ts`，用 vite 的 `loadEnv`）。`SITE_URL` 影响 sitemap、RSS、canonical 和 `.md` 端点的绝对链接。
 
-12. **主题选项与保留 key**：宿主经 `NOPRESS_THEME_OPTIONS`（JSON）覆盖主题清单声明的 `options`；`darkMode` 为保留 key——声明且为 true 时内核自动注入深色模式初始化。机制与保留清单见 `docs/THEMES.md` §3.3/§6。
+12. **主题选项与保留 key**：宿主经 `NOPRESS_THEME_OPTIONS`（JSON）覆盖主题清单声明的 `options`；`darkMode` 为保留 key——声明且为 true 时内核自动注入深色模式初始化。机制与保留清单见 `docs/THEMES.md`。
+
+13. **客户端导航生命周期**：主题布局**必须**包含 `<ClientRouter />`，站内导航为软导航——脚本初始化必须挂 `astro:page-load`（软导航后 `<script>` 不重跑），依赖 `<html>` 运行时属性的逻辑须在 `astro:after-swap` 重应用（属性会被替换为目标文档初始状态）。约定详见 `docs/THEMES.md`。
 
 ## Notion Database Schema（领域知识）
 

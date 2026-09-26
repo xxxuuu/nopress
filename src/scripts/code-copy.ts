@@ -52,11 +52,7 @@ function showCopySuccess(button: HTMLElement): void {
   }, 2000);
 }
 
-// 页面加载完成后初始化
+// astro:page-load 在首次加载与每次客户端导航后都会触发（依赖布局中的 <ClientRouter />）
 if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initCodeCopy);
-  } else {
-    initCodeCopy();
-  }
+  document.addEventListener('astro:page-load', initCodeCopy);
 }

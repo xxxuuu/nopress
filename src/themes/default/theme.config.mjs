@@ -2,7 +2,7 @@
  * NoPress 默认主题配置
  *
  * 清单只包含元数据与主题选项声明；选项可被宿主经 NOPRESS_THEME_OPTIONS
- * 覆盖（docs/THEMES.md §3.3），未声明的定制点直接修改主题源码。
+ * 覆盖（docs/THEMES.md），未声明的定制点直接修改主题源码。
  */
 
 export default {
@@ -14,9 +14,9 @@ export default {
   description: 'NoPress 官方默认主题，简洁优雅的博客主题',
   compatibleVersion: '^0.1.0',
 
-  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md §3.3）
+  // 主题配置选项：宿主可用 NOPRESS_THEME_OPTIONS 覆盖默认值（docs/THEMES.md）
   options: {
-    // darkMode 为保留选项（契约 §6）：声明即声明为双模式主题，框架负责模式初始化
+    // darkMode 为保留选项：声明即声明为双模式主题，框架负责模式初始化
     darkMode: {
       type: 'boolean',
       default: true,

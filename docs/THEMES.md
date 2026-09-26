@@ -192,16 +192,28 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 | 嵌入 Database | `.notion-database-wrapper` 内表格视图（`.notion-database-table-*`）或画廊视图（`.notion-database-gallery-*`、`.notion-database-card-*`），select 值带颜色变体 `notion-database-select-{color}`，完整类名以渲染器输出为准 |
 | 不支持的块 | `.notion-unsupported`（不阻断渲染） |
 
-## 5. 可选客户端脚本
+## 5. 客户端脚本与导航
 
-框架提供一组即插即用的客户端脚本（`src/scripts/`），主题**自行决定引入哪些**。它们只依赖 §4 的 DOM 约定，不依赖特定主题：
+**必需：客户端导航**。主题布局的 `<head>` 必须包含 `<ClientRouter />`（`astro:transitions`）：
 
 ```astro
-<script>
-  import '@/scripts/syntax-highlight';
-  import '@/scripts/code-copy';
-</script>
+---
+import { ClientRouter } from 'astro:transitions';
+---
+<head>
+  <ClientRouter />
+  ...
+</head>
 ```
+
+它把站内导航变为软导航（点击链接只替换页面主体，不整页刷新）。两条硬约定：
+
+- 内核脚本的初始化统一挂在 `astro:page-load`（首次加载与每次软导航后都触发）——**缺少 `<ClientRouter />` 时该事件不会触发，全部脚本失效**
+- 软导航会替换 `<html>` 的属性——依赖运行时 class 的逻辑（如深色模式）需在 `astro:after-swap` 重应用（内核注入的深色初始化已处理）；主题自有脚本的初始化同样挂 `astro:page-load`，而不是在脚本顶层直接操作 DOM
+
+### 可选增强脚本
+
+主题按需引入以下内核脚本，它们只依赖 §4 的 DOM 约定：
 
 | 脚本 | 作用 | DOM 依赖 | 样式责任 |
 |------|------|----------|----------|
@@ -212,6 +224,15 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 | `image-gallery` | PhotoSwipe 灯箱 | 渲染器自带的 `.glightbox[data-gallery="article-images"]` | 脚本注入 PhotoSwipe CSS |
 | `table-of-contents` | 自动目录 + 滚动高亮 | **主题提供** `.toc-container` 容器 + 内容容器 `.notion-content`（h1-h3） | 主题负责目录样式（`.toc-item` / `.toc-active` 等） |
 | `comments/giscus` | giscus 评论 | 见 §7 | 主题负责容器样式 |
+
+引入方式（按需选取）：
+
+```astro
+<script>
+  import '@/scripts/syntax-highlight';
+  import '@/scripts/math-rendering';
+</script>
+```
 
 不引入对应脚本时，上述标记仍是合法 HTML（公式/代码以原文显示，灯箱退化为普通图片链接），不会报错。
 
