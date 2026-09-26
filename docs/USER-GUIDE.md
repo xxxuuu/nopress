@@ -48,7 +48,7 @@ Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。
 
 ## 二、日常写作
 
-**写博客 = 在 Notion Database 里加一行 + 写页面内容**，然后执行部署。
+**写博客 = 在 Notion Database 里加一行 + 写页面内容**，然后执行部署（也可以配置成自动部署，见[第五章](#五可选notion-更新自动部署)）。
 
 | 我想…… | 在 Notion 里怎么做 |
 |---------|-------------------|
@@ -94,4 +94,22 @@ NOPRESS_THEME_OPTIONS = {"footerText": "欢迎留言", "showReadingTime": false}
 - **terminal**：`promptSymbol`（终端提示符符号）、`showScanlines`（扫描线质感）
 
 完整的选项机制说明见 [主题文档](./THEMES.md)。
+
+## 五、（可选）Notion 更新自动部署
+
+博客是构建时从 Notion 拉取内容生成的静态页面，改完 Notion 要重新部署才能看到效果。Notion 数据库的**自动化**功能能在数据库变动时向指定网址发通知（`发送 webhook` 操作需要 Notion 商业版或教育版），配合 Vercel 的 **Deploy Hook** 可实现文章更新自动部署。
+
+### 第 1 步：创建 Deploy Hook
+
+1. 打开 Vercel 项目的 **Settings → Git → Deploy Hooks**
+2. NAME 填 `notion`，GIT BRANCH 填博客仓库的分支（一般是 `main`），点 **Create Hook**
+3. 复制生成的网址（形如 `https://api.vercel.com/v1/integrations/deploy/…`）——它相当于部署开关，**不要公开**
+
+### 第 2 步：在 Notion 数据库里建自动化
+
+1. 打开内容 Database，点右上角 **⚡ → 新建自动化**
+3. 点击 **添加触发器 → 属性 `status`**，值只勾选 `Published`
+3. 点 **新操作 → 发送 webhook**，粘贴第 1 步的网址
+
+此时文章将在 `status` 被改为 `Published` 时自动触发 Vercel 部署
 
