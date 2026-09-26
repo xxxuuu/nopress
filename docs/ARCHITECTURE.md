@@ -17,7 +17,7 @@ Notion API
     ↓
 NotionPageRenderer / BlockRenderer（Notion blocks → HTML，30+ 块类型）
     ↓
-图片 URL 永久化 (map-image-url.ts)、Bookmark OG 抓取 (opengraph.ts)
+文件 URL 解析 (file-url.ts)、Bookmark OG 抓取 (opengraph.ts)
     ↓
 写入缓存（dev 内存 5 分钟 / build 文件 1 小时）
     ↓
@@ -36,9 +36,9 @@ NotionPageRenderer / BlockRenderer（Notion blocks → HTML，30+ 块类型）
 | `getAllPages()` | `all-pages` | 全部独立页面（type=Page） |
 | `getAllTags()` | `all-tags` | 标签及计数（由 posts 派生） |
 | `getMenuItems()` | `menu-items` | 导航菜单（date 升序） |
-| `getDatabaseInfo()` | `database-info` | Database 标题/描述/图标（用于站点元数据回填） |
+| `getDatabaseInfo()` | `database-info` | Database 标题/描述/封面/图标（站点元数据回填） |
 
-`getPostBySlug()` / `getPageBySlug()` / `getPostsByTag()` 不单独发请求，基于 `all-posts` / `all-pages` 内存过滤。
+`getPostBySlug()` / `getPageBySlug()` / `getPostsByTag()` 不单独发请求，基于 `all-posts` / `all-pages` 内存过滤。文章/页面元数据提取（`extractMetadata`）也在服务层完成。
 
 ```typescript
 import dataService from '@lib/notion/service';
@@ -52,10 +52,10 @@ const post = await dataService.getPostBySlug('my-post');
 Notion API 封装，同时使用**官方 SDK 和非官方 API**：
 
 - **官方 SDK（@notionhq/client 5.x）**：
-  - 用 `dataSources.query()` 而非已弃用的 `databases.query()`；需先 `databases.retrieve()` 取 `data_sources[0].id`
-  - 三个查询方法：`queryPublishedPosts()`（type=Post + status=Published + date 降序）、`queryPages()`（type=Page）、`queryMenuItems()`（type=Menu + date 升序）
-  - 元数据提取（extractMetadata 逻辑）也在此文件
-- **非官方 API（notion-client）**：仅用于 child_database 视图配置和个别块类型。有 403/429 风险，配独立限流器 `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）；新增数据需求优先使用官方 SDK
+  - 用 `dataSources.query()` 查询；需先 `databases.retrieve()` 取 `data_sources[0].id`
+  - `queryPublishedPosts()`（type=Post + status=Published + date 降序）、`queryPages()`（type=Page）、`queryMenuItems()`（type=Menu + date 升序）
+  - `getDatabaseMeta()` 提供 Database 元信息（含封面/icon 的归属解析，见 §7）
+- **非官方 API（notion-client）**：用于官方 API 覆盖不到的数据——块 format 信息、同步块、child_database 视图配置、文件签名 URL。配独立限流器 `notionUnofficialRateLimiter`；新增数据需求优先使用官方 SDK
 
 ### 3. 块渲染器（`src/lib/notion/renderer/`）
 
@@ -63,7 +63,7 @@ Notion API 封装，同时使用**官方 SDK 和非官方 API**：
 
 - `block-renderer.ts` — 核心渲染逻辑，按块类型 switch，支持 30+ 块类型（段落、标题、列表、代码、表格、callout、toggle、column、synced_block、embed 等），递归渲染子块
 - `rich-text.ts` — 富文本格式（粗体、斜体、颜色、公式内联）
-- `index.ts` — 页面级渲染入口，协调 OG 抓取、图片 URL 映射等后处理
+- `index.ts` — 页面级渲染入口，协调 OG 抓取、文件 URL 解析等后处理
 
 代码高亮（Prism.js）和数学公式（KaTeX）在客户端由 `src/scripts/` 渲染。
 
@@ -98,34 +98,45 @@ LayoutRenderer (渲染层)
 | 开发 | MemoryCache | 5 分钟 | 进程内存 |
 | 生产（build） | FileCache | 1 小时 | `.cache/notion/*.json` |
 
-缓存 key 的 namespace 掺入了数据层代码版本（`code-version.ts` 对 `src/lib/notion/`、`src/lib/cache/`、`src/lib/utils/`、`src/lib/types.ts` 的内容 hash）：这些代码变更后缓存 key 自动变化、自动失效，旧缓存文件由 TTL 过期后的 `cleanup()` 回收，无需手动删除 `.cache/`。
+缓存 key 的 namespace 掺入数据层代码版本（`code-version.ts` 对 `src/lib/notion/`、`src/lib/cache/`、`src/lib/utils/`、`src/lib/types.ts` 的内容 hash）：这些代码变更后缓存自动失效，旧缓存文件由 TTL 过期后的 `cleanup()` 回收，无需手动删除 `.cache/`。
 
 ### 6. API 优化（`src/lib/utils/api-helpers.ts`）
 
-- **RateLimiter** — 并发控制。两个实例：官方 API `notionRateLimiter`（5 并发, 50ms 最小间隔）；非官方 API `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）
-- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），不重试 401/403 等权限错误。最多 3 次，指数退避 1s → 2s → 4s，延迟上限 30s
+- **RateLimiter** — 并发控制。官方 API `notionRateLimiter`（5 并发, 50ms 最小间隔）；非官方 API `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）
+- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）直接抛出。最多 3 次，指数退避 1s → 2s → 4s，延迟上限 30s
 
-### 7. 图片 URL 映射（`src/lib/notion/map-image-url.ts`）
+### 7. 文件 URL 统一解析（`src/lib/notion/file-url.ts`）
 
-Notion 的图片/附件 URL 会过期，构建产物中必须使用永久代理 URL：
+Notion 文件 URL 短时效（官方 API 的 S3 签名 URL 约 1 小时有效），静态产物统一改用 `notion.so/image/` 代理 URL（Notion 服务端代为鉴权，长期有效）。全部解析逻辑收敛于此模块：
 
-```
-原始:  https://prod-files-secure.s3.xxx/...?Expires=...&X-Amz-Signature=...
-转换:  https://www.notion.so/image/{encoded_url}?table=block&id={block_id}
-```
+| 函数 | 职责 |
+|------|------|
+| `toProxyUrl(raw, owner)` | 唯一转换入口：`attachment:` 内部引用、Notion 文件存储 URL（新旧两种域名）、站内相对路径 → 代理 URL；编码前剥离过期签名 query。已是代理格式、notion.site 公开图、外部图床直通 |
+| `fileObjectUrl(obj)` | 官方 API 文件对象（`{type: 'external'\|'file'}`）拆包出原始 URL |
+| `resolveIcon(src, owner)` / `resolveCover(src, owner)` | icon（emoji 或图片 URL）与封面的统一解析，兼容官方 API 对象和非官方 API 字符串两种形状 |
+| `withDisplayParams(url, width)` | 展示场景追加压缩参数（仅性能优化） |
 
-覆盖 `secure.notion-static.com`、`prod-files-secure`、Notion 内部相对路径及 Bookmark 外部图片。所有进入缓存的图片 URL 都需经过此转换，构建产物才能长期有效。
+代理按 `owner`（`{id, table}`，id 为带连字符 UUID）鉴权，各来源文件的归属规则：
+
+| 文件 | owner |
+|------|-------|
+| 正文图片/视频、callout 图标、文章封面 | 所属 block，`table: 'block'` |
+| 数据库 icon | collection 记录，`table: 'collection'` |
+| 数据库封面（`collection.cover`，旧版存储位置） | collection 记录，`table: 'collection'` |
+| 数据库封面（`format.page_cover`，现行存储位置） | 数据库页 block，`table: 'block'`；URL 取自官方 API 的文件 URL（`attachment:` 引用经代理无法访问） |
+
+例外：PDF/附件等非图片文件代理不支持，`block-renderer.ts` 的 `renderFile()` / `renderPdf()` 走 `getSignedUrl()`（非官方 API 的 `signed_urls` 缓存）。
 
 ### 8. 主题系统（`src/lib/theme/` + `src/themes/`）
 
 页面、布局、组件、样式都在主题目录，框架与 UI 解耦。`default` 为全功能主题（6 个路由 + TOC/灯箱/评论）；`minimal` 是契约参考实现——仅依据 `docs/THEMES.md` 编写的三路由极简主题，同时用作主题契约的回归验证（`NOPRESS_THEME=minimal`）：
 
 - `astro-integration.ts` — Astro 集成插件（在 `astro.config.mjs` 注册），扫描激活主题 `pages/` 下的页面（`.astro`）与端点（`.ts`）并 `injectRoute` 注入路由；对内核保留路由做构建期校验
-- `manager.ts` / `loader.ts` — 主题注册、激活与加载（`theme.config.mjs` 经原生 ESM 动态导入，支持任意合法 ESM 写法）；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
+- `manager.ts` / `loader.ts` — 主题注册、激活与加载（`theme.config.mjs` 经原生 ESM 动态导入）；`NOPRESS_THEME` 环境变量选择主题（默认 `default`）
 - `schema.ts` — 主题清单的 zod 校验（`theme.config.mjs` 必填 id/name/version）
 - 最小约束原则：框架只注入路由和配置别名，不干涉主题内部结构
 
-注意：`src/pages/` 只放内核数据端点（`.md`、`llms.txt`、RSS、robots），主题页面 `.astro` 和端点 `.ts` 放主题的 `pages/` 下。
+`src/pages/` 只放内核数据端点（`.md`、`llms.txt`、RSS、robots），主题页面和端点放主题的 `pages/` 下。
 
 ### 9. Markdown 转换（`src/lib/markdown/`）
 
@@ -155,7 +166,7 @@ src/
 │   │   ├── renderer/             # 块渲染器：block-renderer、rich-text、index
 │   │   ├── database/             # 嵌入式 Database 渲染（repository、table/gallery layout）
 │   │   ├── opengraph.ts          # Bookmark OG 元数据抓取（metascraper）
-│   │   └── map-image-url.ts      # 图片 URL 永久化
+│   │   └── file-url.ts           # 文件 URL 统一解析（代理转换、icon/封面）
 │   ├── cache/                    # notionCache：MemoryCache / FileCache + 数据层代码版本（自动失效）
 │   ├── markdown/                 # htmlToMarkdown（turndown + Notion 规则）
 │   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
@@ -165,33 +176,6 @@ src/
 ├── core/                         # meta-helpers（<head> 生成）
 └── scripts/                      # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、灯箱、giscus
 ```
-
-## 关键技术决策
-
-### 为什么用 SDK 5.x 的 `dataSources.query()`？
-
-`databases.query()` 在 SDK 5.x 中已变更：Database 拆分为 data source 概念，需先 `databases.retrieve()` 拿到 `data_sources[0].id` 再查询。
-
-### 为什么是双层缓存？
-
-- 开发用内存缓存 → 重启即失效，快速迭代
-- 构建用文件缓存 → 持久化，减少重复构建时的 API 调用（Notion API 有速率限制）
-
-### 为什么需要两个 RateLimiter？
-
-Notion 官方 API 平均限制约 3 请求/秒，非官方 API 更严格且可能 429。因此官方 API 用 5 并发 + 50ms 间隔，非官方 API 用更保守的 2 并发 + 350ms 间隔，各自独立排队。
-
-### 为什么需要 RetryHelper？
-
-网络波动导致偶发失败，自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）不重试、直接抛出。指数退避避免雪上加霜。
-
-### 为什么图片 URL 要映射？
-
-Notion 的 S3 签名 URL 通常 1 小时过期。静态站点产物长期存在，必须换成 `notion.so/image/` 代理 URL（Notion 服务端代理签名，长期有效）。
-
-### 为什么 HTML → Markdown 而不是 Notion → Markdown？
-
-`post.content` 在数据层已渲染为 HTML 并缓存，Markdown 端点复用它：零额外 API 调用、与页面渲染结果天然一致。
 
 ---
 

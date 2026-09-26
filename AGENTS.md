@@ -48,7 +48,7 @@ src/
 │   │   ├── renderer/     # 自研块渲染器：Notion blocks → HTML（30+ 块类型）
 │   │   ├── database/     # 嵌入式 child_database 渲染（表格/画廊视图）
 │   │   ├── opengraph.ts  # metascraper 抓取 bookmark 链接的 OG 元数据
-│   │   └── map-image-url.ts
+│   │   └── file-url.ts
 │   ├── cache/            # notionCache 单例：dev=MemoryCache / build=FileCache；code-version.ts 让缓存随数据层代码自动失效
 │   ├── markdown/         # htmlToMarkdown()：HTML → Markdown（turndown + GFM + Notion 规则）
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
@@ -73,7 +73,7 @@ src/
    - HTML 选项必须挂在 `HTML['html-minifier-terser']` 键下，写在 `HTML` 顶层会被静默忽略
    - `ignoreCustomComments` 里的 "This page is also available as Markdown" 规则用于保留 Markdown 发现注释，需保持不变
 
-5. **Notion 图片/附件 URL 会过期**。进入缓存的 URL 需经 `map-image-url.ts` 转成 `notion.so/image/` 代理格式，构建产物才能长期有效。
+5. **Notion 图片/附件 URL 会过期**。进入缓存的 URL 需经 `file-url.ts` 的 `toProxyUrl()`/`resolveIcon()`/`resolveCover()` 转成 `notion.so/image/` 代理格式，构建产物才能长期有效；PDF/附件例外，走 renderer 的 `getSignedUrl()`（代理不支持非图片文件）。
 
 6. **路径别名**：tsconfig.json 定义四个静态别名 `@/*`、`@lib/*`、`@config/*`、`@core/*`；主题集成另在运行时注入 `@theme`（指向激活主题根目录，因随 `NOPRESS_THEME` 变化不进 tsconfig，主题内部相互引用请用相对路径）。不存在 `@components`、`@data`。
 

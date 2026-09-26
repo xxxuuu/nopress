@@ -27,7 +27,8 @@ import { compareDate } from '../../utils/date';
 import { calculateReadingTime, generateExcerpt } from '../../utils/format';
 import { notionRateLimiter, notionRetryHelper } from '../../utils/api-helpers';
 import { notionCache } from '../../cache';
-import { mapImageUrl } from '../map-image-url';
+import { resolveIcon, resolveCover } from '../file-url';
+import type { FileOwner } from '../file-url';
 
 /**
  * Notion 数据服务
@@ -262,31 +263,10 @@ class NotionDataService implements DataService {
     const updatedAt = properties.updated?.date?.start || null;
     const tags = properties.tags?.multi_select?.map((tag: any) => tag.name) || [];
 
-    // 提取封面图片（在 page 对象顶层）
-    let coverUrl = '';
-    const cover = (page as any).cover;
-    if (cover) {
-      const rawUrl = cover.type === 'external' ? cover.external?.url : cover.file?.url;
-      if (rawUrl) {
-        // 使用 mapImageUrl 转换为永久 URL
-        coverUrl = mapImageUrl(rawUrl, page);
-      }
-    }
-
-    // 提取图标（在 page 对象顶层）
-    let icon = '';
-    const pageIcon = (page as any).icon;
-    if (pageIcon) {
-      if (pageIcon.type === 'emoji') {
-        icon = pageIcon.emoji || '';
-      } else {
-        const rawIconUrl = pageIcon.type === 'external' ? pageIcon.external?.url : pageIcon.file?.url;
-        if (rawIconUrl) {
-          // 使用 mapImageUrl 转换为永久 URL
-          icon = mapImageUrl(rawIconUrl, page);
-        }
-      }
-    }
+    // 提取封面和图标（page 对象顶层，形状兼容见 file-url.ts）
+    const owner: FileOwner = { id: page.id, table: 'block' };
+    const coverUrl = resolveCover((page as any).cover, owner);
+    const icon = resolveIcon((page as any).icon, owner);
 
     return {
       id: page.id,

@@ -6,7 +6,8 @@
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import type { RenderContext, RenderOptions, BlockFormat } from './types';
 import { renderRichText, extractPlainText, escapeHtml, renderPlainText } from './rich-text';
-import { mapImageUrl, compressImage } from '../map-image-url';
+import { toProxyUrl, fileObjectUrl, resolveIcon, withDisplayParams } from '../file-url';
+import type { FileOwner } from '../file-url';
 import { fetchOpenGraphData } from '../opengraph';
 
 export class NotionBlockRenderer {
@@ -22,7 +23,7 @@ export class NotionBlockRenderer {
     this.options = {
       enableToggle: true,
       lazyLoadImages: true,
-      // 非 0 时通过 Notion 图片代理的 width 参数缩放图片（compressImage），
+      // 非 0 时通过 Notion 图片代理的 width 参数缩放图片（withDisplayParams），
       // 避免移动端下载 MB 级原图；正文容器 900px，1400 可覆盖 1.5x DPR
       imageMaxWidth: 1400,
       ...options,
@@ -308,7 +309,7 @@ export class NotionBlockRenderer {
   private async renderCallout(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const callout = (block as any).callout;
     const text = await renderRichText(callout.rich_text);
-    const icon = this.getCalloutIcon(callout.icon);
+    const icon = this.getCalloutIcon(callout.icon, block);
     const colorClass = callout.color !== 'default' ? `notion-callout-${callout.color.replace('_', '-')}` : '';
 
     let html = `<div class="notion-callout ${colorClass}">
@@ -423,15 +424,14 @@ export class NotionBlockRenderer {
    */
   private async renderImage(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const image = (block as any).image;
-    let url = this.getFileUrl(image);
 
     // 转换临时 URL 为永久 URL
-    url = mapImageUrl(url, block);
+    const url = toProxyUrl(fileObjectUrl(image), this.blockOwner(block));
 
     // 可选：压缩图片（正文显示用压缩版，灯箱 href 保留原图，点击后再渐进加载）
     let displayUrl = url;
     if (this.options.imageMaxWidth > 0) {
-      displayUrl = compressImage(url, this.options.imageMaxWidth);
+      displayUrl = withDisplayParams(url, this.options.imageMaxWidth);
     }
 
     const caption = image.caption && image.caption.length > 0
@@ -502,11 +502,11 @@ export class NotionBlockRenderer {
    */
   private async renderVideo(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const video = (block as any).video;
-    let url = this.getFileUrl(video);
+    let url = fileObjectUrl(video);
 
     // 转换临时 URL 为永久 URL（只对上传的文件，外部链接不处理）
     if (video.type === 'file') {
-      url = mapImageUrl(url, block);
+      url = toProxyUrl(url, this.blockOwner(block));
     }
 
     const caption = video.caption && video.caption.length > 0
@@ -548,7 +548,7 @@ export class NotionBlockRenderer {
    */
   private async renderFile(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const file = (block as any).file;
-    let url = this.getFileUrl(file);
+    let url = fileObjectUrl(file);
 
     // 优先使用 signed_url（永久 URL），否则使用图片代理（对文件可能不生效）
     const signedUrl = this.getSignedUrl(block.id);
@@ -556,7 +556,7 @@ export class NotionBlockRenderer {
       url = signedUrl;
     } else if (file.type === 'file') {
       // 上传的文件尝试使用图片代理（可能不生效）
-      url = mapImageUrl(url, block);
+      url = toProxyUrl(url, this.blockOwner(block));
     }
 
     const caption =
@@ -590,10 +590,10 @@ export class NotionBlockRenderer {
    */
   private async renderPdf(block: BlockObjectResponse, context: RenderContext): Promise<string> {
     const pdf = (block as any).pdf;
-    let url = this.getFileUrl(pdf);
+    let url = fileObjectUrl(pdf);
 
     // 优先使用 signed_url（永久 URL）
-    // 注意：mapImageUrl 使用 /image/ 代理，不支持 PDF，所以必须用 signed_url
+    // 注意：/image/ 代理不支持 PDF，所以必须用 signed_url
     const signedUrl = this.getSignedUrl(block.id);
     if (signedUrl) {
       url = signedUrl;
@@ -1041,23 +1041,23 @@ export class NotionBlockRenderer {
   }
 
   /**
-   * 获取 Callout 图标
+   * 获取 Callout 图标（自定义图片走代理转换，避免签名 URL 过期）
    */
-  private getCalloutIcon(icon: any): string {
+  private getCalloutIcon(icon: any, block: BlockObjectResponse): string {
     if (!icon) return '💡';
     if (icon.type === 'emoji') return icon.emoji;
-    if (icon.type === 'external') return `<img src="${icon.external.url}" alt="icon" class="notion-callout-icon-img" />`;
-    if (icon.type === 'file') return `<img src="${icon.file.url}" alt="icon" class="notion-callout-icon-img" />`;
+    const url = toProxyUrl(fileObjectUrl(icon), this.blockOwner(block));
+    if (url) {
+      return `<img src="${escapeHtml(url)}" alt="icon" class="notion-callout-icon-img" />`;
+    }
     return '💡';
   }
 
   /**
-   * 获取文件 URL（处理 external 和 file 类型）
+   * 块内文件（图片/视频/附件/callout 图标）的代理鉴权归属：块自身
    */
-  private getFileUrl(file: any): string {
-    if (file.type === 'external') return file.external.url;
-    if (file.type === 'file') return file.file.url;
-    return '';
+  private blockOwner(block: BlockObjectResponse): FileOwner {
+    return { id: block.id, table: 'block' };
   }
 
   /**

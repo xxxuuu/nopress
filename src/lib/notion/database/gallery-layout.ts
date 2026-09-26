@@ -13,7 +13,7 @@ import type {
   DatabaseRenderOptions,
 } from './types';
 import { escapeHtml } from '../renderer/rich-text';
-import { mapImageUrl } from '../map-image-url';
+import { toProxyUrl } from '../file-url';
 
 /**
  * 画廊支持的属性类型
@@ -166,7 +166,7 @@ export class GalleryLayoutRenderer {
         const imageUrl = value.value[0];
         if (imageUrl) {
           // 转换临时 URL 为永久 URL
-          const mappedUrl = mapImageUrl(imageUrl, { id: row.id, type: 'block' });
+          const mappedUrl = toProxyUrl(imageUrl, { id: row.id, table: 'block' });
           imageHtml = `<img src="${escapeHtml(mappedUrl)}" alt="" loading="lazy" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('notion-database-card-cover-error')" />`;
         }
       }

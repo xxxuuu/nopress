@@ -5,7 +5,7 @@
 
 import { Client } from '@notionhq/client';
 import { NotionAPI as NotionAPILib } from 'notion-client';
-import { mapImageUrl } from '../map-image-url';
+import { resolveIcon, resolveCover } from '../file-url';
 import {
   notionUnofficialRateLimiter,
   notionUnofficialRetryHelper,
@@ -14,6 +14,15 @@ import type { NotionPage, NotionBlock, BlockValue, PageData, DatabaseMeta } from
 
 // 重新导出类型
 export type { NotionPage, NotionBlock, BlockValue, PageData, DatabaseMeta } from './types';
+
+/**
+ * 将可能是无连字符格式的 ID 规范化为带连字符的 UUID（recordMap 的 key 格式）
+ */
+function toDashedId(id: string): string {
+  if (id.includes('-')) return id;
+  if (id.length !== 32) return id;
+  return `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+}
 
 /**
  * 统一的 Notion API 封装
@@ -139,38 +148,62 @@ export class NotionAPI {
       const descArray = database.description || [];
       const description = descArray.map((d: any) => d.plain_text || '').join('') || '';
 
-      // 使用非官方 API 获取封面和图标（自动缓存）
+      // 封面与图标（自动缓存）
+      //
+      // 封面按存储位置解析（归属记录决定代理鉴权，见 file-url.ts）：
+      // 1. 官方 API external → 直通
+      // 2. collection.cover（旧版存储位置）→ 代理（table=collection）
+      // 3. block format.page_cover（现行存储位置）→ 代理（table=block）。
+      //    URL 取官方 API 的文件对象而非 recordMap 原始引用（attachment:
+      //    形式经代理无法访问）
       let coverUrl = '';
       let icon = '';
+      const officialCover = (database as any).cover;
+
+      if (officialCover?.type === 'external') {
+        coverUrl = resolveCover(officialCover, { id: this.databaseId, table: 'block' });
+      }
+
       try {
         const pageData = await this.getPageData(this.databaseId);
 
-        if (pageData.collection) {
-          const collectionId = Object.keys(pageData.collection)[0];
-          if (collectionId) {
-            const collectionData = pageData.collection[collectionId];
+        const collectionRecord = pageData.collection || {};
+        // 兼容原始格式（spaceId 包装的双层 value）和缓存重组格式（单层 value）
+        const collectionId = Object.keys(collectionRecord)[0];
+        const collectionValue = collectionId
+          ? collectionRecord[collectionId]?.value?.value ??
+            collectionRecord[collectionId]?.value
+          : null;
 
-            // 兼容原始格式（spaceId 包装的双层 value）和缓存重组格式（单层 value）
-            const collectionValue = collectionData?.value?.value ?? collectionData?.value;
+        if (!coverUrl && collectionValue?.cover) {
+          coverUrl = resolveCover(collectionValue.cover, {
+            id: collectionId,
+            table: 'collection',
+          });
+        }
 
-            if (collectionValue?.cover) {
-              coverUrl = mapImageUrl(collectionValue.cover, {
-                id: collectionId,
-                type: 'collection'
-              });
-            }
+        if (collectionValue?.icon) {
+          icon = resolveIcon(collectionValue.icon, {
+            id: collectionId,
+            table: 'collection',
+          });
+        }
 
-            if (collectionValue?.icon) {
-              const rawIcon = collectionValue.icon;
-              if (rawIcon.startsWith('http')) {
-                icon = mapImageUrl(rawIcon, {
-                  id: collectionId,
-                  type: 'collection'
-                });
-              } else {
-                icon = rawIcon;
-              }
-            }
+        if (!coverUrl) {
+          // 数据库封面实际存放在 collection_view_page block 的 format.page_cover
+          // （collection.cover 通常为空）；recordMap 的 key 为带连字符的 UUID，
+          // 而 NOTION_DATABASE_ID 可能是无连字符格式，需做两种查找
+          const blockMap = pageData.block || {};
+          const dbBlock =
+            blockMap[toDashedId(this.databaseId)]?.value ??
+            blockMap[this.databaseId]?.value;
+          const pageCover = (dbBlock as any)?.format?.page_cover as string | undefined;
+
+          if (pageCover) {
+            coverUrl = resolveCover(officialCover, {
+              id: toDashedId(this.databaseId),
+              table: 'block',
+            });
           }
         }
       } catch (error) {
