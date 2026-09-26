@@ -60,7 +60,3 @@
 - [Notion](https://notion.so) - 灵感来源
 - [Astro](https://astro.build/) - 杰出的静态网站生成器
 - [NotionNext](https://github.com/xxxuuu/NotionNext) - 图片 URL 映射参考
-
-## 📄 License
-
-[MIT](./LICENSE)
