@@ -1,5 +1,9 @@
 <h1 align="center">
-  <img src="./docs/assets/readme-logo.svg" width="438" alt="NoPress" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/readme-logo-dark.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="./docs/assets/readme-logo.svg" />
+    <img src="./docs/assets/readme-logo.svg" width="438" alt="NoPress" />
+  </picture>
 </h1>
 
 <p align="center"><strong>在 Notion 写作，拥有自己的博客。</strong></p>
