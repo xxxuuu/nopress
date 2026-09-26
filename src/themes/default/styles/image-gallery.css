@@ -59,7 +59,6 @@
 /* ========== 原文章图片样式增强 ========== */
 
 .notion-image a.glightbox {
-  display: inline-block;
   cursor: zoom-in;
   transition: opacity 0.3s ease;
   border: none !important;
@@ -67,6 +66,11 @@
   text-decoration: none !important;
   overflow: hidden;
   border-radius: var(--radius-md);
+}
+
+/* data-aspect-ratio 锚点必须保持块级，否则 inline-block 的基线沉降会使 figure 凭空增高 */
+.notion-image a.glightbox:not([data-aspect-ratio]) {
+  display: inline-block;
 }
 
 .notion-image a.glightbox:hover {

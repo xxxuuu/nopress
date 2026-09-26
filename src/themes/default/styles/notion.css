@@ -901,10 +901,13 @@ code.notion-equation .katex {
   margin: 1.0em auto;
 }
 
-/* 分栏布局内的图片 - 默认去掉上下边距避免叠加 */
 .notion-column-list .notion-image {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+.notion-column-list .notion-image + .notion-image {
+  margin-top: var(--spacing-sm);
 }
 
 .notion-image img {
