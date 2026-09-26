@@ -51,12 +51,36 @@ function stripSignedQuery(url: string): string {
   return url.split('?')[0];
 }
 
+/** Notion 新版文件 CDN 的签名直链域名 */
+const FILE_CDN_HOST = /^file\.notion\.(?:so|com)$/i;
+
+/**
+ * 将 file.notion CDN 签名直链（/f/f/<spaceId>/<fileId>/<文件名>?tok=...）
+ * 还原为 attachment: 内部引用。直链中的令牌数小时即过期，还原为内部引用
+ * 后走统一代理转换即可不受其影响。
+ */
+function fromFileCdnUrl(raw: string): string | null {
+  try {
+    const url = new URL(raw);
+    if (!FILE_CDN_HOST.test(url.hostname)) return null;
+    const parts = url.pathname.split('/').filter(Boolean);
+    if (parts.length < 5 || parts[0] !== 'f' || parts[1] !== 'f') return null;
+    const fileId = parts[3];
+    const fileName = decodeURIComponent(parts.slice(4).join('/'));
+    if (!fileId || !fileName) return null;
+    return `attachment:${fileId}:${fileName}`;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 任意 Notion 文件引用 → 永久 notion.so/image/ 代理 URL
  *
  * 覆盖：`attachment:` 内部引用、Notion 文件存储的签名 URL（新旧域名均剥离
- * 过期签名）、站内相对路径。已是代理格式、notion.site 公开图、
- * 外部图床（unsplash 等）原样返回——代理仅对 Notion 自有文件存储有效。
+ * 过期签名）、file.notion CDN 签名直链、站内相对路径。已是代理格式、
+ * notion.site 公开图、外部图床（unsplash 等）原样返回——代理仅对 Notion
+ * 自有文件存储有效。
  *
  * @param raw 原始文件引用（任意来源的 URL 或 attachment: 字符串）
  * @param owner 文件所属记录，用于代理鉴权
@@ -64,17 +88,19 @@ function stripSignedQuery(url: string): string {
 export function toProxyUrl(raw: string, owner: FileOwner): string {
   if (!raw) return '';
 
+  const ref = fromFileCdnUrl(raw) ?? raw;
+
   // 站内相对路径（以 / 开头，协议相对的 // 除外）
-  if (raw.startsWith('/') && !raw.startsWith('//')) {
-    return `${NOTION_HOST}${raw}`;
+  if (ref.startsWith('/') && !ref.startsWith('//')) {
+    return `${NOTION_HOST}${ref}`;
   }
 
-  if (!needsProxy(raw)) {
-    return raw;
+  if (!needsProxy(ref)) {
+    return ref;
   }
 
   try {
-    const encoded = encodeURIComponent(stripSignedQuery(raw));
+    const encoded = encodeURIComponent(stripSignedQuery(ref));
     return `${NOTION_HOST}/image/${encoded}?table=${owner.table}&id=${owner.id}`;
   } catch (error) {
     console.warn('[file-url] Failed to encode URL:', raw, error);

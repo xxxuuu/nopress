@@ -150,7 +150,7 @@ export class NotionAPI {
 
       // 封面与图标（自动缓存）
       //
-      // 封面按存储位置解析（归属记录决定代理鉴权，见 file-url.ts）：
+      // 封面按存储位置解析（归属记录决定代理鉴权）：
       // 1. 官方 API external → 直通
       // 2. collection.cover（旧版存储位置）→ 代理（table=collection）
       // 3. block format.page_cover（现行存储位置）→ 代理（table=block）。

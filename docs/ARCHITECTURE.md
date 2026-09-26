@@ -111,7 +111,7 @@ Notion 文件 URL 短时效（官方 API 的 S3 签名 URL 约 1 小时有效）
 
 | 函数 | 职责 |
 |------|------|
-| `toProxyUrl(raw, owner)` | 唯一转换入口：`attachment:` 内部引用、Notion 文件存储 URL（新旧两种域名）、站内相对路径 → 代理 URL；编码前剥离过期签名 query。已是代理格式、notion.site 公开图、外部图床直通 |
+| `toProxyUrl(raw, owner)` | 唯一转换入口：`attachment:` 内部引用、Notion 文件存储 URL（新旧两种域名）、file.notion CDN 签名直链、站内相对路径 → 代理 URL；编码前剥离过期签名。已是代理格式、notion.site 公开图、外部图床直通 |
 | `fileObjectUrl(obj)` | 官方 API 文件对象（`{type: 'external'\|'file'}`）拆包出原始 URL |
 | `resolveIcon(src, owner)` / `resolveCover(src, owner)` | icon（emoji 或图片 URL）与封面的统一解析，兼容官方 API 对象和非官方 API 字符串两种形状 |
 | `withDisplayParams(url, width)` | 展示场景追加压缩参数（仅性能优化） |
