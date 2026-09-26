@@ -80,40 +80,6 @@ async function setupGallery() {
   // 注入 PhotoSwipe 样式（仅在有图片的页面加载，替代 BaseLayout 的全站 preload）
   loadPhotoSwipeCss();
 
-  // 为每个链接准备数据
-  const prepareLinks = () => {
-    galleryLinks.forEach((link) => {
-      const linkEl = link as HTMLAnchorElement;
-      const img = linkEl.querySelector('img') as HTMLImageElement;
-
-      if (!img) return;
-
-      // 等待图片加载完成以获取尺寸
-      const setupDimensions = () => {
-        const width = img.naturalWidth || img.width || 1200;
-        const height = img.naturalHeight || img.height || 800;
-
-        linkEl.setAttribute('data-pswp-width', width.toString());
-        linkEl.setAttribute('data-pswp-height', height.toString());
-
-        // 确保 href 指向图片 URL
-        if (!linkEl.href || linkEl.href === '') {
-          linkEl.href = img.src;
-        }
-      };
-
-      if (img.complete && img.naturalWidth) {
-        setupDimensions();
-      } else {
-        img.addEventListener('load', setupDimensions);
-        // 如果图片加载失败或超时，使用默认尺寸
-        setTimeout(setupDimensions, 1000);
-      }
-    });
-  };
-
-  prepareLinks();
-
   try {
     // 动态导入 PhotoSwipeLightbox（轻量）；
     // photoswipe 核心通过 pswpModule 传入加载函数，推迟到首次点击打开灯箱时才下载
@@ -263,44 +229,131 @@ async function setupGallery() {
       });
     });
 
-    // 渐进式加载：灯箱初始显示压缩图（a 内 img 的 src），原图（a 的 href）在后台预载后无缝替换
-    // 压缩图与原图等比缩放，替换时布局无跳动
-    lightbox.on('uiRegister', function() {
+    // 尺寸与原图升级状态按正文链接保存，避免切换/重开时被新建的 slide 数据覆盖。
+    interface ImageState {
+      src: string;
+      fullSrc: string;
+      width: number;
+      height: number;
+      fullLoading: boolean;
+    }
+    interface ItemData {
+      element?: HTMLElement;
+      src?: string;
+      width?: number;
+      height?: number;
+    }
+    interface ContentEvent {
+      content: { data: ItemData; element?: HTMLElement; index: number };
+      isError?: boolean;
+    }
+    const images = new WeakMap<HTMLElement, ImageState>();
+    const pendingRefresh = new Set<number>();
+
+    // 原图替换和尺寸修正必须刷新 PhotoSwipe 的内容缓存、缩放级别与平移边界。
+    // 延迟到加载事件结束、打开动画完成后，避免同步缓存命中时重入 slide 初始化。
+    const flushRefresh = () => {
       const pswp = lightbox.pswp;
+      if (!pswp || pswp.isDestroying || !pswp.opener.isOpen) return;
+      // 刷新会重建 slide；等手势和动画结束，避免它们继续操作已销毁的实例。
+      if (pswp.gestures.isDragging || pswp.gestures.isZooming
+        || pswp.mainScroll.isShifted() || pswp.animations.isPanRunning()) {
+        requestAnimationFrame(flushRefresh);
+        return;
+      }
+      const indexes = [...pendingRefresh];
+      pendingRefresh.clear();
+      indexes.forEach((index) => {
+        const slide = pswp.currSlide;
+        const center = pswp.getViewportCenterPoint();
+        // 初始视图继续自动适配真实尺寸；已放大的视图保存屏幕宽度和中心对应的图片坐标。
+        const view = slide?.index === index && slide.width > 0 && slide.height > 0
+          && slide.currZoomLevel !== slide.zoomLevels.initial
+          ? {
+            width: slide.width * slide.currZoomLevel,
+            x: (center.x - slide.pan.x) / (slide.width * slide.currZoomLevel),
+            y: (center.y - slide.pan.y) / (slide.height * slide.currZoomLevel),
+          } : null;
 
-      // 打开/切换前将 slide 数据源换成压缩图（未升级过的 slide）
-      pswp.on('gettingData', (e: any) => {
-        const data = e.data;
-        if (!data || data.srcUpgraded) return;
-        const thumbSrc = data.element?.querySelector?.('img')?.getAttribute('src');
-        if (thumbSrc) data.src = thumbSrc;
+        pswp.refreshSlideContent(index);
+
+        const refreshed = pswp.currSlide;
+        if (view && refreshed?.index === index && refreshed.width > 0) {
+          // 固有像素数改变后换算 zoom，而不是沿用旧值；同步恢复，避免中间帧居中闪跳。
+          const zoom = view.width / refreshed.width;
+          refreshed.zoomTo(zoom, center, 0, true);
+          refreshed.panTo(
+            center.x - view.x * refreshed.width * zoom,
+            center.y - view.y * refreshed.height * zoom,
+          );
+        }
       });
+    };
+    const refreshLater = (index: number) => {
+      pendingRefresh.add(index);
+      requestAnimationFrame(flushRefresh);
+    };
+    lightbox.on('openingAnimationEnd', flushRefresh);
+    lightbox.on('destroy', () => pendingRefresh.clear());
 
-      // 压缩图显示完成后，后台预载原图并替换 slide
-      // 注意：loadComplete 触发时 pswp.currSlide 可能尚未赋值（打开流程早期），
-      // 且非当前 slide 的 img 不可见、图片等比，替换无布局副作用，无需区分当前与否
-      pswp.on('loadComplete', (e: any) => {
-        const slide = e.slide;
-        const content = e.content;
-        if (!slide || !content || slide.data?.fullProbeStarted) return;
+    // itemData 同时覆盖首次预载和后续切换；不能只在 gettingData 中改 slide。
+    lightbox.addFilter('itemData', (data: ItemData) => {
+      const link = data.element;
+      const img = link?.querySelector('img');
+      if (!(link instanceof HTMLAnchorElement) || !img) return data;
 
-        const fullSrc = slide.data?.element?.getAttribute('href') || '';
-        const imgEl = content.element as HTMLImageElement | null;
-        if (!fullSrc || !imgEl || imgEl.src === fullSrc) return;
-
-        slide.data.fullProbeStarted = true;
-        const probe = new Image();
-        probe.onload = () => {
-          // 升级后同步 data.src，防止 gettingData 将数据源回退成压缩图
-          if (content.element) {
-            slide.data.src = fullSrc;
-            slide.data.srcUpgraded = true;
-            (content.element as HTMLImageElement).src = fullSrc;
-          }
+      let state = images.get(link);
+      if (!state) {
+        const ratio = Number(link.dataset.aspectRatio);
+        state = {
+          src: img.src || link.href,
+          fullSrc: link.href || img.src,
+          // 未加载的正文图只有 CSS 排版尺寸，不能把它当成图片固有尺寸。
+          // 暂以宽高比占位，灯箱自身加载完成后再使用 naturalWidth/Height。
+          width: img.naturalWidth || 1200,
+          height: img.naturalHeight || (Number.isFinite(ratio) && ratio > 0
+            ? Math.max(1, Math.round(1200 / ratio)) : 800),
+          fullLoading: false,
         };
-        probe.src = fullSrc;
-      });
+        images.set(link, state);
+      }
+      data.src = state.src;
+      data.width = state.width;
+      data.height = state.height;
+      return data;
     });
+
+    const onImageReady = ({ content, isError }: ContentEvent) => {
+      const link = content.data.element;
+      const state = link && images.get(link);
+      const img = content.element;
+      if (isError || !state || !(img instanceof HTMLImageElement)
+        || !img.complete || !img.naturalWidth || img.src !== state.src) return;
+
+      if (state.width !== img.naturalWidth || state.height !== img.naturalHeight) {
+        state.width = img.naturalWidth;
+        state.height = img.naturalHeight;
+        refreshLater(content.index);
+      }
+      if (state.src === state.fullSrc || state.fullLoading) return;
+
+      state.fullLoading = true;
+      const probe = new Image();
+      probe.onload = () => {
+        state.fullLoading = false;
+        state.src = state.fullSrc;
+        state.width = probe.naturalWidth;
+        state.height = probe.naturalHeight;
+        refreshLater(content.index);
+      };
+      // 保留已加载的压缩图；下次激活时允许重试原图。
+      probe.onerror = () => { state.fullLoading = false; };
+      probe.src = state.fullSrc;
+    };
+    lightbox.on('loadComplete', onImageReady);
+    // 后台预载完成时可能尚无 slide，不会触发 loadComplete；挂载/激活时补齐。
+    lightbox.on('contentAppend', onImageReady);
+    lightbox.on('contentActivate', onImageReady);
 
     // 初始化
     lightbox.init();
