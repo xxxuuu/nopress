@@ -1,13 +1,21 @@
-# NoPress
+<h1 align="center">
+  <img src="./docs/assets/readme-logo.svg" width="438" alt="NoPress" />
+</h1>
 
-**Notion + Astro = 极简博客生成器**
+<p align="center"><strong>在 Notion 写作，拥有自己的博客。</strong></p>
 
-以 Notion Database 为唯一内容源：在 Notion 中写作，Astro 在构建时拉取内容，生成纯静态站点。
+<p align="center">以 Notion 为内容源，由 Astro 构建为纯静态站点。</p>
 
-![GitHub stars](https://img.shields.io/github/stars/xxxuuu/nopress?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
+<p align="center">
+  <a href="https://github.com/xxxuuu/nopress/stargazers"><img src="https://img.shields.io/github/stars/xxxuuu/nopress?style=flat-square" alt="GitHub stars" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License: MIT" /></a>
+</p>
 
-技术栈：[Astro 7](https://astro.build/) · TypeScript · Notion API（官方 SDK 5.x）· Prism.js · KaTeX · Mermaid
+<p align="center">
+  <a href="#-快速开始">快速开始</a> ·
+  <a href="./docs/USER-GUIDE.md">用户指南</a> ·
+  <a href="./docs/THEMES.md">主题开发</a>
+</p>
 
 ## ✨ 特性
 
@@ -47,12 +55,12 @@
 
 欢迎提交 Issue 和 Pull Request！
 
-## 📄 License
-
-[MIT](./LICENSE)
-
-## 致谢
+## 🙏 致谢
 
 - [Notion](https://notion.so) - 灵感来源
 - [Astro](https://astro.build/) - 杰出的静态网站生成器
 - [NotionNext](https://github.com/xxxuuu/NotionNext) - 图片 URL 映射参考
+
+## 📄 License
+
+[MIT](./LICENSE)
