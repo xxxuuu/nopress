@@ -32,7 +32,7 @@ const icons: Record<string, string> = {
     <div class="footer-content">
       <div class="copyright">
         <p>&copy; {SITE_CONFIG.copyrightYearText} {SITE_CONFIG.title}. All rights reserved.</p>
-        <p class="powered-by">Powered by <a href={REPO_URL} target="_blank" rel="noopener noreferrer">Nopress</a>{commitSha && <span class="commit-id"> · <a href={`${REPO_URL}/commit/${commitSha}`} target="_blank" rel="noopener noreferrer">{commitSha}</a></span>}</p>
+        <p class="powered-by">Powered by <a href={REPO_URL} target="_blank" rel="noopener noreferrer">NoPress</a>{commitSha && <span class="commit-id"> · <a href={`${REPO_URL}/commit/${commitSha}`} target="_blank" rel="noopener noreferrer">{commitSha}</a></span>}</p>
       </div>
       <div class="social-links">
         {Object.entries(SITE_CONFIG.social ?? {}).map(([platform, url]) => (
