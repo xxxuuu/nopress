@@ -1,8 +1,14 @@
 ---
 import { getResolvedSiteConfig } from '@config/resolved-site';
+import { getBuildCommitSha } from '@lib/utils/version';
 
 // 获取解析后的站点配置
 const SITE_CONFIG = await getResolvedSiteConfig();
+
+// 构建时的 commit id，非 git 环境为空（不展示）
+const commitSha = getBuildCommitSha();
+
+const REPO_URL = 'https://github.com/xxxuuu/nopress';
 
 // 社交图标 SVG
 const icons: Record<string, string> = {
@@ -26,7 +32,7 @@ const icons: Record<string, string> = {
     <div class="footer-content">
       <div class="copyright">
         <p>&copy; {SITE_CONFIG.copyrightYearText} {SITE_CONFIG.title}. All rights reserved.</p>
-        <p class="powered-by">Powered by <a href="https://github.com/xxxuuu/nopress" target="_blank" rel="noopener noreferrer">Nopress</a></p>
+        <p class="powered-by">Powered by <a href={REPO_URL} target="_blank" rel="noopener noreferrer">Nopress</a>{commitSha && <span class="commit-id"> · <a href={`${REPO_URL}/commit/${commitSha}`} target="_blank" rel="noopener noreferrer">{commitSha}</a></span>}</p>
       </div>
       <div class="social-links">
         {Object.entries(SITE_CONFIG.social ?? {}).map(([platform, url]) => (

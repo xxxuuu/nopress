@@ -173,7 +173,7 @@ src/
 │   ├── markdown/                 # htmlToMarkdown（turndown + Notion 规则）
 │   ├── theme/                    # 主题系统：manager、loader、schema、astro-integration
 │   ├── config/loader.ts          # 环境变量配置加载
-│   └── utils/                    # api-helpers（限流/重试）、slug、date、format
+│   └── utils/                    # api-helpers（限流/重试）、slug、date、format、version（构建 commit id）
 ├── config/                       # site.ts 默认值 + resolved-site.ts（回填 Database 元数据）
 ├── core/                         # meta-helpers（<head> 生成）
 └── scripts/                      # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、灯箱、giscus

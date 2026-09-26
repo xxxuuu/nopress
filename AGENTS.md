@@ -53,7 +53,7 @@ src/
 │   ├── markdown/         # htmlToMarkdown()：HTML → Markdown（turndown + GFM + Notion 规则）
 │   ├── theme/            # 主题系统：manager / loader / zod schema / astro-integration
 │   ├── config/loader.ts  # 环境变量配置加载（SITE_*、COMMENTS_*）
-│   └── utils/            # slug / date / format / api-helpers（RateLimiter + RetryHelper）
+│   └── utils/            # slug / date / format / api-helpers（RateLimiter + RetryHelper）/ version（构建 commit id）
 ├── config/               # site.ts 默认值 + resolved-site.ts（可回填 Notion Database 元信息）
 ├── core/                 # meta-helpers（<head> 标签生成）
 └── scripts/              # 客户端脚本：TOC、代码高亮、KaTeX、mermaid、图片灯箱、giscus
