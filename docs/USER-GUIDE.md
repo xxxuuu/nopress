@@ -31,6 +31,10 @@
 
    不做这一步的话，博客读不到 Database 里的内容。
 
+4. **将博客 Database 发布到 Web**：打开 Database 页面，点右上角 **Share → Publish → Publish**，并确认公开页面无需登录 Notion 即可访问。Integration 授权只供构建时读取内容；博客访客需要通过公开页面访问 Notion 托管的图片。
+
+   > **隐私提醒**：发布页面时，Notion 默认也会发布其子页面。Database 中标记为 `Draft` 的条目仍可能通过 Notion 公开页面直接访问，即使它们不会显示在 NoPress 博客中。发布前请移出不应公开的页面，或在 Notion 中限制这些子页面的公开访问。详见 [Notion 网页发布说明](https://www.notion.com/help/public-pages-and-web-publishing)。
+
 ### 第 2 步：部署
 
 1. 把 [NoPress 仓库](https://github.com/xxxuuu/nopress) **Fork** 到你的 GitHub 账号（或用 Use this template）
