@@ -4,7 +4,7 @@
 
 ### 第 1 步：准备 Notion
 
-1. **复制内容数据库**：打开 [Example Database](https://app.notion.com/p/xxuuu/a6d887563979827fb7d601c96daa2b11)，点右上角 **Duplicate** 复制到自己的工作区；也可以手动新建 Database 并添加这些列（**列名必须全部小写**）：
+1. **复制内容数据库**：打开 [Example Database](https://xxuuu.notion.site/a6d887563979827fb7d601c96daa2b11)，点右上角 **Duplicate** 复制到自己的工作区；也可以手动新建 Database 并添加这些列（**列名必须全部小写**）：
 
    | 列名 | 类型 | 说明 |
    |------|------|------|

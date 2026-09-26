@@ -27,7 +27,7 @@
 
 不写代码、不装任何东西，三步上线：
 
-1. **准备 Notion**：把 [Example Database](https://app.notion.com/p/xxuuu/a6d887563979827fb7d601c96daa2b11) 复制到你的工作区，并创建一个 Integration Token
+1. **准备 Notion**：把 [Example Database](https://xxuuu.notion.site/a6d887563979827fb7d601c96daa2b11) 复制到你的工作区，并创建一个 Integration Token
 2. **部署**：Fork 本仓库后在 [Vercel](https://vercel.com)（免费）导入，设置 `NOTION_TOKEN` 和 `NOTION_DATABASE_ID` 两个环境变量
 3. **写作**：在 Notion Database 里写文章，博客自动呈现
 
