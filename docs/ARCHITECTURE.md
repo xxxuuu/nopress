@@ -87,6 +87,8 @@ LayoutRenderer (渲染层)
 
 - 列顺序、可见性、行排序均来自 Notion 视图配置（经非官方 API 获取）
 - 排序完全在数据层实现，渲染层不做排序
+- Gallery 封面处理分为三步：`resolveCoverSource()` 按视图配置确定一次来源（页面头图或属性 ID，并保留原有属性回退规则）；`resolveCoverUrl()` 按行从选定来源取值并转换 URL；`renderCover()` 仅根据 URL 生成 HTML，不读取行数据或视图配置。
+- Gallery 的页面头图模式（`gallery_cover.type = 'page_cover'`）读取行数据的可选 `pageCoverUrl`：仓储从每条 Page 顶层的 `cover` 提取，使用该 Page ID 和 `table: 'block'` 经 `resolveCover()` 解析后写入缓存，无需额外逐页请求。没有头图时保留空封面容器，不回退到 Files 属性；其他封面模式保持原有行为。
 - 支持属性类型：text、number、select、multi_select、date、checkbox 等；不支持的类型显示 `—`
 
 ### 5. 缓存系统（`src/lib/cache/`）

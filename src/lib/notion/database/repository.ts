@@ -5,6 +5,7 @@
 
 import { notionAPI } from '../api';
 import { notionCache } from '../../cache';
+import { resolveCover } from '../file-url';
 import type {
   Database,
   DatabaseSchema,
@@ -404,6 +405,7 @@ export class DatabaseRepository implements IDatabaseRepository {
       id: rawPage.id,
       createdTime: rawPage.created_time,
       lastEditedTime: rawPage.last_edited_time,
+      pageCoverUrl: resolveCover(rawPage.cover, { id: rawPage.id, table: 'block' }) || undefined,
       properties,
       archived: rawPage.archived || false,
     };

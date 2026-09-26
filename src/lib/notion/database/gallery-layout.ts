@@ -15,6 +15,11 @@ import type {
 import { escapeHtml } from '../renderer/rich-text';
 import { toProxyUrl } from '../file-url';
 
+/** 视图选定的封面来源，与具体行是否有图片无关 */
+type GalleryCoverSource =
+  | { type: 'page_cover' }
+  | { type: 'property'; propertyId: string };
+
 /**
  * 画廊支持的属性类型
  */
@@ -42,8 +47,8 @@ export class GalleryLayoutRenderer {
   render(context: DatabaseRenderContext): string {
     const { database, schema, rows } = context;
 
-    // 根据视图配置查找封面和标题属性
-    const coverProperty = this.findCoverProperty(schema.properties);
+    // 每个视图只解析一次封面来源，再按行获取图片
+    const coverSource = this.resolveCoverSource(schema.properties);
     const titleProperty = this.findPropertyByType(schema.properties, 'title');
     const visibleProperties = this.getVisibleProperties(schema.properties, titleProperty?.id);
 
@@ -52,7 +57,7 @@ export class GalleryLayoutRenderer {
 
     // 生成卡片
     const cards = this.renderCards(rows, {
-      coverProperty,
+      coverSource,
       titleProperty,
       visibleProperties,
     });
@@ -69,20 +74,24 @@ export class GalleryLayoutRenderer {
   }
 
   /**
-   * 根据 gallery_cover 配置查找封面属性
+   * 根据 gallery_cover 配置确定封面来源，集中处理属性选择和回退
    */
-  private findCoverProperty(properties: Record<string, PropertySchema>): PropertySchema | undefined {
+  private resolveCoverSource(properties: Record<string, PropertySchema>): GalleryCoverSource | undefined {
     const galleryCover = this.viewConfig?.gallery_cover;
+
+    // 页面头图独立于 Files 属性，没有头图时也不回退到字段图片
+    if (galleryCover?.type === 'page_cover') return { type: 'page_cover' };
 
     if (galleryCover?.type === 'property' && galleryCover.property) {
       const prop = Object.values(properties).find(p => p.id === galleryCover.property);
       if (prop) {
-        return prop;
+        return { type: 'property', propertyId: prop.id };
       }
     }
 
     // 默认查找第一个 file 类型的属性
-    return this.findPropertyByType(properties, 'file');
+    const prop = this.findPropertyByType(properties, 'file');
+    return prop ? { type: 'property', propertyId: prop.id } : undefined;
   }
 
   /**
@@ -107,7 +116,7 @@ export class GalleryLayoutRenderer {
   private renderCards(
     rows: DatabaseRow[],
     config: {
-      coverProperty?: PropertySchema;
+      coverSource?: GalleryCoverSource;
       titleProperty?: PropertySchema;
       visibleProperties: PropertySchema[];
     }
@@ -122,15 +131,16 @@ export class GalleryLayoutRenderer {
   private renderCard(
     row: DatabaseRow,
     config: {
-      coverProperty?: PropertySchema;
+      coverSource?: GalleryCoverSource;
       titleProperty?: PropertySchema;
       visibleProperties: PropertySchema[];
     }
   ): string {
-    const { coverProperty, titleProperty, visibleProperties } = config;
+    const { coverSource, titleProperty, visibleProperties } = config;
 
-    // 获取封面图片
-    const cover = this.renderCover(row, coverProperty);
+    // 先解析当前行的封面 URL，再生成 HTML
+    const coverUrl = this.resolveCoverUrl(row, coverSource);
+    const cover = this.renderCover(coverUrl);
 
     // 获取标题
     const title = this.renderCardTitle(row, titleProperty);
@@ -153,23 +163,33 @@ export class GalleryLayoutRenderer {
   }
 
   /**
-   * 渲染封面图片
+   * 从选定来源获取图片并转换 URL；所选来源没有图片时不再回退
    */
-  private renderCover(row: DatabaseRow, coverProperty?: PropertySchema): string {
+  private resolveCoverUrl(row: DatabaseRow, source?: GalleryCoverSource): string | undefined {
+    if (!source) return undefined;
+
+    let imageUrl: string | undefined;
+
+    if (source.type === 'page_cover') {
+      imageUrl = row.pageCoverUrl;
+    } else {
+      const value = row.properties[source.propertyId];
+      imageUrl = value?.type === 'file' ? value.value?.[0] : undefined;
+    }
+
+    // 转换临时 URL 为代理 URL；已解析的页面头图保持不变
+    return imageUrl ? toProxyUrl(imageUrl, { id: row.id, table: 'block' }) : undefined;
+  }
+
+  /**
+   * 根据封面 URL 生成 HTML，不参与来源选择或数据读取
+   */
+  private renderCover(coverUrl?: string): string {
     // 始终渲染封面容器以保持布局一致
     let imageHtml = '';
 
-    if (coverProperty) {
-      const value = row.properties[coverProperty.id];
-
-      if (value && value.type === 'file' && value.value && value.value.length > 0) {
-        const imageUrl = value.value[0];
-        if (imageUrl) {
-          // 转换临时 URL 为永久 URL
-          const mappedUrl = toProxyUrl(imageUrl, { id: row.id, table: 'block' });
-          imageHtml = `<img src="${escapeHtml(mappedUrl)}" alt="" loading="lazy" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('notion-database-card-cover-error')" />`;
-        }
-      }
+    if (coverUrl) {
+      imageHtml = `<img src="${escapeHtml(coverUrl)}" alt="" loading="lazy" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('notion-database-card-cover-error')" />`;
     }
 
     return `<div class="notion-database-card-cover">${imageHtml}</div>`;
