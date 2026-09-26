@@ -128,6 +128,8 @@ const SITE_CONFIG = await getResolvedSiteConfig();
 
 返回 `ResolvedSiteConfig`：用户环境变量与 Notion Database 元数据合并后的配置。`title` / `description` / `icon` 必有值（自动回填 Database 标题/描述/图标），另有 `url`、`social`（Record）、`postsPerPage`、`enableRSS`、`enableSitemap`、`comments`（giscus 配置）、`seo`（`ogImage` / `twitterCard` / `twitterSite`）。
 
+`startYear`（`number | undefined`）来自 `SITE_START_YEAR`；页脚使用 `copyrightYearText`（`string`）展示年份，如 `2026` 或 `2023–2026`。
+
 `<head>` 元标签可复用 core 工具：`getMetaConfig()`（`@core/config/meta`）+ `generateMetaTags()`（`@core/lib/meta-helpers`）。
 
 ### 3.3 主题选项

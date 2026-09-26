@@ -100,6 +100,7 @@ SITE_TITLE=My Custom Blog  # ← 使用自定义标题，不使用 Database 名�
 | `SITE_TITLE` | 站点标题 | 留空使用 Database 名称 | `我的博客` |
 | `SITE_DESCRIPTION` | 站点描述 | 留空使用 Database 描述 | `关于技术的博客` |
 | `SITE_ICON` | 站点图标/Favicon | 留空使用 Database 图标 | `/favicon.ico` 或 `🚀` |
+| `SITE_START_YEAR` | 站点起始年份，用于页脚版权年份 | 留空仅显示构建当年 | `2023` |
 | `SITE_POSTS_PER_PAGE` | 每页文章数 | `10` | `20` |
 | `SITE_ENABLE_RSS` | 启用 RSS | `true` | `true`, `false` |
 | `SITE_ENABLE_SITEMAP` | 启用 Sitemap | `true` | `true`, `false` |
@@ -109,6 +110,8 @@ SITE_TITLE=My Custom Blog  # ← 使用自定义标题，不使用 Database 名�
 - `SITE_TITLE`、`SITE_DESCRIPTION`、`SITE_ICON` 留空时，会自动使用 Notion Database 的元数据
 - 手动指定的值优先级更高，会覆盖 Database 元数据
 
+`SITE_START_YEAR` 填写较早年份时显示 `2023–2026`；留空或填写当年时仅显示当年。跨年后需重新构建更新。
+
 **使用示例**：
 
 ```bash
@@ -117,6 +120,7 @@ SITE_URL=https://myblog.com
 SITE_TITLE=  # 留空，自动使用 Database 名称
 SITE_DESCRIPTION=  # 留空，自动使用 Database 描述
 SITE_ICON=  # 留空，自动使用 Database 图标
+SITE_START_YEAR=2023
 SITE_POSTS_PER_PAGE=15
 
 # 或者手动指定（覆盖 Database 元数据）

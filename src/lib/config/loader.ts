@@ -58,6 +58,22 @@ function getEnvNumber(key: string, defaultValue?: number): number | undefined {
 }
 
 /**
+ * 读取站点起始年份；未配置时保留单年份展示。
+ */
+function getSiteStartYear(): number | undefined {
+  const value = getEnvString('SITE_START_YEAR')?.trim();
+  if (!value) return undefined;
+
+  const currentYear = new Date().getFullYear();
+  const year = Number(value);
+  if (!/^[1-9]\d{3}$/.test(value) || year > currentYear) {
+    throw new Error(`[Config] SITE_START_YEAR 必须为 1000 至 ${currentYear} 之间的四位整数年份，或留空。`);
+  }
+
+  return year;
+}
+
+/**
  * 从环境变量读取 JSON 对象
  * 支持 JSON 字符串格式的配置
  */
@@ -134,6 +150,7 @@ function loadCommentsConfig() {
  * - SITE_TITLE -> title (留空则使用 Database 名称)
  * - SITE_DESCRIPTION -> description (留空则使用 Database 描述)
  * - SITE_ICON -> icon (留空则使用 Database 图标)
+ * - SITE_START_YEAR -> startYear (留空则版权行只显示构建当年)
  * - SITE_POSTS_PER_PAGE -> postsPerPage
  * - SITE_ENABLE_RSS -> enableRSS
  * - SITE_ENABLE_SITEMAP -> enableSitemap
@@ -146,6 +163,7 @@ export function loadSiteConfig() {
     description: getEnvString('SITE_DESCRIPTION', ''),
     icon: getEnvString('SITE_ICON', ''),
     url: getEnvString('SITE_URL', 'http://localhost:4321'),
+    startYear: getSiteStartYear(),
 
     // 社交链接
     social: loadSocialConfig(),

@@ -38,6 +38,7 @@ jobs:
           SITE_TITLE: ${{ vars.SITE_TITLE }}
           SITE_DESCRIPTION: ${{ vars.SITE_DESCRIPTION }}
           SITE_ICON: ${{ vars.SITE_ICON }}
+          SITE_START_YEAR: ${{ vars.SITE_START_YEAR }}
           SITE_SOCIAL: ${{ vars.SITE_SOCIAL }}
           SITE_POSTS_PER_PAGE: ${{ vars.SITE_POSTS_PER_PAGE }}
           SITE_ENABLE_RSS: ${{ vars.SITE_ENABLE_RSS }}

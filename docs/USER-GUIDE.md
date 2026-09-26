@@ -67,6 +67,7 @@ Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。
 | 我想改…… | 怎么做 |
 |----------|--------|
 | 站点名称 / 图标 / 描述 | 在托管平台的环境变量里设 `SITE_TITLE` / `SITE_ICON` / `SITE_DESCRIPTION`（留空则自动使用 Notion Database 的名称和图标） |
+| 版权起始年份 | 环境变量 `SITE_START_YEAR`，留空仅显示当年 |
 | 评论开关与配置 | 见 [评论配置指南](./COMMENTS.md) |
 | 每页文章数、RSS 开关 | 环境变量 `SITE_POSTS_PER_PAGE` / `SITE_ENABLE_RSS`（完整清单见 [配置参考](./CONFIGURATION.md)） |
 | 网站地址 | 环境变量 `SITE_URL`（绑定自己的域名后设置） |
