@@ -208,9 +208,12 @@ async function setupGallery() {
             e.preventDefault();
             e.stopPropagation();
 
-            // 手动处理横向滚动
             const container = el as HTMLElement;
-            container.scrollLeft += e.deltaY;
+            // 触控板优先使用横向 delta；普通滚轮则把纵向 delta 映射为横向滚动。
+            // 按主方向取值，避免斜向手势被重复放大。
+            const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+            const multiplier = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? container.clientWidth : 1;
+            container.scrollLeft += delta * multiplier;
           }, { passive: false });
 
           // 动态检测是否溢出，调整对齐方式

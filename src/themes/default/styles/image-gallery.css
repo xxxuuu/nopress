@@ -167,7 +167,6 @@
   z-index: 10050;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
-  scroll-behavior: smooth;
 }
 
 .pswp__thumbnails::-webkit-scrollbar {
