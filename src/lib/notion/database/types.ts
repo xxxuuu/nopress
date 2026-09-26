@@ -71,6 +71,8 @@ export interface DatabaseRow {
   id: string;
   createdTime: string;
   lastEditedTime: string;
+  /** 页面顶层头图，经统一解析后用于 Gallery 的 page_cover 模式 */
+  pageCoverUrl?: string;
   properties: Record<string, PropertyValue>;
   archived: boolean;
 }
