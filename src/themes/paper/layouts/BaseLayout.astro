@@ -13,7 +13,7 @@ import dataService from '@lib/notion/service';
 import { themeOptions } from '@lib/theme/options';
 import { ClientRouter } from 'astro:transitions';
 import ThemeToggle from '../components/ThemeToggle.astro';
-import { isCurrentPath, normalizePath, safeColor, splitLeadingEmoji } from '../lib/site';
+import { isCurrentPath, normalizePath, safeColor } from '../lib/site';
 import '../styles/global.css';
 
 interface Props {
@@ -99,7 +99,7 @@ const SOCIAL_LABELS: Record<string, string> = {
             target={item.isExternal ? '_blank' : undefined}
             rel={item.isExternal ? 'noopener noreferrer' : undefined}
             aria-current={!item.isExternal && isCurrentPath(item.url, currentPath) ? 'page' : undefined}
-          >{splitLeadingEmoji(item.title).label}{item.isExternal && <span class="external-mark" aria-hidden="true">↗</span>}</a>
+          >{item.title}{item.isExternal && <span class="external-mark" aria-hidden="true">↗</span>}</a>
         ))}
         {darkMode && <ThemeToggle />}
       </nav>
