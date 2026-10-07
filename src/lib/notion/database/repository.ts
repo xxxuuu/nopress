@@ -20,7 +20,6 @@ import type {
   DatePropertyValue,
   CheckboxPropertyValue,
   UnsupportedPropertyValue,
-  SelectOption,
   QueryOptions,
   ViewConfig,
   TablePropertyConfig,
@@ -386,7 +385,7 @@ export class DatabaseRepository implements IDatabaseRepository {
   /**
    * 标准化行数据
    */
-  private normalizeRow(rawPage: any, databaseId: string): DatabaseRow {
+  private normalizeRow(rawPage: any, _databaseId: string): DatabaseRow {
     const properties: Record<string, PropertyValue> = {};
 
     for (const [key, value] of Object.entries(rawPage.properties as Record<string, any>)) {

@@ -34,7 +34,7 @@ export async function initGiscus(options: GiscusInitOptions): Promise<void> {
     return;
   }
 
-  const { container, slug, title, config } = options;
+  const { container, slug, config } = options;
 
   // 验证配置
   if (!config.repo || !config.repoId || !config.categoryId) {

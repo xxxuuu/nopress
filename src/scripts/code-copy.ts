@@ -11,7 +11,7 @@ export function initCodeCopy() {
   const copyButtons = document.querySelectorAll('.notion-code-copy');
 
   copyButtons.forEach((button) => {
-    button.addEventListener('click', async (event) => {
+    button.addEventListener('click', async () => {
       // 获取对应的代码块
       const codeBlock = (button as HTMLElement).closest('.notion-code-block');
       if (!codeBlock) return;

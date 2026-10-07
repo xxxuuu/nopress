@@ -8,7 +8,6 @@ import type {
   PropertySchema,
   PropertyValue,
   PropertyType,
-  Database,
   DatabaseRow,
   DatabaseRenderOptions,
 } from './types';
@@ -39,13 +38,13 @@ const GALLERY_PROPERTY_TYPES: PropertyType[] = [
  * 将数据库渲染为卡片网格
  */
 export class GalleryLayoutRenderer {
-  constructor(private options: DatabaseRenderOptions = {}, private viewConfig?: any) {}
+  constructor(_options: DatabaseRenderOptions = {}, private viewConfig?: any) {}
 
   /**
    * 渲染完整画廊
    */
   render(context: DatabaseRenderContext): string {
-    const { database, schema, rows } = context;
+    const { schema, rows } = context;
 
     // 每个视图只解析一次封面来源，再按行获取图片
     const coverSource = this.resolveCoverSource(schema.properties);
@@ -92,22 +91,6 @@ export class GalleryLayoutRenderer {
     // 默认查找第一个 file 类型的属性
     const prop = this.findPropertyByType(properties, 'file');
     return prop ? { type: 'property', propertyId: prop.id } : undefined;
-  }
-
-  /**
-   * 渲染标题栏
-   */
-  private renderTitle(database: Database, rowCount: number): string {
-    const icon = database.icon ? `<span class="notion-database-icon">${escapeHtml(database.icon)}</span>` : '';
-    const title = escapeHtml(database.title);
-
-    return `
-      <div class="notion-database-header">
-        ${icon}
-        <h3 class="notion-database-title">${title}</h3>
-        <span class="notion-database-count">${rowCount} 项</span>
-      </div>
-    `;
   }
 
   /**
@@ -229,7 +212,7 @@ export class GalleryLayoutRenderer {
   /**
    * 渲染属性值
    */
-  private renderPropertyValue(value: PropertyValue, prop: PropertySchema): string {
+  private renderPropertyValue(value: PropertyValue, _prop: PropertySchema): string {
     switch (value.type) {
       case 'text':
       case 'title':

@@ -6,7 +6,7 @@
 import type { BlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import type { RenderContext, RenderOptions, BlockFormat } from './types';
 import { renderRichText, extractPlainText, escapeHtml, renderPlainText } from './rich-text';
-import { toProxyUrl, fileObjectUrl, resolveIcon, withDisplayParams, buildDisplaySrcSet } from '../file-url';
+import { toProxyUrl, fileObjectUrl, withDisplayParams, buildDisplaySrcSet } from '../file-url';
 import type { FileOwner } from '../file-url';
 import { fetchOpenGraphData } from '../opengraph';
 import type { OpenGraphData } from '../opengraph';
@@ -216,7 +216,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染标题
    */
-  private async renderHeading(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderHeading(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const level = block.type.replace('heading_', '');
     const heading = (block as any)[block.type];
     const text = await renderRichText(heading.rich_text);
@@ -396,7 +396,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染代码块
    */
-  private renderCode(block: BlockObjectResponse, context: RenderContext): string {
+  private renderCode(block: BlockObjectResponse, _context: RenderContext): string {
     const code = (block as any).code;
     const text = code.rich_text.map((rt: any) => rt.plain_text).join('');
     const language = code.language || 'plaintext';
@@ -433,7 +433,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染公式块
    */
-  private renderEquation(block: BlockObjectResponse, context: RenderContext): string {
+  private renderEquation(block: BlockObjectResponse, _context: RenderContext): string {
     const equation = (block as any).equation;
     // 公式源码需要 HTML 转义：LaTeX 中的字面 <、& 等会被 HTML 解析器当作标记，
     // 转义后浏览器 textContent 仍是原始字符，KaTeX（math-rendering.ts）读取不受影响
@@ -571,7 +571,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染视频
    */
-  private async renderVideo(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderVideo(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const video = (block as any).video;
     let url = fileObjectUrl(video);
 
@@ -617,7 +617,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染文件
    */
-  private async renderFile(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderFile(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const file = (block as any).file;
     let url = fileObjectUrl(file);
 
@@ -664,7 +664,7 @@ export class NotionBlockRenderer {
    * URL 失效时浏览器自动降级显示链接，而不是弹下载（<embed> 声明类型与
    * 实际内容不符时，部分浏览器会把内容丢给下载管理器）。
    */
-  private async renderPdf(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderPdf(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const pdf = (block as any).pdf;
     let url = fileObjectUrl(pdf);
     const signedUrl = this.getSignedUrl(block.id);
@@ -803,7 +803,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染嵌入内容
    */
-  private async renderEmbed(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderEmbed(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const embed = (block as any).embed;
     const url = embed.url;
     const caption = embed.caption && embed.caption.length > 0
@@ -837,7 +837,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染书签
    */
-  private async renderBookmark(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderBookmark(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const bookmark = (block as any).bookmark;
     const url = bookmark.url;
     const caption = bookmark.caption && bookmark.caption.length > 0
@@ -901,7 +901,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染链接预览
    */
-  private async renderLinkPreview(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderLinkPreview(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const linkPreview = (block as any).link_preview;
     const url = linkPreview.url;
 
@@ -920,7 +920,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染表格
    */
-  private async renderTable(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderTable(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     const table = (block as any).table;
     const hasColumnHeader = table.has_column_header;
     const hasRowHeader = table.has_row_header;
@@ -1024,7 +1024,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染子页面
    */
-  private renderChildPage(block: BlockObjectResponse, context: RenderContext): string {
+  private renderChildPage(block: BlockObjectResponse, _context: RenderContext): string {
     const childPage = (block as any).child_page;
     const title = childPage.title;
 
@@ -1038,7 +1038,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染子数据库
    */
-  private async renderChildDatabase(block: BlockObjectResponse, context: RenderContext): Promise<string> {
+  private async renderChildDatabase(block: BlockObjectResponse, _context: RenderContext): Promise<string> {
     try {
       return await this.databaseRenderer(block);
     } catch (err) {
@@ -1057,7 +1057,7 @@ export class NotionBlockRenderer {
   /**
    * 渲染链接到页面
    */
-  private renderLinkToPage(block: BlockObjectResponse, context: RenderContext): string {
+  private renderLinkToPage(block: BlockObjectResponse, _context: RenderContext): string {
     const linkToPage = (block as any).link_to_page;
 
     if (linkToPage.type === 'page_id') {

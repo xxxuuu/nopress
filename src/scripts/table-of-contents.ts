@@ -300,7 +300,7 @@ function setupTocTooltip(tocContainer: Element) {
   window.addEventListener('scroll', hide, { passive: true, signal: tocLifecycle!.signal });
 }
 
-function setupScrollSpy(items: TocItem[], container: Element) {
+function setupScrollSpy(items: TocItem[], _container: Element) {
   let currentActiveId = '';
 
   const updateActive = () => {

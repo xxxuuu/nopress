@@ -3,13 +3,11 @@
  * 负责将数据库数据渲染为 HTML 表格
  */
 
-import type { BlockObjectResponse } from '@notionhq/client';
 import type {
   DatabaseRenderContext,
   PropertySchema,
   PropertyValue,
   PropertyType,
-  Database,
   DatabaseRow,
   DatabaseRenderOptions,
   DatabaseSchema,
@@ -37,13 +35,13 @@ const SUPPORTED_PROPERTY_TYPES: PropertyType[] = [
  * 将数据库渲染为 HTML 表格
  */
 export class TableLayoutRenderer {
-  constructor(private options: DatabaseRenderOptions = {}) {}
+  constructor(_options: DatabaseRenderOptions = {}) {}
 
   /**
    * 渲染完整表格
    */
   render(context: DatabaseRenderContext): string {
-    const { database, schema, rows } = context;
+    const { schema, rows } = context;
 
     // 使用 schema 中的 propertyOrder 获取排序后的属性
     const visibleProperties = this.getVisibleProperties(schema);
@@ -62,22 +60,6 @@ export class TableLayoutRenderer {
           </table>
           ${empty}
         </div>
-      </div>
-    `;
-  }
-
-  /**
-   * 渲染标题栏
-   */
-  private renderTitle(database: Database, rowCount: number): string {
-    const icon = database.icon ? `<span class="notion-database-icon">${escapeHtml(database.icon)}</span>` : '';
-    const title = escapeHtml(database.title);
-
-    return `
-      <div class="notion-database-header">
-        ${icon}
-        <h3 class="notion-database-title">${title}</h3>
-        <span class="notion-database-count">${rowCount} 项</span>
       </div>
     `;
   }
@@ -114,7 +96,7 @@ export class TableLayoutRenderer {
   /**
    * 渲染单元格值
    */
-  private renderCellValue(value: PropertyValue | undefined, prop: PropertySchema): string {
+  private renderCellValue(value: PropertyValue | undefined, _prop: PropertySchema): string {
     if (!value) {
       return '<span class="notion-database-empty">-</span>';
     }
@@ -272,28 +254,4 @@ export class TableLayoutRenderer {
     );
   }
 
-  /**
-   * 获取属性类型图标
-   */
-  private getPropertyIcon(type: PropertyType): string {
-    const icons: Record<PropertyType, string> = {
-      title: 'text',
-      text: 'text',
-      number: '123',
-      select: '🏷️',
-      multi_select: '🏷️',
-      date: '📅',
-      checkbox: '☑️',
-      url: '🔗',
-      email: '✉️',
-      phone: '📞',
-      person: '👤',
-      file: '📎',
-      files: '📎',
-      relation: '🔗',
-      formula: '𝑓',
-    };
-
-    return `<span class="notion-database-icon-${type}" title="${type}">${icons[type] || '?'}</span>`;
-  }
 }

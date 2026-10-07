@@ -108,7 +108,7 @@ export class NotionPageRenderer {
 
     // 如果 format 中有 collection_pointer，从 collection_view 找到对应的视图
     if (targetCollectionId) {
-      for (const [viewId, view] of allViews) {
+      for (const [, view] of allViews) {
         const viewCollectionId = view?.format?.collection_pointer?.id;
         if (viewCollectionId === targetCollectionId) {
           const isGallery = view.type === 'gallery' ||

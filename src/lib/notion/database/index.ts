@@ -4,14 +4,12 @@
  */
 
 import type { BlockObjectResponse } from '@notionhq/client';
-import { createDatabaseRepository, type IDatabaseRepository } from './repository';
+import { createDatabaseRepository } from './repository';
 import { TableLayoutRenderer } from './table-layout';
 import { GalleryLayoutRenderer } from './gallery-layout';
 import type {
   DatabaseRenderContext,
   DatabaseRenderOptions,
-  Database,
-  DatabaseSchema,
   QueryOptions,
   ViewConfig,
 } from './types';

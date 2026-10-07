@@ -11,10 +11,7 @@ export class ThemeManager {
   private themes: Map<string, ThemeManifest> = new Map();
   private activeThemeId: string | null = null;
   private loader: ThemeLoader;
-  private projectRoot: string;
-
   constructor(projectRoot: string) {
-    this.projectRoot = projectRoot;
     this.loader = new ThemeLoader(projectRoot);
   }
 

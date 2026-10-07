@@ -60,7 +60,7 @@ const showNext = currentPage < totalPages;
 
     <!-- 中间区域：页码列表 -->
     <ol class="pagination-list">
-      {pages.map((page, index) => {
+      {pages.map((page) => {
         if (page < 0) {
           return (
             <li class="pagination-item">
