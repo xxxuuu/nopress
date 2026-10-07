@@ -79,7 +79,7 @@ const markdownAbsUrl = new URL(markdownUrl, Astro.site).href;
 
       {showPostCover && post.coverUrl && (
         <figure class="frontispiece">
-          <img src={post.coverUrl} alt="" loading="eager" fetchpriority="high" />
+          <img src={post.coverUrl} alt="" loading="eager" fetchpriority="high" style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined} />
         </figure>
       )}
 

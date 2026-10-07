@@ -119,6 +119,8 @@ Notion 文件 URL 短时效（官方 API 的 S3 签名 URL 约 1 小时有效）
 | `withDisplayParams(url, width)` | 展示场景追加压缩参数（仅性能优化） |
 | `buildDisplaySrcSet(url, widths)` | 生成响应式 `srcset`（每个候选宽度一个 descriptor）；仅对支持尺寸参数的图源展开，SVG 与其他图源返回 null |
 
+文章封面位置从非官方页面 recordMap 的 `format.page_cover_position` 读取（Notion 使用 0–1 比例且方向与 CSS 相反），按 `(1 - position) × 100` 转换为 CSS 百分比并保留两位小数后写入 `Post.coverPosition`。无封面、位置缺失或非官方请求失败时不设置该字段，浏览器沿用居中默认值。位置信息随页面 recordMap 在构建期间读取，调用复用非官方 API 限流与页面去重缓存。
+
 代理按 `owner`（`{id, table}`，id 为带连字符 UUID）鉴权，各来源文件的归属规则：
 
 | 文件 | owner |

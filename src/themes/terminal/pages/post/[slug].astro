@@ -29,7 +29,7 @@ const { post } = Astro.props;
       </p>
     </header>
 
-    {post.coverUrl && <img class="post-cover" src={post.coverUrl} alt={post.title} />}
+    {post.coverUrl && <img class="post-cover" src={post.coverUrl} alt={post.title} style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined} />}
 
     <div class="notion-content" set:html={post.content} />
   </article>

@@ -95,7 +95,7 @@ import dataService from '@lib/notion/service';
 import type { Post, Tag, MenuItem } from '@lib/types';
 ```
 
-`Post` 关键字段：`id` / `title` / `slug` / `description` / `publishedAt` / `updatedAt`（可空）/ `tags` / `coverUrl` / `icon`（emoji 或图片 URL）/ `content`（已渲染 HTML，见 §4）/ `excerpt` / `readingTime`（分钟）。
+`Post` 关键字段：`id` / `title` / `slug` / `description` / `publishedAt` / `updatedAt`（可空）/ `tags` / `coverUrl` / `coverPosition`（可选，封面垂直焦点位置百分比）/ `icon`（emoji 或图片 URL）/ `content`（已渲染 HTML，见 §4）/ `excerpt` / `readingTime`（分钟）。
 
 `MenuItem`：`{ title, url, isExternal }`——内部路径已带 `/` 前缀，外部链接完整 URL。
 

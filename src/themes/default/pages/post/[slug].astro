@@ -65,7 +65,7 @@ const markdownAbsUrl = Astro.site ? new URL(markdownUrl, Astro.site).href : mark
       <!-- 封面图 - Notion 风格全宽封面（showPostCover 选项，OG 图不受影响） -->
       {showPostCover && post.coverUrl && (
         <div class="page-cover">
-          <img src={post.coverUrl} alt={post.title} loading="eager" fetchpriority="high" />
+          <img src={post.coverUrl} alt={post.title} loading="eager" fetchpriority="high" style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined} />
         </div>
       )}
 

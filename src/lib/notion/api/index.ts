@@ -157,6 +157,7 @@ export class NotionAPI {
       //    URL 取官方 API 的文件对象而非 recordMap 原始引用（attachment:
       //    形式经代理无法访问）
       let coverUrl = '';
+      let coverPosition: number | undefined;
       let icon = '';
       const officialCover = (database as any).cover;
 
@@ -189,28 +190,31 @@ export class NotionAPI {
           });
         }
 
-        if (!coverUrl) {
-          // 数据库封面实际存放在 collection_view_page block 的 format.page_cover
-          // （collection.cover 通常为空）；recordMap 的 key 为带连字符的 UUID，
-          // 而 NOTION_DATABASE_ID 可能是无连字符格式，需做两种查找
-          const blockMap = pageData.block || {};
-          const dbBlock =
-            blockMap[toDashedId(this.databaseId)]?.value ??
-            blockMap[this.databaseId]?.value;
-          const pageCover = (dbBlock as any)?.format?.page_cover as string | undefined;
+        // 数据库页面位置存储在 collection_view_page block 的 format 中，
+        // 即使封面 URL 已从 collection.cover 取得，也要读取该 block 的位置。
+        const blockMap = pageData.block || {};
+        const dbBlock =
+          blockMap[toDashedId(this.databaseId)]?.value ??
+          blockMap[this.databaseId]?.value;
+        const pageFormat = (dbBlock as any)?.format;
+        const pageCover = pageFormat?.page_cover as string | undefined;
+        const rawPosition = pageFormat?.page_cover_position;
 
-          if (pageCover) {
-            coverUrl = resolveCover(officialCover, {
-              id: toDashedId(this.databaseId),
-              table: 'block',
-            });
-          }
+        if (typeof rawPosition === 'number' && Number.isFinite(rawPosition) && rawPosition >= 0 && rawPosition <= 1) {
+          coverPosition = Number(((1 - rawPosition) * 100).toFixed(2));
+        }
+
+        if (!coverUrl && pageCover) {
+          coverUrl = resolveCover(officialCover, {
+            id: toDashedId(this.databaseId),
+            table: 'block',
+          });
         }
       } catch (error) {
         console.warn('[NotionAPI] Failed to fetch cover/icon:', error);
       }
 
-      return { title, description, coverUrl, icon };
+      return { title, description, coverUrl, coverPosition, icon };
     } catch (error) {
       console.error('[NotionAPI] Error getting database meta:', error);
       return { title: '', description: '', coverUrl: '', icon: '' };
@@ -681,6 +685,18 @@ export class NotionAPI {
     return block?.format ?? {};
   }
 
+  /** 获取页面封面垂直焦点对应的 CSS 百分比，必须先加载该页面的 recordMap。 */
+  getPageCoverPosition(pageId: string): number | undefined {
+    const block = this.blockCache.get(pageId) ?? this.blockCache.get(pageId.replace(/-/g, ''));
+    const rawPosition = block?.format?.page_cover_position;
+    if (typeof rawPosition !== 'number' || !Number.isFinite(rawPosition) || rawPosition < 0 || rawPosition > 1) {
+      return undefined;
+    }
+
+    // Notion 的焦点位置方向与 CSS object-position 相反。
+    return Number(((1 - rawPosition) * 100).toFixed(2));
+  }
+
   /**
    * 获取块的签名 URL（从缓存）
    * 用于获取文件/PDF 的永久 URL
@@ -970,6 +986,7 @@ export const notionAPI = {
   getPageBlocks: (pageId: string) => getNotionAPI().getPageBlocks(pageId),
   getPageData: (pageId: string) => getNotionAPI().getPageData(pageId),
   getBlockFormat: (blockId: string) => getNotionAPI().getBlockFormat(blockId),
+  getPageCoverPosition: (pageId: string) => getNotionAPI().getPageCoverPosition(pageId),
   getSignedUrl: (blockId: string) => getNotionAPI().getSignedUrl(blockId),
   getCollectionViewEntries: () => getNotionAPI().getCollectionViewEntries(),
   getSyncedBlockContent: (blockId: string) => getNotionAPI().getSyncedBlockContent(blockId),

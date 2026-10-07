@@ -23,6 +23,7 @@ const dbInfo = await dataService.getDatabaseInfo();
 const pageTitle = dbInfo.title || SITE_CONFIG.title;
 const pageDescription = dbInfo.description || SITE_CONFIG.description;
 const pageCover = dbInfo.coverUrl || '';
+const coverPosition = dbInfo.coverPosition;
 const pageIcon = dbInfo.icon || '';
 ---
 
@@ -35,5 +36,6 @@ const pageIcon = dbInfo.icon || '';
     pageDescription={pageDescription}
     pageIcon={pageIcon}
     pageCover={pageCover}
+    coverPosition={coverPosition}
   />
 </BaseLayout>

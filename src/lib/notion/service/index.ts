@@ -150,10 +150,10 @@ class NotionDataService implements DataService {
   /**
    * 获取数据库信息（标题、描述、封面和图标）
    */
-  async getDatabaseInfo(): Promise<{ title: string; description: string; coverUrl: string; icon: string }> {
+  async getDatabaseInfo(): Promise<{ title: string; description: string; coverUrl: string; coverPosition?: number; icon: string }> {
     const cacheKey = 'database-info';
 
-    const cached = await notionCache.get<{ title: string; description: string; coverUrl: string; icon: string }>(cacheKey);
+    const cached = await notionCache.get<{ title: string; description: string; coverUrl: string; coverPosition?: number; icon: string }>(cacheKey);
     if (cached) return cached;
 
     const info = await notionAPI.getDatabaseMeta();
@@ -199,6 +199,15 @@ class NotionDataService implements DataService {
    */
   private async getPostWithContent(page: NotionPage): Promise<Post | null> {
     const metadata = this.extractMetadata(page);
+
+    if (metadata.coverUrl) {
+      try {
+        await notionAPI.getPageData(page.id);
+        metadata.coverPosition = notionAPI.getPageCoverPosition(page.id);
+      } catch (error) {
+        console.warn(`[NotionService] Failed to fetch cover position for ${page.id}:`, error);
+      }
+    }
 
     if (!metadata.slug) {
       console.error(`[NotionService] Post ${page.id} has empty slug. Title: "${metadata.title}"`);

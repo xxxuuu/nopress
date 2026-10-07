@@ -62,7 +62,7 @@ const { posts } = Astro.props;
           <!-- 封面图缩略图（如果有） -->
           {post.coverUrl && (
             <div class="row-cover">
-              <img src={post.coverUrl} alt={post.title} loading="lazy" />
+              <img src={post.coverUrl} alt={post.title} loading="lazy" style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined} />
             </div>
           )}
         </div>

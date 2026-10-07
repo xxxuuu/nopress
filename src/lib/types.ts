@@ -8,6 +8,7 @@ export interface PostMetadata {
   updatedAt: string | null;
   tags: string[];
   coverUrl: string;
+  coverPosition?: number; // 封面垂直焦点位置（百分比）
   icon: string; // emoji 或图片 URL
 }
 
@@ -49,7 +50,7 @@ export interface DataService {
   getMenuItems(): Promise<MenuItem[]>;
   getAllPages(): Promise<Post[]>; // Page 和 Post 结构相同
   getPageBySlug(slug: string): Promise<Post | null>;
-  getDatabaseInfo(): Promise<{ title: string; description: string; coverUrl: string; icon: string }>;
+  getDatabaseInfo(): Promise<{ title: string; description: string; coverUrl: string; coverPosition?: number; icon: string }>;
 }
 
 // ==================== 评论系统类型 ====================

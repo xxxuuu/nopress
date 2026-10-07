@@ -64,5 +64,6 @@ export interface DatabaseMeta {
   title: string;
   description: string;
   coverUrl: string;
+  coverPosition?: number;
   icon: string;
 }
