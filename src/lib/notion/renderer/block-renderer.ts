@@ -10,6 +10,7 @@ import { toProxyUrl, fileObjectUrl, resolveIcon, withDisplayParams, buildDisplay
 import type { FileOwner } from '../file-url';
 import { fetchOpenGraphData } from '../opengraph';
 import type { OpenGraphData } from '../opengraph';
+import { RetryHelper } from '../../utils/api-helpers';
 
 /** 正文内容列宽（px），与默认主题容器一致，用于 sizes 插槽估算 */
 const CONTENT_WIDTH = 900;
@@ -23,6 +24,18 @@ const COLUMN_STACK_BREAKPOINT = 768;
 const SRCSET_WIDTHS = [750, 1080, 1400];
 /** 候选上限相对显示宽的倍数：block_width 是 CSS 像素，HiDPI 缩放（1.25/1.5）需要更多物理像素 */
 const SRCSET_DPR_HEADROOM = 2;
+
+// 仅重试瞬态失败（超时/网络抖动/限流/5xx）；403、404 等确定性失败不重试。
+// 与 opengraph.ts 的 ogRetry 同一策略：外部预览抓取都是构建期最不可靠的一环
+const oembedRetry = new RetryHelper({
+  maxRetries: 1,
+  initialDelay: 500,
+  shouldRetry: (error: Error) =>
+    /timeout|aborted/i.test(error.message) ||
+    /fetch failed|ECONNRESET|network/i.test(error.message) ||
+    /\b429\b/.test(error.message) ||
+    /\b5\d{2}\b/.test(error.message),
+});
 
 export class NotionBlockRenderer {
   private options: Required<RenderOptions>;
@@ -755,17 +768,20 @@ export class NotionBlockRenderer {
   private async renderTwitterEmbed(url: string, caption: string): Promise<string> {
     try {
       const oembedUrl = `https://publish.twitter.com/oembed?url=${encodeURIComponent(url)}`;
-      const response = await fetch(oembedUrl, {
-        headers: {
-          'Accept': 'application/json',
-        },
+      const data = await oembedRetry.execute(async () => {
+        const response = await fetch(oembedUrl, {
+          headers: {
+            'Accept': 'application/json',
+          },
+          signal: AbortSignal.timeout(5000),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Twitter oEmbed failed: ${response.status}`);
+        }
+
+        return response.json();
       });
-
-      if (!response.ok) {
-        throw new Error(`Twitter oEmbed failed: ${response.status}`);
-      }
-
-      const data = await response.json();
 
       return `<figure class="notion-embed notion-embed--twitter">
         ${data.html || ''}
