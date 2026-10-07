@@ -105,7 +105,7 @@ LayoutRenderer (渲染层)
 ### 6. API 优化（`src/lib/utils/api-helpers.ts`）
 
 - **RateLimiter** — 并发控制。官方 API `notionRateLimiter`（5 并发, 50ms 最小间隔）；非官方 API `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）
-- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）直接抛出。最多 3 次，指数退避 1s → 2s → 4s，延迟上限 30s
+- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）直接抛出。官方 API 最多重试 3 次，指数退避 1s → 2s → 4s；非官方 API 最多重试 3 次，指数退避 2s → 4s → 8s。延迟上限均为 30s
 
 ### 7. 文件 URL 统一解析（`src/lib/notion/file-url.ts`）
 

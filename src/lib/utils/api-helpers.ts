@@ -221,9 +221,9 @@ export const notionRetryHelper = new RetryHelper({
 // Notion 私有接口限流较严格，高频调用会触发 429
 export const notionUnofficialRateLimiter = new RateLimiter(2, 350);
 
-// 非官方 API 专用重试助手：更多次数 + 更长初始延迟，覆盖 429 自愈
+// 非官方 API 专用重试助手：与官方 API 相同的重试次数，更长初始延迟
 export const notionUnofficialRetryHelper = new RetryHelper({
-  maxRetries: 4,
+  maxRetries: 3,
   initialDelay: 2000,
   backoffMultiplier: 2,
   maxDelay: 30000,
