@@ -68,6 +68,9 @@ export interface RetryConfig {
 /**
  * 重试助手
  * 实现指数退避重试策略
+ *
+ * 应包在 RateLimiter 外层使用（retry(() => limiter(fn))）：
+ * 退避等待期间释放限流槽位，不阻塞其他并发请求
  */
 export class RetryHelper {
   private config: Required<RetryConfig>;

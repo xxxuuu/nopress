@@ -426,15 +426,16 @@ export class NotionAPI {
       return this.rebuildPageData();
     }
 
-    const pageData = await notionUnofficialRateLimiter.execute(() =>
-      notionUnofficialRetryHelper.execute(
-        () => this.unofficialClient.getPage(pageId, {
-          concurrency: 2,
-          fetchMissingBlocks: false,
-          signFileUrls: false,
-        }),
-        `Fetching page data ${pageId}`
-      )
+    const pageData = await notionUnofficialRetryHelper.execute(
+      () =>
+        notionUnofficialRateLimiter.execute(() =>
+          this.unofficialClient.getPage(pageId, {
+            concurrency: 2,
+            fetchMissingBlocks: false,
+            signFileUrls: false,
+          })
+        ),
+      `Fetching page data ${pageId}`
     );
 
     if (pageData) {
@@ -546,8 +547,8 @@ export class NotionAPI {
    *
    * Notion 的 getSignedFileUrls 对大批次请求会间歇性返回 500（单批 ≥3 个
    * 文件即不稳定，与内容无关），而 notion-client 的 addSignedUrls 是整页
-   * 一次性批量调用，必炸。这里复刻其文件筛选逻辑，改为小批次分片签名：
-   * 单片失败只丢失该片文件的签名，不拖垮整页。
+   * 一次性批量调用，必炸。这里复刻其文件筛选逻辑，改为小批次分片并行
+   * 签名（并发由限流器约束）：单片失败只丢失该片文件的签名，不拖垮整页。
    */
   private async signPageFileUrls(pageData: PageData): Promise<void> {
     const fileInstances: SignedUrlRequest[] = [];
@@ -576,25 +577,34 @@ export class NotionAPI {
 
     pageData.signed_urls = {};
     const CHUNK_SIZE = 2;
+    const chunks: SignedUrlRequest[][] = [];
     for (let i = 0; i < fileInstances.length; i += CHUNK_SIZE) {
-      const chunk = fileInstances.slice(i, i + CHUNK_SIZE);
-      try {
-        const res = await notionUnofficialRateLimiter.execute(() =>
-          notionUnofficialRetryHelper.execute(
-            () => this.unofficialClient.getSignedFileUrls(chunk),
-            `Signing file urls ${i}-${i + chunk.length - 1}`
-          )
-        );
-        chunk.forEach((inst, j) => {
-          const signedUrl = res.signedUrls?.[j];
-          if (signedUrl) {
-            pageData.signed_urls![inst.permissionRecord.id] = signedUrl;
-          }
-        });
-      } catch (error) {
-        console.warn(`[NotionAPI] Failed to sign file urls chunk ${i}:`, error);
-      }
+      chunks.push(fileInstances.slice(i, i + CHUNK_SIZE));
     }
+
+    // 分块并行发出，退避等待期间限流槽位被释放，失败块的等待不阻塞其他块
+    await Promise.all(
+      chunks.map(async (chunk, index) => {
+        const offset = index * CHUNK_SIZE;
+        try {
+          const res = await notionUnofficialRetryHelper.execute(
+            () =>
+              notionUnofficialRateLimiter.execute(() =>
+                this.unofficialClient.getSignedFileUrls(chunk)
+              ),
+            `Signing file urls ${offset}-${offset + chunk.length - 1}`
+          );
+          chunk.forEach((inst, j) => {
+            const signedUrl = res.signedUrls?.[j];
+            if (signedUrl) {
+              pageData.signed_urls![inst.permissionRecord.id] = signedUrl;
+            }
+          });
+        } catch (error) {
+          console.warn(`[NotionAPI] Failed to sign file urls chunk ${offset}:`, error);
+        }
+      })
+    );
   }
 
   /**
@@ -727,11 +737,12 @@ export class NotionAPI {
    * 调用非官方 API 的 getBlocks（带限流和 429 重试）
    */
   private fetchBlocksGuarded(blockIds: string[]): Promise<any> {
-    return notionUnofficialRateLimiter.execute(() =>
-      notionUnofficialRetryHelper.execute(
-        () => this.unofficialClient.getBlocks(blockIds),
-        `Fetching blocks (${blockIds.length})`
-      )
+    return notionUnofficialRetryHelper.execute(
+      () =>
+        notionUnofficialRateLimiter.execute(() =>
+          this.unofficialClient.getBlocks(blockIds)
+        ),
+      `Fetching blocks (${blockIds.length})`
     );
   }
 

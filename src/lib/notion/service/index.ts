@@ -216,11 +216,10 @@ class NotionDataService implements DataService {
 
     // 渲染失败不吞错：空内容/占位内容一旦写入 all-posts 缓存，
     // 残缺文章会随构建静默发布，重试与构建失败是更诚实的行为
-    const html = await notionRateLimiter.execute(() =>
-      notionRetryHelper.execute(
-        () => this.renderer.renderPage(page.id),
-        `Rendering page ${page.id} to HTML`
-      )
+    const html = await notionRetryHelper.execute(
+      () =>
+        notionRateLimiter.execute(() => this.renderer.renderPage(page.id)),
+      `Rendering page ${page.id} to HTML`
     );
 
     const excerpt = metadata.description || generateExcerpt(html, 200);

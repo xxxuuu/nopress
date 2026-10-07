@@ -162,10 +162,10 @@ export async function fetchOpenGraphData(
     return cached;
   }
 
-  // 使用限流器控制请求
-  const result = await ogRateLimiter.execute(async () => {
-    try {
-      const fetched = await ogRetry.execute(async () => {
+  // Retry 包在限流器外层：退避等待期间释放并发槽，不阻塞其他 URL 的抓取
+  try {
+    const fetched = await ogRetry.execute(() =>
+      ogRateLimiter.execute(async () => {
         const response = await fetchFn(url, {
           headers: {
             'User-Agent':
@@ -183,34 +183,32 @@ export async function fetchOpenGraphData(
         const html = await response.text();
         const data = await scraper({ url, html });
         return { data, html, baseUrl: response.url || url };
-      });
+      })
+    );
 
-      const { data, html, baseUrl } = fetched;
-      const ogData: OpenGraphData = {
-        title: data.title || '',
-        description: data.description || '',
-        image: extractPreviewImage(html, baseUrl),
-        url: data.url || url,
-        logo: data.logo || extractFavicon(html, baseUrl),
-        author: data.author || '',
-        publisher: data.publisher || '',
-        date: data.date || '',
-      };
+    const { data, html, baseUrl } = fetched;
+    const ogData: OpenGraphData = {
+      title: data.title || '',
+      description: data.description || '',
+      image: extractPreviewImage(html, baseUrl),
+      url: data.url || url,
+      logo: data.logo || extractFavicon(html, baseUrl),
+      author: data.author || '',
+      publisher: data.publisher || '',
+      date: data.date || '',
+    };
 
-      // 缓存结果（内存 + 磁盘）
-      cache.set(url, ogData);
-      await diskCache.set(url, ogData);
+    // 缓存结果（内存 + 磁盘）
+    cache.set(url, ogData);
+    await diskCache.set(url, ogData);
 
-      return ogData;
-    } catch (error) {
-      console.warn(`[OpenGraph] Failed to fetch ${url}:`, error);
-      // 失败仅记入内存缓存，下次构建重试
-      cache.set(url, null);
-      return null;
-    }
-  });
-
-  return result;
+    return ogData;
+  } catch (error) {
+    console.warn(`[OpenGraph] Failed to fetch ${url}:`, error);
+    // 失败仅记入内存缓存，下次构建重试
+    cache.set(url, null);
+    return null;
+  }
 }
 
 /**

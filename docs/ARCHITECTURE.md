@@ -105,7 +105,7 @@ LayoutRenderer (渲染层)
 ### 6. API 优化（`src/lib/utils/api-helpers.ts`）
 
 - **RateLimiter** — 并发控制。官方 API `notionRateLimiter`（5 并发, 50ms 最小间隔）；非官方 API `notionUnofficialRateLimiter`（2 并发, 350ms 间隔）
-- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）直接抛出。官方 API 最多重试 3 次，指数退避 1s → 2s → 4s；非官方 API 最多重试 3 次，指数退避 2s → 4s → 8s。延迟上限均为 30s
+- **RetryHelper** — 自动重试临时性错误（网络错误、5xx、429），权限错误（401/403）直接抛出。官方 API 最多重试 3 次，指数退避 1s → 2s → 4s；非官方 API 最多重试 3 次，指数退避 2s → 4s → 8s。延迟上限均为 30s。RetryHelper 包在 RateLimiter 外层（retry → limiter），退避等待期间释放并发槽位
 
 ### 7. 文件 URL 统一解析（`src/lib/notion/file-url.ts`）
 
@@ -130,7 +130,7 @@ Notion 文件 URL 短时效（官方 API 的 S3 签名 URL 约 1 小时有效）
 | 数据库封面（`collection.cover`，旧版存储位置） | collection 记录，`table: 'collection'` |
 | 数据库封面（`format.page_cover`，现行存储位置） | 数据库页 block，`table: 'block'`；URL 取自官方 API 的文件 URL（`attachment:` 引用经代理无法访问） |
 
-例外：PDF/附件等非图片文件代理不支持，`block-renderer.ts` 的 `renderFile()` / `renderPdf()` 走 `getSignedUrl()`（非官方 API 的 `signed_urls` 缓存）。签名 URL 有时效（约数小时），构建后必然过期：`renderPdf()` 用 `<object>` 内嵌并保留原生 fallback 链接（失效时浏览器降级显示链接，不弹下载）；PDF/附件块的签名经 `signPageFileUrls()` 小批次获取——Notion 的 `getSignedFileUrls` 对大批次（≥3 个文件）会间歇性返回 500，整页一次批量调用必炸，分片（每批 2 个）+ RetryHelper 单片失败只丢失该片签名。
+例外：PDF/附件等非图片文件代理不支持，`block-renderer.ts` 的 `renderFile()` / `renderPdf()` 走 `getSignedUrl()`（非官方 API 的 `signed_urls` 缓存）。签名 URL 有时效（约数小时），构建后必然过期：`renderPdf()` 用 `<object>` 内嵌并保留原生 fallback 链接（失效时浏览器降级显示链接，不弹下载）；PDF/附件块的签名经 `signPageFileUrls()` 小批次获取——Notion 的 `getSignedFileUrls` 对大批次（≥3 个文件）会间歇性返回 500，整页一次批量调用必炸，分片（每批 2 个）并行获取 + RetryHelper，单片失败只丢失该片签名。
 
 ### 8. 主题系统（`src/lib/theme/` + `src/themes/`）
 
