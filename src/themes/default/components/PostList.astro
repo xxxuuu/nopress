@@ -4,16 +4,24 @@
  * @param posts - 文章数组
  */
 import type { Post } from '@lib/types';
+import { withDisplayParams, buildDisplaySrcSet } from '@lib/notion/file-url';
 
 interface Props {
   posts: Post[];
 }
 
 const { posts } = Astro.props;
+
+// 缩略图显示尺寸：桌面 140×90，移动端 100vw×180；候选覆盖 1x–2x DPR
+const THUMB_WIDTHS = [280, 480, 750, 1080, 1536];
+const THUMB_SIZES = '(max-width: 768px) 100vw, 140px';
 ---
 
 <div class="post-list">
-  {posts.map(post => (
+  {posts.map(post => {
+    const coverSrc = post.coverUrl ? withDisplayParams(post.coverUrl, 480) : '';
+    const coverSrcset = post.coverUrl ? buildDisplaySrcSet(post.coverUrl, THUMB_WIDTHS) : null;
+    return (
     <article class="post-card">
       <a href={`/post/${post.slug}`} class="row-link">
         <div class="row-content">
@@ -60,15 +68,23 @@ const { posts } = Astro.props;
           </div>
 
           <!-- 封面图缩略图（如果有） -->
-          {post.coverUrl && (
+          {coverSrc && (
             <div class="row-cover">
-              <img src={post.coverUrl} alt={post.title} loading="lazy" style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined} />
+              <img
+                src={coverSrc}
+                srcset={coverSrcset ?? undefined}
+                sizes={coverSrcset ? THUMB_SIZES : undefined}
+                alt={post.title}
+                loading="lazy"
+                style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined}
+              />
             </div>
           )}
         </div>
       </a>
     </article>
-  ))}
+    );
+  })}
 </div>
 
 {posts.length === 0 && (
