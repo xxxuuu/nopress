@@ -1,0 +1,30 @@
+---
+/**
+ * 我的文档：根文件夹窗口（/documents）
+ *
+ * 标签以文件夹形式与全部文档（文章 + 独立页面）并列，
+ * 双击文件夹继续打开对应的资源管理器窗口。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Window from '../components/Window.astro';
+import Explorer from '../components/Explorer.astro';
+import dataService from '@lib/notion/service';
+import { isValidSlug } from '@lib/utils/slug';
+
+const tags = await dataService.getAllTags();
+const posts = (await dataService.getAllPosts()).filter(post => isValidSlug(post.slug));
+const pages = (await dataService.getAllPages()).filter(page => isValidSlug(page.slug));
+
+const folders = tags.map(tag => ({ name: tag.name, href: `/tag/${tag.slug}` }));
+---
+
+<BaseLayout title="我的文档" description="全部文章、页面与标签文件夹" windowTitle="我的文档" windowIcon="folder">
+  <Window
+    title="我的文档"
+    icon="folder"
+    statusLeft={`${folders.length} 个文件夹，${posts.length + pages.length} 个文件`}
+    statusRight="双击打开"
+  >
+    <Explorer folders={folders} files={posts} pages={pages} />
+  </Window>
+</BaseLayout>

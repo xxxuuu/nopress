@@ -1,0 +1,108 @@
+---
+/**
+ * 资源管理器详细列表视图：文件夹（可选）+ 文件
+ *
+ * 行为与桌面图标一致：单击选中、双击打开为应用窗口（data-desktop-icon，
+ * 交互见 scripts/desktop.ts）。
+ */
+import Icon from './Icon.astro';
+import type { Post } from '@lib/types';
+import { formatDate } from '@lib/utils/date';
+
+interface FolderLink {
+  name: string;
+  href: string;
+}
+
+interface Props {
+  folders?: FolderLink[];
+  files: Post[];
+  /** 独立页面（type=Page）：与文件并列的「系统文档」 */
+  pages?: Post[];
+}
+
+const { folders = [], files, pages = [] } = Astro.props;
+
+const isImageIcon = (icon: string | undefined) => icon?.startsWith('http') ?? false;
+---
+
+<div class="explorer">
+  <div class="explorer-head bevel-out" aria-hidden="true">
+    <span>名称</span>
+    <span>修改日期</span>
+    <span>类型</span>
+    <span>大小</span>
+  </div>
+  <ul class="explorer-list">
+    {folders.map(folder => (
+      <li>
+        <a
+          class="explorer-row"
+          data-desktop-icon
+          data-title={folder.name}
+          data-icon="folder"
+          href={folder.href}
+          title={`双击打开：${folder.name}`}
+        >
+          <span class="col-name">
+            <Icon name="folder" size={16} />
+            <span class="col-name-text">{folder.name}</span>
+          </span>
+          <span class="col-date">&mdash;</span>
+          <span class="col-type">文件夹</span>
+          <span class="col-size">&mdash;</span>
+        </a>
+      </li>
+    ))}
+    {pages.map(page => (
+      <li>
+        <a
+          class="explorer-row"
+          data-desktop-icon
+          data-title={page.title}
+          data-icon="note"
+          data-emoji={page.icon && !isImageIcon(page.icon) ? page.icon : undefined}
+          href={`/${page.slug}`}
+          title={`双击打开：${page.title}`}
+        >
+          <span class="col-name">
+            {page.icon && isImageIcon(page.icon)
+              ? <img src={page.icon} alt="" width="16" height="16" />
+              : page.icon
+                ? <span class="col-emoji">{page.icon}</span>
+                : <Icon name="note" size={16} />}
+            <span class="col-name-text">{page.title}</span>
+          </span>
+          <span class="col-date">{formatDate(page.publishedAt, 'yyyy/M/d')}</span>
+          <span class="col-type">系统文档</span>
+          <span class="col-size">&mdash;</span>
+        </a>
+      </li>
+    ))}
+    {files.map(post => (
+      <li>
+        <a
+          class="explorer-row"
+          data-desktop-icon
+          data-title={post.title}
+          data-icon="doc"
+          data-emoji={post.icon && !isImageIcon(post.icon) ? post.icon : undefined}
+          href={`/post/${post.slug}`}
+          title={`双击打开：${post.title}`}
+        >
+          <span class="col-name">
+            {post.icon && isImageIcon(post.icon)
+              ? <img src={post.icon} alt="" width="16" height="16" />
+              : post.icon
+                ? <span class="col-emoji">{post.icon}</span>
+                : <Icon name="doc" size={16} />}
+            <span class="col-name-text">{post.title}</span>
+          </span>
+          <span class="col-date">{formatDate(post.publishedAt, 'yyyy/M/d')}</span>
+          <span class="col-type">文本文档</span>
+          <span class="col-size">{post.readingTime ?? 1} KB</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>

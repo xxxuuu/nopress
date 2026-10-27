@@ -30,7 +30,7 @@ NoPress 通过 [Giscus](https://giscus.app)（基于 GitHub Discussions）提供
 
 ## 主题支持范围
 
-评论组件目前内置于 **`default`** 和 **`paper`** 两个主题。`minimal` 与 `terminal` 主题不含评论区——配置了环境变量也不会显示（页面不渲染评论容器，无构建告警）。
+评论组件目前内置于 **`default`** 和 **`paper`** 两个主题。`minimal`、`terminal` 与 `retro` 主题不含评论区——配置了环境变量也不会显示（页面不渲染评论容器，无构建告警）。
 
 自定义主题可按 [主题开发契约 §7](./THEMES.md#7-评论系统) 自行接入同一套配置。
 
@@ -222,7 +222,7 @@ COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
 
 **检查清单**：
 - [ ] `COMMENTS_ENABLED` 是否为 `true`（默认是 `false`，不显示属正常）
-- [ ] 当前主题是否为 `default` 或 `paper`（`minimal` / `terminal` 没有评论区）
+- [ ] 当前主题是否为 `default` 或 `paper`（`minimal` / `terminal` / `retro` 没有评论区）
 - [ ] 修改环境变量后是否**重启了 dev server / 重新部署**（配置在构建启动时读取）
 - [ ] `COMMENTS_GISCUS_REPO`、`COMMENTS_GISCUS_REPO_ID`、`COMMENTS_GISCUS_CATEGORY_ID` 是否已设置
 - [ ] 仓库是否启用了 Discussions 且为公开访问

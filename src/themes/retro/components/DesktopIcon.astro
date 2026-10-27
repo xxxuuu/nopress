@@ -1,0 +1,43 @@
+---
+/**
+ * 桌面图标：像素图标 + 白字黑影标签
+ *
+ * 交互由 scripts/desktop.ts 接管：单击选中，再次单击（双击 / 触屏二次轻点）
+ * 放行原生导航打开；singleClickOpen 选项开启时直接单击打开。
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  href: string;
+  label: string;
+  icon?: 'doc' | 'note' | 'folder';
+  /** Notion 页面自定义图标（emoji 或图片 URL），优先于像素图标 */
+  pageIcon?: string;
+  shortcut?: boolean;
+  external?: boolean;
+}
+
+const { href, label, icon = 'doc', pageIcon, shortcut = false, external = false } = Astro.props;
+
+const iconIsImage = pageIcon?.startsWith('http') ?? false;
+---
+
+<a
+  class="desktop-icon"
+  data-desktop-icon
+  data-title={label}
+  data-icon={icon}
+  data-emoji={!iconIsImage && pageIcon ? pageIcon : undefined}
+  href={href}
+  title={`双击打开：${label}`}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <span class="desktop-icon-img">
+    {iconIsImage && <img src={pageIcon} alt="" width="32" height="32" />}
+    {!iconIsImage && pageIcon && <span class="desktop-icon-emoji">{pageIcon}</span>}
+    {!pageIcon && <Icon name={icon} size={32} />}
+    {shortcut && <span class="desktop-icon-shortcut"><Icon name="shortcut" size={16} /></span>}
+  </span>
+  <span class="desktop-icon-label">{label}</span>
+</a>

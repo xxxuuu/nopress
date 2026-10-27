@@ -1,0 +1,105 @@
+---
+/**
+ * 像素风图标集（16×16 手绘 SVG，crispEdges 保持硬边）
+ *
+ * 全部图标复用 90 年代操作系统的视觉语言：白色文档、黄色文件夹、
+ * 快捷方式角标、显示器与四色窗口旗标。
+ */
+interface Props {
+  name: 'doc' | 'note' | 'folder' | 'computer' | 'flag' | 'shortcut' | 'image';
+  size?: number;
+}
+
+const { name, size = 16 } = Astro.props;
+---
+
+<svg
+  width={size}
+  height={size}
+  viewBox="0 0 16 16"
+  shape-rendering="crispEdges"
+  aria-hidden="true"
+>
+  {
+    name === 'doc' && (
+      <>
+        <path d="M2 0h9l3 3v12H2z" fill="#0a0a0a" />
+        <path d="M3 1h7l3 3v10H3z" fill="#ffffff" />
+        <path d="M10 1l3 3h-3z" fill="#c0c0c0" />
+        <g fill="#7b7b7b">
+          <rect x="5" y="7" width="6" height="1" />
+          <rect x="5" y="9" width="6" height="1" />
+          <rect x="5" y="11" width="4" height="1" />
+        </g>
+      </>
+    )
+  }
+  {
+    name === 'note' && (
+      <>
+        <path d="M2 0h9l3 3v12H2z" fill="#0a0a0a" />
+        <path d="M3 1h7l3 3v10H3z" fill="#ffffff" />
+        <path d="M10 1l3 3h-3z" fill="#c0c0c0" />
+        <rect x="5" y="5" width="1" height="9" fill="#c00000" />
+        <g fill="#8f9bb0">
+          <rect x="8" y="6" width="4" height="1" />
+          <rect x="8" y="8" width="4" height="1" />
+          <rect x="8" y="10" width="4" height="1" />
+          <rect x="8" y="12" width="3" height="1" />
+        </g>
+      </>
+    )
+  }
+  {
+    name === 'folder' && (
+      <>
+        <path d="M1 3h5l2 2h7v10H1z" fill="#0a0a0a" />
+        <path d="M2 4h4l2 2h6v8H2z" fill="#ffdf7e" />
+        <rect x="2" y="4" width="4" height="2" fill="#fff2ae" />
+        <rect x="2" y="12" width="12" height="2" fill="#e9b940" />
+      </>
+    )
+  }
+  {
+    name === 'computer' && (
+      <>
+        <rect x="1" y="1" width="14" height="11" fill="#0a0a0a" />
+        <rect x="2" y="2" width="12" height="9" fill="#c0c0c0" />
+        <rect x="3" y="3" width="10" height="7" fill="#1084d0" />
+        <rect x="4" y="4" width="4" height="1" fill="#9ad1ff" />
+        <rect x="6" y="12" width="4" height="1" fill="#808080" />
+        <rect x="3" y="13" width="10" height="2" fill="#0a0a0a" />
+      </>
+    )
+  }
+  {
+    name === 'flag' && (
+      <>
+        <rect x="1" y="2" width="6" height="5" fill="#f35325" />
+        <rect x="8" y="2" width="6" height="5" fill="#81bc06" />
+        <rect x="1" y="8" width="6" height="5" fill="#05a6f0" />
+        <rect x="8" y="8" width="6" height="5" fill="#ffba08" />
+      </>
+    )
+  }
+  {
+    name === 'image' && (
+      <>
+        <rect x="1" y="2" width="14" height="12" fill="#0a0a0a" />
+        <rect x="2" y="3" width="12" height="10" fill="#ffffff" />
+        <rect x="3" y="4" width="3" height="3" fill="#ffba08" />
+        <path d="M2 12l4-5 3 5z" fill="#007000" />
+        <path d="M7 12l3-4 3 4z" fill="#00a000" />
+      </>
+    )
+  }
+  {
+    name === 'shortcut' && (
+      <>
+        <rect x="0" y="8" width="8" height="8" fill="#0a0a0a" />
+        <rect x="1" y="9" width="6" height="6" fill="#ffffff" />
+        <path d="M4 10l3 3H5v2H3v-2H1z" fill="#0a0a0a" />
+      </>
+    )
+  }
+</svg>

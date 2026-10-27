@@ -34,7 +34,7 @@ cp .env.example .env   # 填入 NOTION_TOKEN 与 NOTION_DATABASE_ID
 ```
 src/
 ├── pages/        # 内核数据端点（.md、llms.txt、RSS、robots）
-├── themes/       # 主题（default 全功能 / paper 学术排版 / minimal 契约参考 / terminal CRT 风）
+├── themes/       # 主题（default 全功能 / paper 学术排版 / minimal 契约参考 / terminal CRT 风 / retro 复古桌面）
 ├── lib/          # 内核：Notion 数据层、渲染器、缓存、markdown、主题系统、配置
 ├── config/       # 站点配置默认值与解析
 ├── core/         # <head> 元标签工具
@@ -60,7 +60,7 @@ src/
 ## 调试技巧
 
 - **改了 Notion 数据看不到**：dev 缓存 5 分钟、build 缓存 1 小时；数据层代码（notion/cache/utils/types）改动会自动失效缓存，也可 `rm -rf .cache/` 手动清理
-- **主题切换**：`NOPRESS_THEME=minimal|terminal|paper`；out-tree 主题用 `NOPRESS_THEME_PATH`（注意 Astro 7 对项目外 `.astro` 路径的限制，见 [主题契约 §9](./THEMES.md#9-分发与兼容)）
+- **主题切换**：`NOPRESS_THEME=minimal|terminal|paper|retro`；out-tree 主题用 `NOPRESS_THEME_PATH`（注意 Astro 7 对项目外 `.astro` 路径的限制，见 [主题契约 §9](./THEMES.md#9-分发与兼容)）
 - **主题选项**：`NOPRESS_THEME_OPTIONS='{"key":value}'`，构建日志会打印被覆盖的选项
 - **路由冲突**：主题路由撞内核保留路径会在构建期报错，错误信息里带完整保留清单
 

@@ -1,0 +1,149 @@
+---
+/**
+ * Retro 主题布局：桌面区 + 任务栏（开始菜单 / 任务按钮 / 时钟）
+ *
+ * 依赖契约稳定 API（docs/THEMES.md）：
+ * @config/resolved-site、@core/config/meta、@core/lib/meta-helpers、
+ * @lib/notion/service、@lib/theme/options
+ *
+ * 单形态主题：未声明 darkMode 选项，框架不做深色处理。
+ */
+import { getResolvedSiteConfig } from '@config/resolved-site';
+import { getMetaConfig } from '@core/config/meta';
+import { generateMetaTags } from '@core/lib/meta-helpers';
+import dataService from '@lib/notion/service';
+import { themeOptions } from '@lib/theme/options';
+import { ClientRouter } from 'astro:transitions';
+import Icon from '../components/Icon.astro';
+import '../styles/global.css';
+import '../styles/content.css';
+import 'katex/dist/katex.min.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 当前窗口标题：传入后任务栏显示对应任务按钮 */
+  windowTitle?: string;
+  /** 当前窗口任务按钮的图标 */
+  windowIcon?: 'doc' | 'note' | 'folder';
+}
+
+const SITE_CONFIG = await getResolvedSiteConfig();
+const menuItems = await dataService.getMenuItems();
+const dbInfo = await dataService.getDatabaseInfo();
+
+const { title = SITE_CONFIG.title, description, windowTitle, windowIcon = 'doc' } = Astro.props;
+
+// 主题选项（声明见 theme.config.mjs）
+const { wallpaper = 'database', showClock = true, showScanlines = true } = themeOptions as {
+  wallpaper?: 'database' | 'teal' | 'clouds' | 'slate';
+  showClock?: boolean;
+  showScanlines?: boolean;
+};
+
+// database 壁纸：Notion Database 封面铺满桌面，无封面时回退 teal
+const coverUrl = wallpaper === 'database' ? dbInfo.coverUrl : undefined;
+const wallpaperClass = coverUrl
+  ? 'wallpaper-database'
+  : `wallpaper-${wallpaper === 'database' ? 'teal' : wallpaper}`;
+const wallpaperStyle = coverUrl
+  ? `--wallpaper-image: url("${coverUrl}"); --wallpaper-focus: center ${dbInfo.coverPosition ?? 50}%`
+  : undefined;
+
+const metaConfig = getMetaConfig(SITE_CONFIG);
+const metaTags = generateMetaTags(
+  metaConfig,
+  title,
+  Astro.url.pathname,
+  description,
+);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang={metaConfig.language}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <ClientRouter />
+    <link rel="icon" href={SITE_CONFIG.icon} />
+    <link rel="canonical" href={canonical} />
+    {metaConfig.enableRSS && (
+      <link rel="alternate" type="application/rss+xml" title={metaConfig.title} href={metaConfig.rssUrl} />
+    )}
+    {metaConfig.enableSitemap && (
+      <link rel="sitemap" href="/sitemap-index.xml" />
+    )}
+    <title>{metaTags.title}</title>
+    <meta name="description" content={metaTags.description} />
+    <meta property="og:type" content={metaTags.ogType} />
+    <meta property="og:title" content={metaTags.ogTitle} />
+    <meta property="og:description" content={metaTags.ogDescription} />
+    {metaTags.ogImage && <meta property="og:image" content={metaTags.ogImage} />}
+  </head>
+  <body class={`${wallpaperClass}${showScanlines ? ' show-scanlines' : ''}`} style={wallpaperStyle}>
+    <main class="retro-main">
+      <slot />
+    </main>
+
+    <!-- 应用窗口层：桌面双击打开的窗口挂载点（交互见 scripts/desktop.ts） -->
+    <div class="window-layer" data-window-layer></div>
+
+    <footer class="taskbar">
+      <button
+        type="button"
+        class="start-button"
+        data-start-toggle
+        aria-expanded="false"
+        aria-controls="start-menu"
+      >
+        <Icon name="flag" size={16} />
+        <span>开始</span>
+      </button>
+      <span class="taskbar-divider" aria-hidden="true"></span>
+      <a class:list={['task-button', { active: !windowTitle }]} href="/" data-show-desktop title="桌面">
+        <Icon name="computer" size={16} />
+        <span>桌面</span>
+      </a>
+      {windowTitle && (
+        <a class="task-button active" href={Astro.url.pathname} title={windowTitle}>
+          <Icon name={windowIcon} size={16} />
+          <span class="task-button-text">{windowTitle}</span>
+        </a>
+      )}
+      <span class="taskbar-windows" data-task-windows></span>
+      <span class="taskbar-tray">
+        {showClock && <span class="tray-clock" data-clock>--:--</span>}
+      </span>
+
+      <nav class="start-menu" id="start-menu" data-start-menu aria-label="开始菜单">
+        <span class="start-banner" aria-hidden="true">{SITE_CONFIG.title}</span>
+        <ul class="start-list">
+          <li>
+            <a href="/"><Icon name="computer" size={20} /><span>桌面</span></a>
+          </li>
+          <li>
+            <a href="/documents"><Icon name="folder" size={20} /><span>我的文档</span></a>
+          </li>
+          {menuItems.length > 0 && <li class="start-sep" role="separator"></li>}
+          {menuItems.map(item => (
+            <li>
+              <a
+                href={item.url}
+                target={item.isExternal ? '_blank' : undefined}
+                rel={item.isExternal ? 'noopener noreferrer' : undefined}
+              >
+                <Icon name="shortcut" size={20} />
+                <span>{item.title}{item.isExternal ? ' …' : ''}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </footer>
+
+    <script>
+      import '../scripts/desktop';
+    </script>
+  </body>
+</html>

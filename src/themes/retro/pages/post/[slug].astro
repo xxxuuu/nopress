@@ -1,0 +1,39 @@
+---
+/**
+ * 文章页：文档窗口
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Window from '../../components/Window.astro';
+import dataService from '@lib/notion/service';
+import { isValidSlug } from '@lib/utils/slug';
+import { formatDate } from '@lib/utils/date';
+
+export async function getStaticPaths() {
+  const posts = await dataService.getAllPosts();
+  return posts
+    .filter(post => isValidSlug(post.slug))
+    .map(post => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props;
+
+const statusLeft = [
+  formatDate(post.publishedAt, 'yyyy/M/d'),
+  post.readingTime ? `${post.readingTime} 分钟` : null,
+].filter(Boolean).join(' · ');
+const statusRight = post.tags.length > 0 ? post.tags.join('，') : '';
+---
+
+<BaseLayout title={post.title} description={post.description} windowTitle={post.title} windowIcon="doc">
+  <Window title={post.title} icon="doc" statusLeft={statusLeft} statusRight={statusRight}>
+    {post.coverUrl && (
+      <img
+        class="post-cover"
+        src={post.coverUrl}
+        alt={post.title}
+        style={post.coverPosition != null ? `object-position: center ${post.coverPosition}%` : undefined}
+      />
+    )}
+    <div class="notion-content" set:html={post.content} />
+  </Window>
+</BaseLayout>

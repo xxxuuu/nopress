@@ -85,6 +85,10 @@ Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。
 | [![Minimal 主题首页：纯文字文章列表与简洁导航](./assets/themes/minimal.webp)](./assets/themes/minimal.webp) | [![Terminal 主题首页：黑底绿字与终端命令式文章索引](./assets/themes/terminal.webp)](./assets/themes/terminal.webp) |
 | 纯文字列表、系统字体。 | 黑底绿字、等宽字体、CRT 扫描线。 |
 | `NOPRESS_THEME=minimal` | `NOPRESS_THEME=terminal` |
+| **Retro · 复古桌面** | |
+| [![Retro 主题首页：复古桌面壁纸、图标、任务栏与开始菜单](./assets/themes/retro.webp)](./assets/themes/retro.webp) | |
+| 复古桌面操作系统：Notion 封面作壁纸、双击图标在页面内打开窗口（可拖动/最小化/任务栏切换）、文章与页面收进「我的文档」、内置复古图片查看器。 | |
+| `NOPRESS_THEME=retro` | |
 
 <details>
 <summary>文章页预览</summary>
@@ -94,6 +98,8 @@ Netlify 等其它平台同理：导入仓库 + 配这两个变量即可。
 | [![Default 主题文章页：文章封面、元信息与正文排版](./assets/themes/default-post.webp)](./assets/themes/default-post.webp) | [![Paper 主题文章页：衬线标题、卷首插图与编号页边目录](./assets/themes/paper-post.webp)](./assets/themes/paper-post.webp) |
 | **Minimal · 极简** | **Terminal · 终端** |
 | [![Minimal 主题文章页：简洁标题与正文排版](./assets/themes/minimal-post.webp)](./assets/themes/minimal-post.webp) | [![Terminal 主题文章页：等宽字体与绿磷光配色](./assets/themes/terminal-post.webp)](./assets/themes/terminal-post.webp) |
+| **Retro · 复古桌面** | |
+| [![Retro 主题文章页：窗口化文章与复古系统窗口](./assets/themes/retro-post.webp)](./assets/themes/retro-post.webp) | |
 
 </details>
 
@@ -111,6 +117,7 @@ NOPRESS_THEME_OPTIONS = {"showPostCover": false, "showReadingTime": false}
 - **paper**：`darkMode`、`accentColor`（点缀色）、`numberedHeadings`（章节编号）、`showCitation`（BibTeX 引用）、`author`（引用署名）、`showPostCover`（文章封面）
 - **minimal**：`darkMode`、`footerText`（页脚文字）、`showPostMeta`（文章元信息）
 - **terminal**：`promptSymbol`（终端提示符符号）、`showScanlines`（扫描线质感）
+- **retro**：`wallpaper`（桌面壁纸：database 用 Notion Database 封面 / teal / clouds / slate）、`showClock`（任务栏时钟）、`showScanlines`（CRT 扫描线）、`singleClickOpen`（单击打开图标，默认双击）
 
 选项机制见 [主题开发契约](./THEMES.md)。
 

@@ -38,9 +38,12 @@ src/
 │   │   ├── pages/        # 首页、/post/[slug]、/[slug]
 │   │   ├── layouts/      # BaseLayout
 │   │   └── styles/       # global.css、content.css（仅依据 docs/THEMES.md 契约编写）
-│   └── terminal/         # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：3 路由，单深色形态
-│       ├── pages/        # 首页、/post/[slug]、/[slug]
-│       ├── layouts/      # BaseLayout
+│   ├── terminal/         # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：3 路由，单深色形态
+│   └── retro/            # 复古桌面 OS 风格（NOPRESS_THEME=retro）：多窗口桌面（双击开窗/拖拽/任务栏）、图片查看器，5 路由
+│       ├── pages/        # 桌面（首页）、/documents 文档夹、/post/[slug]、/[slug]、/tag/[tag]
+│       ├── layouts/      # BaseLayout（任务栏 + 开始菜单 + 窗口层）
+│       ├── components/   # Window、DesktopIcon、Explorer、Icon（像素 SVG 图标集）
+│       ├── scripts/      # 主题自有客户端脚本（desktop：窗口管理器、开始菜单、时钟）
 │       └── styles/       # global.css、content.css
 │   # 主题契约见 docs/THEMES.md；清单经 zod 验证（id/name/version 必填）
 ├── lib/

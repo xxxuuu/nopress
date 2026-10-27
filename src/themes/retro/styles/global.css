@@ -1,0 +1,919 @@
+/* Retro 主题全局样式：复古桌面操作系统（Win9x 视觉语言），单形态 */
+
+:root {
+  --face: #c0c0c0;
+  --face-light: #dfdfdf;
+  --white: #ffffff;
+  --shadow: #808080;
+  --ink: #0a0a0a;
+  --navy: #000080;
+  --navy-light: #1084d0;
+  --desktop-teal: #008080;
+
+  font-family: Tahoma, 'MS Sans Serif', SimSun, 'Songti SC', 'Microsoft YaHei', sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--ink);
+  background-color: var(--face);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+/* CRT 扫描线：全屏细微暗线，还原低分辨率显示器观感（showScanlines 选项） */
+body.show-scanlines::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+}
+
+/* ===== 立体斜面（经典双线 bevel，98.css 手法） ===== */
+
+.bevel-out {
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--white),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--face-light);
+}
+
+.bevel-in {
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+/* ===== 桌面区 ===== */
+
+.retro-main {
+  position: fixed;
+  inset: 0 0 30px 0;
+}
+
+.wallpaper-teal {
+  --wallpaper: var(--desktop-teal);
+}
+
+.wallpaper-teal .retro-main {
+  background-color: var(--desktop-teal);
+}
+
+.wallpaper-clouds {
+  --wallpaper: #3a6ea5;
+}
+
+.wallpaper-clouds .retro-main {
+  background-color: #3a6ea5;
+  background-image:
+    radial-gradient(160px 70px at 15% 20%, rgba(255, 255, 255, 0.9), transparent 70%),
+    radial-gradient(220px 90px at 70% 12%, rgba(255, 255, 255, 0.8), transparent 70%),
+    radial-gradient(180px 80px at 45% 55%, rgba(255, 255, 255, 0.85), transparent 70%),
+    radial-gradient(240px 100px at 88% 72%, rgba(255, 255, 255, 0.75), transparent 70%),
+    radial-gradient(160px 70px at 22% 88%, rgba(255, 255, 255, 0.8), transparent 70%);
+}
+
+.wallpaper-slate {
+  --wallpaper: #3a6ea5;
+}
+
+.wallpaper-slate .retro-main {
+  background-color: #3a6ea5;
+}
+
+/* database 壁纸：Notion Database 封面铺满桌面，压暗一层保证图标可读 */
+.wallpaper-database .retro-main {
+  background-color: var(--desktop-teal);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), var(--wallpaper-image);
+  background-size: cover, cover;
+  background-position: center, var(--wallpaper-focus, center);
+}
+
+/* 像素箭头光标：全站统一，还原 95 时代的系统指针 */
+:root {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='17' viewBox='0 0 12 17'%3E%3Cpolygon points='0,0 0,15 3.5,11.5 5.7,16.6 8.3,15.5 6.1,10.4 10,10.4' fill='%23000'/%3E%3Cpolygon points='1,2 1,12.4 3.9,9.6 5.9,14.6 6.9,14.2 4.9,9.3 8,9.3' fill='%23fff'/%3E%3C/svg%3E") 0 0, default;
+}
+
+* {
+  cursor: inherit;
+}
+
+.desktop {
+  position: relative;
+  height: 100%;
+  padding: 12px;
+  display: flex;
+  flex-flow: column wrap;
+  align-content: flex-start;
+  gap: 2px;
+  overflow: auto;
+}
+
+/* ===== 桌面图标 ===== */
+
+.desktop-icon {
+  width: 84px;
+  padding: 6px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--ink);
+  user-select: none;
+}
+
+.desktop-icon:focus-visible {
+  outline: 1px dotted var(--white);
+  outline-offset: -1px;
+}
+
+.desktop-icon-img {
+  position: relative;
+  width: 32px;
+  height: 32px;
+}
+
+.desktop-icon-img > svg,
+.desktop-icon-img > img {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.desktop-icon-emoji {
+  display: block;
+  width: 32px;
+  height: 32px;
+  font-size: 26px;
+  line-height: 32px;
+  overflow: hidden;
+}
+
+.desktop-icon-shortcut {
+  position: absolute;
+  left: -4px;
+  bottom: -4px;
+  line-height: 0;
+}
+
+.desktop-icon-label {
+  max-width: 80px;
+  color: var(--white);
+  line-height: 1.25;
+  word-break: break-word;
+  text-shadow:
+    1px 1px 0 var(--ink),
+    -1px 1px 0 var(--ink),
+    1px -1px 0 var(--ink),
+    -1px -1px 0 var(--ink);
+}
+
+.desktop-icon.selected .desktop-icon-label {
+  background-color: var(--navy);
+  text-shadow: none;
+}
+
+/* 选中蒙版用棋盘抖动（dither），模拟 16 位色时代的半透明选区 */
+.desktop-icon.selected .desktop-icon-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: conic-gradient(rgba(0, 0, 128, 0.85) 25%, transparent 0 50%, rgba(0, 0, 128, 0.85) 0 75%, transparent 0);
+  background-size: 2px 2px;
+}
+
+.desktop-watermark {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  margin: 0;
+  text-align: right;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.desktop-watermark .wm-site {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.desktop-watermark .wm-hint {
+  margin: 2px 0 0;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* ===== 窗口 ===== */
+
+.window {
+  width: min(768px, calc(100% - 16px));
+  height: calc(100% - 16px);
+  margin: 8px auto;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--face);
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--face-light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--white);
+}
+
+/* ===== 应用窗口层（桌面双击打开的多窗口） ===== */
+
+.window-layer {
+  position: fixed;
+  inset: 0 0 30px 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/*
+ * 应用窗口：复用 .window 的窗口铬（标题栏/菜单栏/正文/状态栏），
+ * 覆盖其文档级定位为层内绝对定位 + 层叠。
+ */
+.app-window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: min(640px, calc(100vw - 24px));
+  height: min(460px, calc(100% - 16px));
+  margin: 0;
+  pointer-events: auto;
+}
+
+.app-window.maximized {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.win-loading,
+.win-error {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--shadow);
+}
+
+.win-error {
+  color: #c00000;
+}
+
+/* 非活动窗口：标题栏退为纯灰（活动窗口保持海军蓝渐变） */
+.window[data-inactive] .titlebar,
+.app-window[data-inactive] .titlebar {
+  background: var(--shadow);
+}
+
+.app-window .titlebar {
+  touch-action: none;
+}
+
+.window.maximized {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.titlebar {
+  flex-shrink: 0;
+  height: 20px;
+  padding: 1px 2px 1px 3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: linear-gradient(90deg, var(--navy), var(--navy-light));
+  color: var(--white);
+}
+
+.titlebar-icon {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.titlebar-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.titlebar-controls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+}
+
+.wc-button {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--face);
+  color: var(--ink);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--white),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--face-light);
+}
+
+.wc-button:active {
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.wc-button svg {
+  transform: translateY(-0.5px);
+}
+
+.menubar {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+  padding: 1px 2px;
+  font-size: 12px;
+}
+
+.menubar span {
+  padding: 1px 7px;
+}
+
+.menubar span:hover {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+.window-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background-color: var(--white);
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.statusbar {
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.status-cell {
+  min-width: 0;
+  padding: 1px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow);
+}
+
+.status-cell:first-child {
+  flex-shrink: 0;
+}
+
+.status-right {
+  flex: 1;
+}
+
+/* ===== 任务栏 ===== */
+
+.taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  height: 30px;
+  padding: 3px;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  background-color: var(--face);
+  box-shadow: inset 0 1px var(--white), inset 0 2px var(--face-light);
+}
+
+.start-button {
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background-color: var(--face);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--white),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--face-light);
+}
+
+.start-button.pressed,
+.start-button:active {
+  padding-top: 1px;
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.taskbar-divider {
+  width: 1px;
+  margin: 1px 2px;
+  border-left: 1px solid var(--shadow);
+  border-right: 1px solid var(--white);
+}
+
+.task-button {
+  width: 160px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--white),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--face-light);
+}
+
+.task-button span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-button.active {
+  font-weight: 700;
+  background-color: var(--face-light);
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.taskbar-tray {
+  margin-left: auto;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow);
+}
+
+/* 应用窗口任务按钮容器：按钮直接参与任务栏 flex 布局 */
+.taskbar-windows {
+  display: contents;
+}
+
+.taskbar-windows .task-button {
+  border: none;
+  background-color: var(--face);
+  font: inherit;
+}
+
+.task-emoji {
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.tray-clock {
+  font-size: 11px;
+}
+
+/* ===== 开始菜单 ===== */
+
+.start-menu {
+  position: absolute;
+  left: 3px;
+  bottom: 30px;
+  z-index: 20;
+  display: none;
+  width: 210px;
+  padding: 3px;
+  background-color: var(--face);
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--face-light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--white);
+}
+
+.start-menu.open {
+  display: flex;
+}
+
+.start-banner {
+  flex-shrink: 0;
+  width: 24px;
+  margin-right: 3px;
+  padding: 8px 0;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: left;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--face-light);
+  background: linear-gradient(0deg, var(--navy), var(--navy-light));
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.start-list {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.start-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.start-list a:hover {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+.start-sep {
+  height: 0;
+  margin: 3px 2px;
+  border-top: 1px solid var(--shadow);
+  border-bottom: 1px solid var(--white);
+}
+
+/* ===== 滚动条与选区 ===== */
+
+::selection {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+/*
+ * 经典滚动条：抖动轨道 + 边框斜面滑块 + 箭头按钮。
+ * 注意两点：scrollbar-color 一旦生效（Chromium 121+）会禁用 webkit 伪元素样式，
+ * 故只对不支持 webkit 伪元素的 Firefox 启用标准属性；
+ * 滚动条伪元素上 box-shadow 无效，斜面用 border 画。
+ */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--face) var(--face-light);
+  }
+}
+
+*::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: var(--white);
+  background-image: conic-gradient(var(--face) 25%, transparent 0 50%, var(--face) 0 75%, transparent 0);
+  background-size: 2px 2px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--face);
+  border: 1px solid;
+  border-color: var(--white) var(--shadow) var(--shadow) var(--white);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--face-light);
+}
+
+*::-webkit-scrollbar-corner {
+  background-color: var(--face);
+}
+
+*::-webkit-scrollbar-button {
+  width: 16px;
+  height: 16px;
+  background-color: var(--face);
+  border: 1px solid;
+  border-color: var(--white) var(--shadow) var(--shadow) var(--white);
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+*::-webkit-scrollbar-button:vertical:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4' shape-rendering='crispEdges'%3E%3Cpath d='M3.5 0L7 4H0z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+*::-webkit-scrollbar-button:vertical:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='4' viewBox='0 0 7 4' shape-rendering='crispEdges'%3E%3Cpath d='M3.5 4L0 0h7z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+*::-webkit-scrollbar-button:horizontal:decrement {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 3.5L4 0v7z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+*::-webkit-scrollbar-button:horizontal:increment {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='7' viewBox='0 0 4 7' shape-rendering='crispEdges'%3E%3Cpath d='M4 3.5L0 7V0z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+/* ===== 资源管理器列表视图（窗口内容，注入窗口亦适用，须为全局样式） ===== */
+
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 100%;
+}
+
+.explorer-head,
+.explorer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px 72px 56px;
+  gap: 8px;
+  align-items: center;
+}
+
+.explorer-head {
+  padding: 2px;
+  font-weight: 700;
+}
+
+.explorer-head span {
+  padding: 1px 6px;
+}
+
+.explorer-list {
+  flex: 1;
+  margin: 0;
+  padding: 2px;
+  list-style: none;
+  background-color: var(--white);
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.explorer-row {
+  padding: 2px 6px;
+  color: var(--ink);
+  text-decoration: none;
+  user-select: none;
+}
+
+.explorer-row:hover {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+.explorer-row:focus-visible {
+  outline: 1px dotted var(--ink);
+  outline-offset: -2px;
+}
+
+.explorer-row.selected {
+  background-color: var(--navy);
+  color: var(--white);
+}
+
+.col-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.col-name svg,
+.col-name img {
+  flex-shrink: 0;
+}
+
+.col-emoji {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.col-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-date,
+.col-type,
+.col-size {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== 图片查看器 ===== */
+
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.image-viewer-window {
+  width: min(880px, 100%);
+  height: min(620px, 100%);
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--face);
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--face-light),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--white),
+    4px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.viewer-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 0;
+}
+
+.toolbar-button {
+  padding: 3px 10px;
+  border: none;
+  background-color: var(--face);
+  color: var(--ink);
+  font: inherit;
+  cursor: inherit;
+  box-shadow:
+    inset -1px -1px var(--ink),
+    inset 1px 1px var(--white),
+    inset -2px -2px var(--shadow),
+    inset 2px 2px var(--face-light);
+}
+
+.toolbar-button:active {
+  padding-top: 4px;
+  padding-bottom: 2px;
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.toolbar-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  border-left: 1px solid var(--shadow);
+  border-right: 1px solid var(--white);
+}
+
+/* 展示区：teal 底 + 居中（margin auto 保证超出可滚动到边缘） */
+.image-viewer-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  background-color: var(--desktop-teal);
+  box-shadow:
+    inset -1px -1px var(--white),
+    inset 1px 1px var(--shadow),
+    inset -2px -2px var(--face-light),
+    inset 2px 2px var(--ink);
+}
+
+.image-viewer-stage img {
+  margin: auto;
+  display: block;
+}
+
+/* ===== 窗口调整大小手柄 ===== */
+
+.rs-handle {
+  position: absolute;
+  z-index: 5;
+  touch-action: none;
+}
+
+/* 右下角：经典斜纹 grip */
+.rs-corner {
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  background-image: repeating-linear-gradient(135deg, transparent 0 2px, var(--shadow) 2px 3px, var(--white) 3px 4px);
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M0 0L6 0L4 2L10 8L12 6L12 12L6 12L8 10L2 4L0 6Z' fill='%23000' stroke='%23fff' stroke-width='0.8'/%3E%3C/svg%3E") 6 6, nwse-resize;
+}
+
+.rs-right {
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M0 6L4 2L4 5L8 5L8 2L12 6L8 10L8 7L4 7L4 10Z' fill='%23000' stroke='%23fff' stroke-width='0.8'/%3E%3C/svg%3E") 6 6, ew-resize;
+}
+
+.rs-bottom {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 5px;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 0L10 4L7 4L7 8L10 8L6 12L2 8L5 8L5 4L2 4Z' fill='%23000' stroke='%23fff' stroke-width='0.8'/%3E%3C/svg%3E") 6 6, ns-resize;
+}
+
+/* ===== 移动端 ===== */
+
+@media (max-width: 640px) {
+  .task-button {
+    width: 110px;
+  }
+
+  .desktop-icon {
+    width: 72px;
+  }
+
+  .menubar span:nth-child(n + 4) {
+    display: none;
+  }
+
+  .app-window {
+    width: calc(100vw - 16px);
+    height: calc(100% - 8px);
+  }
+
+  .explorer-head,
+  .explorer-row {
+    grid-template-columns: minmax(0, 1fr) 56px;
+  }
+
+  .col-date,
+  .col-type,
+  .explorer-head span:nth-child(2),
+  .explorer-head span:nth-child(3) {
+    display: none;
+  }
+}

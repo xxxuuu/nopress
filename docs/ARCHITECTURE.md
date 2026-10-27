@@ -191,7 +191,8 @@ src/
 │   │   └── theme.config.mjs      # 主题清单
 │   ├── paper/                    # 纸本学术排版主题：6 路由、章节编号、页边目录、BibTeX 引用
 │   ├── minimal/                  # 契约参考实现（NOPRESS_THEME=minimal）：首页、/post/[slug]、/[slug] 三路由极简主题
-│   └── terminal/                 # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：三路由，单深色形态
+│   ├── terminal/                 # 绿磷光 CRT 风格（NOPRESS_THEME=terminal）：三路由，单深色形态
+│   └── retro/                    # 复古桌面 OS 风格（NOPRESS_THEME=retro）：多窗口桌面（双击开窗/拖拽/任务栏）、文章收进文件夹窗口
 ├── lib/
 │   ├── notion/
 │   │   ├── service/              # NotionDataService（数据层入口）

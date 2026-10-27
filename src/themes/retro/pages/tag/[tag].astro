@@ -1,0 +1,48 @@
+---
+/**
+ * 标签页：文件夹的资源管理器窗口（详细列表视图）
+ *
+ * 与桌面一致的交互：单击选中、双击打开为应用窗口。
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Window from '../../components/Window.astro';
+import Explorer from '../../components/Explorer.astro';
+import dataService from '@lib/notion/service';
+import type { Post } from '@lib/types';
+
+export async function getStaticPaths() {
+  // 路由参数用 getAllTags() 的 slug（slugify 规范化，如 "Cloud Native" → cloud-native），
+  // 与 Explorer/桌面里 /tag/${tag.slug} 的链接保持一致；getPostsByTag 按 slugMatch 过滤
+  const tags = await dataService.getAllTags();
+  const postsByTag = new Map<string, Post[]>();
+  for (const tag of tags) {
+    postsByTag.set(tag.name, await dataService.getPostsByTag(tag.name));
+  }
+
+  return tags.map(tag => ({
+    params: { tag: tag.slug },
+    props: {
+      posts: postsByTag.get(tag.name) ?? [],
+      displayTag: tag.name,
+    },
+  }));
+}
+
+const { posts, displayTag } = Astro.props as { posts: Post[]; displayTag: string };
+---
+
+<BaseLayout
+  title={`文件夹：${displayTag}`}
+  description={`标签「${displayTag}」下的所有文章`}
+  windowTitle={displayTag}
+  windowIcon="folder"
+>
+  <Window
+    title={displayTag}
+    icon="folder"
+    statusLeft={`${posts.length} 个对象`}
+    statusRight="双击打开"
+  >
+    <Explorer files={posts} />
+  </Window>
+</BaseLayout>

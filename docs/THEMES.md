@@ -87,7 +87,7 @@ import dataService from '@lib/notion/service';
 | `getMenuItems()` | `MenuItem[]` | 顶部导航（`type=Menu`），`date` 升序 |
 | `getAllPages()` | `Post[]` | 独立页面（`type=Page`），与 Post 同构 |
 | `getPageBySlug(slug)` | `Post \| null` | 按 slug 取独立页面 |
-| `getDatabaseInfo()` | `{ title, description, coverUrl, icon }` | Database 元信息 |
+| `getDatabaseInfo()` | `{ title, description, coverUrl, coverPosition?, icon }` | Database 元信息 |
 
 字段类型的唯一来源是 `@lib/types`：
 
@@ -162,7 +162,7 @@ const { accentColor = '#0066cc' } = themeOptions as { accentColor?: string };
 - **保留选项 key**：`darkMode`（boolean）具有框架级行为（见 §6）；其余选项纯粹供主题自身消费
 - 修改 `NOPRESS_THEME_OPTIONS` 后需重启 dev server（值在构建启动时固化）
 
-完整可运行示例：`src/themes/minimal/`（`footerText` + `showPostMeta`）、`src/themes/default/`（`darkMode` + `showPostCover` + `showReadingTime`）、`src/themes/terminal/`（`promptSymbol` + `showScanlines`）、`src/themes/paper/`（`darkMode` + `accentColor` + `numberedHeadings` + `showCitation` + `author` + `showPostCover`）。
+完整可运行示例：`src/themes/minimal/`（`footerText` + `showPostMeta`）、`src/themes/default/`（`darkMode` + `showPostCover` + `showReadingTime`）、`src/themes/terminal/`（`promptSymbol` + `showScanlines`）、`src/themes/paper/`（`darkMode` + `accentColor` + `numberedHeadings` + `showCitation` + `author` + `showPostCover`）、`src/themes/retro/`（`wallpaper` + `showClock` + `showScanlines` + `singleClickOpen`）。
 
 ### 3.4 搜索接口
 
@@ -245,7 +245,7 @@ import { ClientRouter } from 'astro:transitions';
 它把站内导航变为软导航（点击链接只替换页面主体，不整页刷新）。两条硬约定：
 
 - 内核脚本的初始化统一挂在 `astro:page-load`（首次加载与每次软导航后都触发）——**缺少 `<ClientRouter />` 时该事件不会触发，全部脚本失效**
-- 软导航会替换 `<html>` 的属性——依赖运行时 class 的逻辑（如深色模式）需在 `astro:after-swap` 重应用（内核注入的深色初始化已处理）；主题自有脚本的初始化同样挂 `astro:page-load`，而不是在脚本顶层直接操作 DOM
+- 软导航会替换 `<html>` 的属性——依赖运行时 class 的逻辑（如深色模式）需在 `astro:after-swap` 重应用（内核注入的深色初始化已处理）。主题自有脚本的初始化通常挂 `astro:page-load`；注意该事件首次触发要等到 `load`，图片多的页面会长时间停在 `interactive`——若主题要求交互在 DOM 就绪后立即可用，可在脚本执行时立即初始化（body 尾部脚本 DOM 已就绪），以当前 body 元素为防重标记并保留 `astro:page-load` 监听覆盖软导航（导航会在同一 document 里替换 body 元素），实现见 `src/themes/retro/scripts/desktop.ts`
 
 ### 可选增强脚本
 

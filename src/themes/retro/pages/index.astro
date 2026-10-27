@@ -1,0 +1,35 @@
+---
+/**
+ * 首页：桌面
+ *
+ * 只保留少量图标保持桌面整洁：菜单项 → 快捷方式，文章与标签收进
+ * 「我的文档」文件夹（/documents，双击打开为资源管理器窗口）。
+ * 单击选中、双击打开窗口（交互见 scripts/desktop.ts）。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import DesktopIcon from '../components/DesktopIcon.astro';
+import dataService from '@lib/notion/service';
+import { getResolvedSiteConfig } from '@config/resolved-site';
+
+const SITE_CONFIG = await getResolvedSiteConfig();
+const menuItems = await dataService.getMenuItems();
+---
+
+<BaseLayout>
+  <div class="desktop">
+    {menuItems.map(item => (
+      <DesktopIcon
+        href={item.url}
+        label={item.title}
+        icon="doc"
+        shortcut
+        external={item.isExternal}
+      />
+    ))}
+    <DesktopIcon href="/documents" label="我的文档" icon="folder" />
+  </div>
+  <div class="desktop-watermark" aria-hidden="true">
+    <p class="wm-site">{SITE_CONFIG.title}</p>
+    <p class="wm-hint">双击图标打开 · NoPress Retro</p>
+  </div>
+</BaseLayout>

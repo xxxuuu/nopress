@@ -1,0 +1,58 @@
+---
+/**
+ * 系统窗口外壳：标题栏 + 装饰菜单栏 + 可滚动正文 + 状态栏
+ *
+ * 最小化/关闭 = 返回桌面（closeHref）；最大化由 scripts/desktop.ts
+ * 切换 maximized 类，在窗口化与铺满之间切换。
+ */
+import Icon from './Icon.astro';
+
+interface Props {
+  title: string;
+  icon?: 'doc' | 'note' | 'folder';
+  statusLeft?: string;
+  statusRight?: string;
+  closeHref?: string;
+}
+
+const { title, icon = 'doc', statusLeft = '', statusRight = '', closeHref = '/' } = Astro.props;
+---
+
+<section class="window" data-window aria-label={title}>
+  <header class="titlebar">
+    <span class="titlebar-icon"><Icon name={icon} size={16} /></span>
+    <h1 class="titlebar-text">{title}</h1>
+    <span class="titlebar-controls">
+      <a class="wc-button" href={closeHref} title="最小化（返回桌面）" aria-label="最小化，返回桌面">
+        <svg viewBox="0 0 6 6" width="6" height="6" aria-hidden="true"><rect y="4" width="6" height="2" fill="currentColor" /></svg>
+      </a>
+      <button type="button" class="wc-button" data-window-max title="最大化" aria-label="切换最大化">
+        <svg viewBox="0 0 6 6" width="6" height="6" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M0 0h6v6H0V2zm1 2v3h4V2z" /></svg>
+      </button>
+      <a class="wc-button" href={closeHref} title="关闭（返回桌面）" aria-label="关闭，返回桌面">
+        <svg viewBox="0 0 6 6" width="6" height="6" aria-hidden="true"><path stroke="currentColor" stroke-width="1.1" fill="none" d="M.7.7l4.6 4.6M5.3.7L.7 5.3" /></svg>
+      </a>
+    </span>
+  </header>
+
+  <div class="menubar" aria-hidden="true">
+    <span>文件(F)</span>
+    <span>编辑(E)</span>
+    <span>查看(V)</span>
+    <span>收藏(A)</span>
+    <span>帮助(H)</span>
+  </div>
+
+  <div class="window-body">
+    <slot />
+  </div>
+
+  {
+    (statusLeft || statusRight) && (
+      <footer class="statusbar">
+        <span class="status-cell">{statusLeft}</span>
+        {statusRight && <span class="status-cell status-right">{statusRight}</span>}
+      </footer>
+    )
+  }
+</section>

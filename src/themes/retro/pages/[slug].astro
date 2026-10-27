@@ -1,0 +1,26 @@
+---
+/**
+ * 独立页面（type=Page）：文档窗口
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Window from '../components/Window.astro';
+import dataService from '@lib/notion/service';
+import { isValidSlug } from '@lib/utils/slug';
+import { formatDate } from '@lib/utils/date';
+
+export async function getStaticPaths() {
+  const pages = await dataService.getAllPages();
+  // 避开主题自己的 /documents 路由（撞名时 Astro 仅告警不失败）
+  return pages
+    .filter(page => isValidSlug(page.slug) && page.slug !== 'documents')
+    .map(page => ({ params: { slug: page.slug }, props: { page } }));
+}
+
+const { page } = Astro.props;
+---
+
+<BaseLayout title={page.title} description={page.description} windowTitle={page.title} windowIcon="note">
+  <Window title={page.title} icon="note" statusLeft={formatDate(page.publishedAt, 'yyyy/M/d')}>
+    <div class="notion-content" set:html={page.content} />
+  </Window>
+</BaseLayout>
