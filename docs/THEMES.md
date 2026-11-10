@@ -108,7 +108,7 @@ import { isValidSlug } from '@lib/utils/slug';
 export async function getStaticPaths() {
   const posts = await dataService.getAllPosts();
   return posts
-    .filter(post => isValidSlug(post.slug))  // 无效 slug 的文章会被静默跳过
+    .filter(post => isValidSlug(post.slug))  // 过滤无效 slug：NOPRESS_STRICT=false 时数据层保留无效条目，不过滤会生成坏路由
     .map(post => ({ params: { slug: post.slug }, props: { post } }));
 }
 

@@ -86,7 +86,7 @@ src/
 
 7. **缓存语义**：`getAllPosts()` 拉全量后缓存 key `all-posts`，`getPostBySlug()` / `getPostsByTag()` 等都基于它内存过滤，不会为单篇文章单独发请求。`getAllPages()`、`getAllTags()`、`getMenuItems()`、`getDatabaseInfo()` 各有独立缓存 key。缓存 namespace 掺有数据层代码版本 hash（`src/lib/cache/code-version.ts`，覆盖 notion/cache/utils/types.ts）和数据源标识（`NOTION_DATABASE_ID` 的短 hash），代码或数据源变更后缓存自动失效，无需手动 `rm -rf .cache/`；其余目录（markdown/theme/config）变更不影响缓存。
 
-8. **slug 校验失败的 Post/Page 会被静默跳过**（仅控制台警告），路由匹配用 `slugMatch()` 容忍编码差异。规则在 `src/lib/utils/slug.ts`。
+8. **无效 slug 由失败策略接管**：`getAllPosts()` / `getAllPages()` 发现无效 slug 时，默认（`NOPRESS_STRICT=true`）抛 `ContentRenderError` 中断构建；`NOPRESS_STRICT=false` 时仅告警，无效条目仍留在返回列表中（消费方需用 `isValidSlug()` 过滤）。路由匹配用 `slugMatch()` 容忍编码差异。规则在 `src/lib/utils/slug.ts`。
 
 9. **Markdown 转换方向是 HTML → Markdown**（`src/lib/markdown/`，turndown）：`post.content` 是已渲染并缓存的 HTML，`.md` 端点直接从它转换，不重新请求 Notion API。
 
