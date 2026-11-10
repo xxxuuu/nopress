@@ -158,7 +158,7 @@ COMMENTS_GISCUS_CATEGORY_ID=DIC_kwDOG...
 | 变量名 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `COMMENTS_ENABLED` | boolean | `false` | 评论总开关，`true` 启用 |
-| `COMMENTS_PROVIDER` | string | `giscus` | 评论提供商。**目前仅实现 giscus**；设为其他值（`waline` / `utterances` / `twikoo`）时页面不渲染评论区，仅控制台提示"暂未实现" |
+| `COMMENTS_PROVIDER` | string | `giscus` | 评论提供商。**目前仅实现 giscus**；设为其他值（`waline` / `utterances` / `twikoo`）时评论区不加载，控制台提示"暂未实现" |
 
 ### Giscus 参数
 
@@ -300,7 +300,7 @@ A: 评论数据存储在你 GitHub 仓库的 Discussions 中，你拥有完全�
 
 ### Q: 可以更换其他评论系统吗？
 
-A: `COMMENTS_PROVIDER` 架构上预留了 `waline` / `utterances` / `twikoo`，但**当前仅实现了 Giscus**；设置其他值时评论区不渲染，仅控制台提示"暂未实现"。
+A: `COMMENTS_PROVIDER` 架构上预留了 `waline` / `utterances` / `twikoo`，但**当前仅实现了 Giscus**；设置其他值时评论区不加载，控制台提示"暂未实现"。
 
 ### Q: 评论会同步到 Notion 吗？
 

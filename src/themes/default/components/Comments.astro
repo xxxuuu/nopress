@@ -55,17 +55,17 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
     const provider = container.dataset.provider;
     const configData = container.dataset.giscusConfig;
 
-    if (provider === 'giscus' && configData) {
-      try {
-        const { slug, title, config } = JSON.parse(configData);
-        initGiscus({ container, slug, title, config });
-      } catch (error) {
-        console.error('[Comments] Failed to parse config:', error);
-      }
-    } else if (provider === 'waline') {
-      console.warn('Waline 评论系统暂未实现');
-    } else if (provider === 'utterances') {
-      console.warn('Utterances 评论系统暂未实现');
+    if (provider !== 'giscus') {
+      console.warn(`[Comments] ${provider} 评论系统暂未实现`);
+      return;
+    }
+    if (!configData) return;
+
+    try {
+      const { slug, title, config } = JSON.parse(configData);
+      initGiscus({ container, slug, title, config });
+    } catch (error) {
+      console.error('[Comments] Failed to parse config:', error);
     }
   });
 </script>

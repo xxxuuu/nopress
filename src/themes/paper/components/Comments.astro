@@ -37,7 +37,11 @@ const giscusData = JSON.stringify({ slug, title, config: SITE_CONFIG.comments.gi
     if (!container) return;
 
     const { provider, giscusConfig } = container.dataset;
-    if (provider !== 'giscus' || !giscusConfig) return;
+    if (provider !== 'giscus') {
+      console.warn(`[Comments] ${provider} 评论系统暂未实现`);
+      return;
+    }
+    if (!giscusConfig) return;
 
     try {
       const { slug, title, config } = JSON.parse(giscusConfig);
