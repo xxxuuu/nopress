@@ -33,7 +33,7 @@ cp .env.example .env   # 填入 NOTION_TOKEN 与 NOTION_DATABASE_ID
 
 ```
 src/
-├── pages/        # 内核数据端点（.md、llms.txt、RSS、robots）
+├── pages/        # 内核数据端点（.md、llms.txt、robots；RSS/搜索文档集由 lib 下的 integration 按开关注入）
 ├── themes/       # 主题（default 全功能 / paper 学术排版 / minimal 契约参考 / terminal CRT 风 / retro 复古桌面）
 ├── lib/          # 内核：Notion 数据层、渲染器、缓存、markdown、主题系统、配置
 ├── config/       # 站点配置默认值与解析

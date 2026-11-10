@@ -293,7 +293,7 @@ vercel env pull .env.production
 **Dockerfile 示例**：
 
 ```dockerfile
-FROM node:18-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -614,21 +614,21 @@ const myValue = SITE_CONFIG.myCustomField;
 
 ### 条件配置
 
-根据环境变量启用/禁用功能：
+根据环境变量启用/禁用功能。单键读取统一走 `src/lib/config/env.ts` 的封装，按运行阶段选择函数：配置期（`astro.config.mjs` / integration hooks，早于 Vite 初始化）用 `readEnv()`，渲染期（页面、`src/lib/config/loader.ts` 等 Vite 模块）用 `readRuntimeEnv()`；布尔开关用 `isEnvDisabled()` 判断（`false` / `0` 为关，其余为开）：
 
 ```typescript
-// src/lib/config/loader.ts
-export function loadSiteConfig() {
-  const isProduction = import.meta.env.MODE === 'production';
+// 配置期：src/lib/ 下的 integration 内（astro.config.mjs 直接引 './src/lib/config/env.ts'）
+import { readEnv, isEnvDisabled } from '../config/env';
 
-  return {
-    // 生产环境启用评论，开发环境禁用
-    comments: {
-      enabled: isProduction && getEnvBoolean('COMMENTS_ENABLED', false),
-      // ...
-    },
-  };
-}
+const mode = process.env.NODE_ENV || 'development';
+const commentsEnabled = !isEnvDisabled(readEnv('COMMENTS_ENABLED', mode));
+```
+
+```typescript
+// 渲染期：页面 frontmatter、loader.ts 等 Vite 模块
+import { readRuntimeEnv, isEnvDisabled } from '@lib/config/env';
+
+const commentsEnabled = !isEnvDisabled(readRuntimeEnv('COMMENTS_ENABLED'));
 ```
 
 ---
